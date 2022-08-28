@@ -1,0 +1,15 @@
+services:
+  backend:
+    container_name: backend
+    env_file: ".env"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 127.0.0.1:80:3000
+    healthcheck:
+      test: curl -X GET --fail http://0.0.0.0:8000/api/v1/health -Is
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
