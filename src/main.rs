@@ -1,21 +1,18 @@
 use aws_config;
 use aws_sdk_neptune as neptune;
-use axum::{
-    routing::*,
-    Extension,
-    Router,
-};
+use axum::{routing::*, Extension, Router};
 use axum_server::tls_rustls::RustlsConfig;
-use std::{net::SocketAddr, sync::Arc, path::PathBuf};
+use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 use tokio;
 
 mod handlers {
-    pub mod people;
     pub mod advisories;
+    pub mod people;
 }
 use handlers::*;
 
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct SharedState {
     config: aws_config::SdkConfig,
     client: neptune::Client,
@@ -40,11 +37,11 @@ async fn main() {
     .unwrap();
 
     let app = Router::new()
-        // Add shared state to all requests
-        .layer(Extension(state))
         // Add routes to specific handler functions
         .route("/health", get(root)) // Health check
-        .route("/", get(advisories::get_advisories));
+        .route("/", get(advisories::get_advisories))
+        // Add shared state to all requests
+        .layer(Extension(state));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::debug!("listening on {}", addr);

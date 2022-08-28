@@ -11,5 +11,5 @@ Create certificates via OpenSSL
 - Create certificates with the following bash command
 
 ```bash
-openssl req -x509 -newkey rsa:4096 -keyout self_signed_certs/key.pem -out self_signed_certs/cert.pem
+openssl req -x509 -newkey rsa:2048 -nodes -keyout self_signed_certs/key.pem -out self_signed_certs/cert.pem
 ```
