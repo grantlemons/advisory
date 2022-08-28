@@ -1,6 +1,6 @@
 use aws_config;
 use aws_sdk_neptune as neptune;
-use axum::{routing::*, Extension, Router, Json};
+use axum::{routing::*, Extension, Json, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 use tokio;
@@ -64,7 +64,6 @@ pub struct SystemInfo {
     version: &'static str,
     description: &'static str,
     license: &'static str,
-
 }
 
 async fn info() -> Json<SystemInfo> {
