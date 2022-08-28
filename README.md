@@ -2,7 +2,7 @@
 
 ## Project Details
 
-## Installation
+## Setup & Execution
 
 ### TLS Certificates
 
