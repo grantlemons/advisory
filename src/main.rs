@@ -22,8 +22,10 @@ async fn main() {
     let state = Arc::new(SharedState { config, client });
 
     let app = Router::new()
-        .route("/", get(root))
-        .layer(Extension(state));
+        // Add shared state to all requests
+        .layer(Extension(state))
+        // Add routes to specific handler functions
+        .route("/", get(root)); // Health check
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::debug!("listening on {}", addr);
