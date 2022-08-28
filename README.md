@@ -18,7 +18,7 @@ openssl req -x509 -newkey rsa:2048 -nodes -keyout self_signed_certs/key.pem -out
 
 ## Compiling
 
-- Install rust via rustup
+- If not installed, install rust & rustup
 - Run the following bash command in the project directory
 
 ```bash
