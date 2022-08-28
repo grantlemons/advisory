@@ -9,8 +9,14 @@ use axum_server::tls_rustls::RustlsConfig;
 use std::{net::SocketAddr, sync::Arc, path::PathBuf};
 use tokio;
 
+mod handlers {
+    pub mod people;
+    pub mod advisories;
+}
+use handlers::*;
+
 #[allow(dead_code)]
-struct SharedState {
+pub struct SharedState {
     config: aws_config::SdkConfig,
     client: neptune::Client,
 }
@@ -37,11 +43,12 @@ async fn main() {
         // Add shared state to all requests
         .layer(Extension(state))
         // Add routes to specific handler functions
-        .route("/", get(root)); // Health check
+        .route("/health", get(root)) // Health check
+        .route("/", get(advisories::get_advisories));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::debug!("listening on {}", addr);
-    
+
     axum_server::bind_rustls(addr, config)
         .serve(app.into_make_service())
         .await
