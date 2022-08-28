@@ -1,19 +1,38 @@
 use aws_config;
 use aws_sdk_neptune as neptune;
+use axum::{
+    routing::*,
+    Extension,
+    Router,
+};
+use std::net::SocketAddr;
+use std::sync::Arc;
 use tokio;
 
-struct AwsConfig {
+#[allow(dead_code)]
+struct SharedState {
     config: aws_config::SdkConfig,
-    client: neptune::Client
+    client: neptune::Client,
 }
 
 #[tokio::main]
 async fn main() {
     let config = aws_config::load_from_env().await;
     let client = neptune::Client::new(&config);
+    let state = Arc::new(SharedState { config, client });
 
-    let conf = AwsConfig {
-        config,
-        client,
-    };
+    let app = Router::new()
+        .route("/", get(root))
+        .layer(Extension(state));
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    tracing::debug!("listening on {}", addr);
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
+}
+
+async fn root() -> &'static str {
+    "Healthy!"
 }
