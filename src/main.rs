@@ -3,20 +3,25 @@ use axum::{routing::*, Extension, Json, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
+/// Handlers for different HTTP requests made to the server
 mod handlers {
+    /// Handlers that generate advisories when requested
     pub mod advisories;
+    /// Handlers that handle adding and managing students and teachers
     pub mod people;
 }
 use handlers::*;
 
 #[allow(dead_code)]
 #[derive(Debug)]
+/// Shared state for accessing the database
 pub struct SharedState {
     config: aws_config::SdkConfig,
     client: neptune::Client,
 }
 
 #[tokio::main]
+/// Main async function run when executing the crate
 async fn main() {
     // Add aws sdk conf and client as shared state
     let config = aws_config::load_from_env().await;
@@ -38,6 +43,7 @@ async fn main() {
         // Add routes to specific handler functions
         .route("/health", get(health)) // Health check
         .route("/info", get(info))
+        .route("/people", post(people::add_person))
         .route("/", get(advisories::get_advisories))
         // Add shared state to all requests
         .layer(Extension(state));
@@ -51,12 +57,14 @@ async fn main() {
         .unwrap();
 }
 
+/// Healthcheck handler
 async fn health() -> &'static str {
     "Healthy!"
 }
 
+/// Information on version and other fields set in the cargo manifest
 #[derive(Debug, serde::Serialize)]
-pub struct SystemInfo {
+pub struct CrateInfo {
     name: &'static str,
     authors: Vec<&'static str>,
     version: &'static str,
@@ -64,8 +72,10 @@ pub struct SystemInfo {
     license: &'static str,
 }
 
-async fn info() -> Json<SystemInfo> {
-    Json(SystemInfo {
+/// Crate information handler
+/// Uses [`CrateInfo`] struct
+async fn info() -> Json<CrateInfo> {
+    Json(CrateInfo {
         name: env!("CARGO_PKG_NAME"),
         authors: env!("CARGO_PKG_AUTHORS").split(',').collect(),
         version: env!("CARGO_PKG_VERSION"),
