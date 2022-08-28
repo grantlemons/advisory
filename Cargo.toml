@@ -1,7 +1,9 @@
 [package]
 name = "advisory"
-authors = ["Grant Lemons"]
 version = "0.1.0"
+authors = ["Grant Lemons"]
+repository = "https://github.com/grantlemons/advisory"
+license = "GPL-3.0-only"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
