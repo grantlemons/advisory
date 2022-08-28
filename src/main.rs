@@ -1,9 +1,7 @@
-use aws_config;
 use aws_sdk_neptune as neptune;
 use axum::{routing::*, Extension, Json, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
-use tokio;
 
 mod handlers {
     pub mod advisories;
@@ -69,7 +67,7 @@ pub struct SystemInfo {
 async fn info() -> Json<SystemInfo> {
     Json(SystemInfo {
         name: env!("CARGO_PKG_NAME"),
-        authors: env!("CARGO_PKG_AUTHORS").split(",").collect(),
+        authors: env!("CARGO_PKG_AUTHORS").split(',').collect(),
         version: env!("CARGO_PKG_VERSION"),
         description: env!("CARGO_PKG_DESCRIPTION"),
         license: env!("CARGO_PKG_LICENSE"),
