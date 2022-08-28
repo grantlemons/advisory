@@ -1,6 +1,6 @@
 use aws_config;
 use aws_sdk_neptune as neptune;
-use axum::{routing::*, Extension, Router};
+use axum::{routing::*, Extension, Router, Json};
 use axum_server::tls_rustls::RustlsConfig;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 use tokio;
@@ -38,7 +38,8 @@ async fn main() {
 
     let app = Router::new()
         // Add routes to specific handler functions
-        .route("/health", get(root)) // Health check
+        .route("/health", get(health)) // Health check
+        .route("/info", get(info))
         .route("/", get(advisories::get_advisories))
         // Add shared state to all requests
         .layer(Extension(state));
@@ -52,6 +53,26 @@ async fn main() {
         .unwrap();
 }
 
-async fn root() -> &'static str {
+async fn health() -> &'static str {
     "Healthy!"
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct SystemInfo {
+    name: &'static str,
+    authors: Vec<&'static str>,
+    version: &'static str,
+    description: &'static str,
+    license: &'static str,
+
+}
+
+async fn info() -> Json<SystemInfo> {
+    Json(SystemInfo {
+        name: env!("CARGO_PKG_NAME"),
+        authors: env!("CARGO_PKG_AUTHORS").split(",").collect(),
+        version: env!("CARGO_PKG_VERSION"),
+        description: env!("CARGO_PKG_DESCRIPTION"),
+        license: env!("CARGO_PKG_LICENSE"),
+    })
 }
