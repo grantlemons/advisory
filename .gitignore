@@ -1,1 +1,3 @@
 /target
+/self_signed_certs/*
+!/self_signed_certs/.gitkeep
