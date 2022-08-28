@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 aws-config = "0.47.0"
 aws-sdk-neptune = "0.17.0"
+axum = "0.5.15"
 tokio = { version = "1.20.1", features = ["full"] }
