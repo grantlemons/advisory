@@ -7,21 +7,21 @@ use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 mod handlers {
     /// Handlers that generate advisories when requested
     pub mod advisories;
-    /// Handlers that handle adding and managing students and teachers
+    /// Handlers that handle adding and managing students and advisors
     pub mod people;
 }
 use handlers::*;
 
+/// Shared state for accessing the database
 #[allow(dead_code)]
 #[derive(Debug)]
-/// Shared state for accessing the database
 pub struct SharedState {
     config: aws_config::SdkConfig,
     client: neptune::Client,
 }
 
-#[tokio::main]
 /// Main async function run when executing the crate
+#[tokio::main]
 async fn main() {
     // Add aws sdk conf and client as shared state
     let config = aws_config::load_from_env().await;
