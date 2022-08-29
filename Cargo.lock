@@ -515,9 +515,6 @@ dependencies = [
 [[package]]
 name = "frontend"
 version = "0.1.0"
-dependencies = [
- "backend",
-]
 
 [[package]]
 name = "futures-channel"
