@@ -1,0 +1,20 @@
+[package]
+name = "backend"
+version = "0.1.0"
+authors = ["Grant Lemons"]
+repository = "https://github.com/grantlemons/advisory"
+license = "GPL-3.0-only"
+readme = "README.md"
+publish = false
+edition = "2021"
+
+[dependencies]
+aws-config = "0.47.0"
+aws-sdk-neptune = "0.17.0"
+axum = { version = "0.5.15", features = ["form"] }
+axum-macros = "0.2.3"
+axum-server = { version = "0.4.2", features = ["tls-rustls"] }
+serde = { version = "1.0.144", features = ["derive"] }
+serde_json = "1.0.85"
+tokio = { version = "1.20.1", features = ["full"] }
+tracing = "0.1.36"
