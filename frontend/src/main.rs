@@ -1,7 +1,12 @@
 use eframe::{egui, run_native};
 
-#[derive(Default)]
 struct FrontendApp;
+
+impl Default for FrontendApp {
+    fn default() -> Self {
+        Self {}
+    }
+}
 
 impl FrontendApp {
     fn new(_cc: &eframe::CreationContext<'_>) -> Self {
