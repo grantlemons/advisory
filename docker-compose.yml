@@ -3,7 +3,7 @@ services:
     container_name: backend
     env_file: ".env"
     build:
-      context: .
+      context: backend
       dockerfile: Dockerfile
     ports:
       - 127.0.0.1:80:3000
