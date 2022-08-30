@@ -70,6 +70,7 @@ pub struct CrateInfo {
     version: &'static str,
     description: &'static str,
     license: &'static str,
+    repository: &'static str,
 }
 
 /// Crate information handler
@@ -81,5 +82,6 @@ async fn info() -> Json<CrateInfo> {
         version: env!("CARGO_PKG_VERSION"),
         description: env!("CARGO_PKG_DESCRIPTION"),
         license: env!("CARGO_PKG_LICENSE"),
+        repository: env!("CARGO_PKG_REPOSITORY"),
     })
 }
