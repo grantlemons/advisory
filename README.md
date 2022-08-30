@@ -25,10 +25,10 @@ openssl req -x509 -newkey rsa:2048 -nodes -keyout backend/self_signed_certs/key.
 cargo build --release
 ```
 
-- To run, find the executable file in `/target/release/` and run it
+- To run, find the appropriate executable file in `/target/release/` and run it
 
 Alternatively, to run without producing an executable execute
 
-```bash
-cargo run
-```
+<pre>
+cargo run -p <i>backend</i> | <i>frontend</i>
+</pre>
