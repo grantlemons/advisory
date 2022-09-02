@@ -23,14 +23,14 @@ impl eframe::App for FrontendApp {
         egui::TopBottomPanel::top("my_top_panel")
             .default_height(60.0)
             .resizable(false)
-            .show(&ctx, |ui| {
+            .show(ctx, |ui| {
                 ui.heading("Advisory Creator");
             });
         egui::SidePanel::left("my_left_panel")
             .default_width(300.0)
             .width_range(200.0..=350.0)
             .resizable(false)
-            .show(&ctx, |ui| ui.label("Configuration"));
+            .show(ctx, |ui| ui.label("Configuration"));
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.label("Advisories");
         });
