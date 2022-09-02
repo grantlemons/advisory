@@ -3,39 +3,65 @@ use axum::{extract::Extension, http::StatusCode, Form, Json};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-/// The role a person can have
-/// Used in [`Person`] struct
-#[derive(Serialize, Deserialize, Debug)]
-enum PersonRole {
-    Student,
-    Advisor,
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct Teacher {
+    pub name: String,
 }
 
-impl std::fmt::Display for PersonRole {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            PersonRole::Student => write!(f, "student"),
-            PersonRole::Advisor => write!(f, "advisor"),
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct Student {
+    pub name: String,
+    pub teachers: Vec<Teacher>,
+    pub grade: Grade,
+    pub sex: Option<Sex>,
+}
+
+impl Default for Student {
+    fn default() -> Student {
+        Self {
+            name: "Default Name".to_string(),
+            teachers: Vec::<Teacher>::new(),
+            grade: Grade::Freshman,
+            sex: Some(Sex::Male),
         }
     }
 }
 
-/// Person form needed for [`add_person`]
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Person {
-    name: String,
-    role: PersonRole,
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub enum Grade {
+    Freshman,
+    Sophomore,
+    Junior,
+    Senior,
 }
 
-/// Handler to add a single person, either a advisor or a student to the database
-/// Uses [`Person`] as a form for input
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub enum Sex {
+    Male,
+    Female,
+}
+
+/// Handler to add a teacher, either a advisor or a student to the database
+/// Uses [`Teacher`] as a form for input
 #[axum_macros::debug_handler]
 //TODO: actually add node to remote database
-pub async fn add_person(
-    Form(person): Form<Person>,
+pub async fn add_teacher(
+    Form(teacher): Form<Teacher>,
     Extension(_state): Extension<Arc<SharedState>>,
-) -> Result<Json<Person>, StatusCode> {
-    tracing::debug!("POST made to people");
-    tracing::debug!("New person {:?} added", person);
-    Ok(Json(person))
+) -> Result<Json<Teacher>, StatusCode> {
+    tracing::debug!("POST made to people/teacher");
+    tracing::debug!("New teacher {:?} added", teacher);
+    Ok(Json(teacher))
+}
+
+/// Handler to add a student, either a advisor or a student to the database
+/// Uses [`Student`] as a form for input
+#[axum_macros::debug_handler]
+pub async fn add_student(
+    Form(student): Form<Student>,
+    Extension(_state): Extension<Arc<SharedState>>,
+) -> Result<Json<Student>, StatusCode> {
+    tracing::debug!("POST made to people/student");
+    tracing::debug!("New student {:?} added", student);
+    Ok(Json(student))
 }

@@ -1,6 +1,7 @@
 use aws_sdk_neptune as neptune;
 use axum::{routing::*, Extension, Json, Router};
 use axum_server::tls_rustls::RustlsConfig;
+use serde::Deserialize;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
 /// Handlers for different HTTP requests made to the server
@@ -18,6 +19,16 @@ use handlers::*;
 pub struct SharedState {
     config: aws_config::SdkConfig,
     client: neptune::Client,
+    num_students: i32,
+    num_advisories: i16,
+    weights: Weights,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Weights {
+    has_teacher: i8,
+    sex_diverse: i8,
+    grade_diverse: i8,
 }
 
 /// Main async function run when executing the crate
@@ -26,7 +37,18 @@ async fn main() {
     // Add aws sdk conf and client as shared state
     let config = aws_config::load_from_env().await;
     let client = neptune::Client::new(&config);
-    let state = Arc::new(SharedState { config, client });
+    let weights = Weights {
+        has_teacher: 10,
+        sex_diverse: 5,
+        grade_diverse: 5,
+    };
+    let state = Arc::new(SharedState {
+        config,
+        client,
+        num_students: 3,
+        num_advisories: 3,
+        weights,
+    });
 
     let config = RustlsConfig::from_pem_file(
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -43,7 +65,8 @@ async fn main() {
         // Add routes to specific handler functions
         .route("/health", get(health)) // Health check
         .route("/info", get(info))
-        .route("/people", post(people::add_person))
+        .route("/people/teacher", post(people::add_teacher))
+        .route("/people/student", post(people::add_student))
         .route("/", get(advisories::get_advisories))
         // Add shared state to all requests
         .layer(Extension(state));
