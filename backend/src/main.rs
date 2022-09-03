@@ -17,7 +17,6 @@ use handlers::*;
 #[allow(dead_code)]
 pub struct SharedState {
     graph: Arc<Graph>,
-    num_students: i32,
     num_advisories: i16,
     weights: Weights,
 }
@@ -37,43 +36,6 @@ async fn main() {
     let user = "neo4j";
     let pass = "test";
     let graph = Arc::new(Graph::new(&uri, user, pass).await.unwrap());
-    let mut result = graph
-        .execute(query("MATCH (s:Student)<-[:TEACHES]-(t) RETURN distinct(s) as students, collect(t) as teachers"))
-        .await
-        .unwrap();
-    let mut students: Vec<people::Student> = Vec::new();
-    while let Ok(Some(row)) = result.next().await {
-        use people::{Grade, Sex, Student, Teacher};
-
-        let student: Node = row.get("students").unwrap();
-        let name: String = student.get("name").unwrap();
-        let grade: Grade = Grade::from(student.get::<i64>("grade").unwrap());
-        let sex: Option<Sex> = Some(Sex::from(student.get::<String>("sex").unwrap()));
-
-        let mut t_structs: Vec<Teacher> = Vec::new();
-        match row.get::<Vec<Node>>("teachers") {
-            Some(teachers) => {
-                t_structs = teachers
-                    .into_iter()
-                    .map(|t| Teacher {
-                        name: t.get("name").unwrap(),
-                        sex: Some(Sex::from(t.get::<String>("sex").unwrap())),
-                    })
-                    .collect();
-            }
-            None => {
-                println!("Teachers is empty ({})", name)
-            }
-        }
-        students.push(Student {
-            name,
-            teachers: t_structs,
-            grade,
-            sex,
-        })
-    }
-
-    println!("{:#?}", students);
 
     let weights = Weights {
         has_teacher: 10,
@@ -82,8 +44,7 @@ async fn main() {
     };
     let state = Arc::new(SharedState {
         graph,
-        num_students: 3,
-        num_advisories: 3,
+        num_advisories: 4,
         weights,
     });
 

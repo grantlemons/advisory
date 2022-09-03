@@ -1,6 +1,7 @@
 use super::people::*;
 use crate::SharedState;
 use axum::{extract::Extension, Json};
+use neo4rs::*;
 use std::sync::Arc;
 
 #[derive(serde::Serialize, Clone)]
@@ -12,7 +13,7 @@ pub struct Advisory {
 }
 
 impl Advisory {
-    pub fn add_student(mut self, s: Student) {
+    pub fn add_student(&mut self, s: Student) {
         if let Some(sex) = &s.sex {
             match sex {
                 Sex::Male => self.remaining_sex.0 -= 1,
@@ -48,7 +49,7 @@ impl Advisory {
         }
     }
 
-    pub fn add_teacher(mut self, t: Teacher) {
+    pub fn add_teacher(&mut self, t: Teacher) {
         self.advisors.push(t);
     }
 
@@ -59,7 +60,6 @@ impl Advisory {
                 has = true;
             }
         }
-        println!("{} has a teacher!", s.name);
         has
     }
 
@@ -80,16 +80,37 @@ pub async fn get_advisories(state: Extension<Arc<SharedState>>) -> Json<Vec<Advi
 
 pub async fn build_advisories(Extension(state): Extension<Arc<SharedState>>) -> Vec<Advisory> {
     tracing::debug!("Building advisories");
-    let a = state.num_advisories;
-    let s = state.num_students;
-    let weights = &state.weights;
-    let advisories: Vec<Advisory> = vec![Advisory::default(a); a.try_into().unwrap()];
-    let students: Vec<Student> = vec![Student::default(); s.try_into().unwrap()];
 
+    let a = state.num_advisories;
+    let weights = &state.weights;
+    let students = get_students(&state).await;
+    let _teachers = get_teachers(&state).await;
+    let mut advisories: Vec<Advisory> =
+        vec![Advisory::default(students.len() as i16 / a); a.try_into().unwrap()];
+
+    // todo!("Add teachers to advisories");
     for i in students {
         let max: Option<usize> = advisories
             .iter()
             .map(|x| {
+                println!(
+                    "{} teacher weight: {} ({:#?})",
+                    i.name,
+                    (weights.has_teacher as i32 * x.has_teacher(&i) as i8 as i32),
+                    x.has_teacher(&i),
+                );
+                println!(
+                    "{} sex weight: {} ({})",
+                    i.name,
+                    (weights.sex_diverse as i32 * x.get_remaining_sex(&i.sex) as i32),
+                    x.get_remaining_sex(&i.sex),
+                );
+                println!(
+                    "{} grade weight: {} ({})",
+                    i.name,
+                    (weights.grade_diverse as i32 * x.get_remaining_grade(&i.grade) as i32),
+                    x.get_remaining_grade(&i.grade),
+                );
                 (weights.has_teacher as i32 * x.has_teacher(&i) as i8 as i32)
                     + (weights.sex_diverse as i32 * x.get_remaining_sex(&i.sex) as i32)
                     + (weights.grade_diverse as i32 * x.get_remaining_grade(&i.grade) as i32)
@@ -98,8 +119,63 @@ pub async fn build_advisories(Extension(state): Extension<Arc<SharedState>>) -> 
             .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .map(|(index, _)| index);
         if let Some(max) = max {
-            // advisories[max].add_student(Student::default());
+            println!("Adding {} to {:?}", &i.name, &advisories[max].advisors);
+            advisories[max].add_student(i);
         }
     }
     advisories
+}
+
+async fn get_students(state: &Arc<SharedState>) -> Vec<Student> {
+    let mut result = state.graph
+        .execute(query("MATCH (s:Student)<-[:TEACHES]-(t) RETURN distinct(s) as students, collect(t) as teachers"))
+        .await
+        .unwrap();
+    let mut students: Vec<Student> = Vec::new();
+    while let Ok(Some(row)) = result.next().await {
+        let student: Node = row.get("students").unwrap();
+        let name: String = student.get("name").unwrap();
+        let grade: Grade = Grade::from(student.get::<i64>("grade").unwrap());
+        let sex: Option<Sex> = Some(Sex::from(student.get::<String>("sex").unwrap()));
+
+        let mut t_structs: Vec<Teacher> = Vec::new();
+        match row.get::<Vec<Node>>("teachers") {
+            Some(teachers) => {
+                t_structs = teachers
+                    .into_iter()
+                    .map(|t| Teacher {
+                        name: t.get("name").unwrap(),
+                        sex: Some(Sex::from(t.get::<String>("sex").unwrap())),
+                    })
+                    .collect();
+            }
+            None => {
+                println!("Teachers is empty ({})", name)
+            }
+        }
+        students.push(Student {
+            name,
+            teachers: t_structs,
+            grade,
+            sex,
+        })
+    }
+    students
+}
+
+async fn get_teachers(state: &Arc<SharedState>) -> Vec<Teacher> {
+    let mut result = state
+        .graph
+        .execute(query("MATCH (t:Teacher) RETURN distinct(t) as teachers"))
+        .await
+        .unwrap();
+    let mut teachers: Vec<Teacher> = Vec::new();
+    while let Ok(Some(row)) = result.next().await {
+        let teacher: Node = row.get("teachers").unwrap();
+        let name: String = teacher.get("name").unwrap();
+        let sex: Option<Sex> = Some(Sex::from(teacher.get::<String>("sex").unwrap()));
+
+        teachers.push(Teacher { name, sex })
+    }
+    teachers
 }
