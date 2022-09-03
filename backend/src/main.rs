@@ -1,6 +1,6 @@
-use aws_sdk_neptune as neptune;
 use axum::{routing::*, Extension, Json, Router};
 use axum_server::tls_rustls::RustlsConfig;
+use neo4rs::*;
 use serde::Deserialize;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
@@ -15,10 +15,8 @@ use handlers::*;
 
 /// Shared state for accessing the database
 #[allow(dead_code)]
-#[derive(Debug)]
 pub struct SharedState {
-    config: aws_config::SdkConfig,
-    client: neptune::Client,
+    graph: Arc<Graph>,
     num_students: i32,
     num_advisories: i16,
     weights: Weights,
@@ -34,17 +32,40 @@ pub struct Weights {
 /// Main async function run when executing the crate
 #[tokio::main]
 async fn main() {
-    // Add aws sdk conf and client as shared state
-    let config = aws_config::load_from_env().await;
-    let client = neptune::Client::new(&config);
+    // connect to datbase
+    let uri = "127.0.0.1:7687";
+    let user = "neo4j";
+    let pass = "test";
+    let graph = Arc::new(Graph::new(&uri, user, pass).await.unwrap());
+    let mut result = graph
+        .execute(query("MATCH (s:Student)<-[:TEACHES]-(t) RETURN s, t.name"))
+        .await
+        .unwrap();
+    let mut students: Vec<people::Student> = Vec::new();
+    while let Ok(Some(row)) = result.next().await {
+        use people::{Grade, Sex, Student, Teacher};
+
+        let student: Node = row.get("s").unwrap();
+        let name: String = student.get("name").unwrap();
+        let grade: Grade = Grade::from(student.get::<i64>("grade").unwrap());
+        let sex: Option<Sex> = Some(Sex::from(student.get::<String>("sex").unwrap()));
+
+        let teacher_n: String = row.get("t.name").unwrap();
+        students.push(Student {
+            name,
+            grade,
+            sex,
+            teachers: vec![Teacher { name: teacher_n }],
+        });
+    }
+
     let weights = Weights {
         has_teacher: 10,
         sex_diverse: 5,
         grade_diverse: 5,
     };
     let state = Arc::new(SharedState {
-        config,
-        client,
+        graph,
         num_students: 3,
         num_advisories: 3,
         weights,

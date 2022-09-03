@@ -1,4 +1,11 @@
 services:
+  database:
+    container_name: database
+    image: "neo4j:latest"
+    environment:
+      - NEO4J_AUTH=neo4j/test
+    ports:
+      - 7687:7687
   backend:
     container_name: backend
     env_file: ".env"
