@@ -3,18 +3,16 @@ use axum::{extract::Extension, http::StatusCode, Form, Json};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Teacher {
     pub name: String,
+    pub sex: Option<Sex>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, merge::Merge)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Student {
-    #[merge(skip)]
     pub name: String,
-    #[merge(strategy = merge::vec::append)]
     pub teachers: Vec<Teacher>,
-    #[merge(skip)]
     pub grade: Grade,
     pub sex: Option<Sex>,
 }

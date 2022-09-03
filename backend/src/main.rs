@@ -38,26 +38,42 @@ async fn main() {
     let pass = "test";
     let graph = Arc::new(Graph::new(&uri, user, pass).await.unwrap());
     let mut result = graph
-        .execute(query("MATCH (s:Student)<-[:TEACHES]-(t) RETURN s, t.name"))
+        .execute(query("MATCH (s:Student)<-[:TEACHES]-(t) RETURN distinct(s) as students, collect(t) as teachers"))
         .await
         .unwrap();
     let mut students: Vec<people::Student> = Vec::new();
     while let Ok(Some(row)) = result.next().await {
         use people::{Grade, Sex, Student, Teacher};
 
-        let student: Node = row.get("s").unwrap();
+        let student: Node = row.get("students").unwrap();
         let name: String = student.get("name").unwrap();
         let grade: Grade = Grade::from(student.get::<i64>("grade").unwrap());
         let sex: Option<Sex> = Some(Sex::from(student.get::<String>("sex").unwrap()));
 
-        let teacher_n: String = row.get("t.name").unwrap();
+        let mut t_structs: Vec<Teacher> = Vec::new();
+        match row.get::<Vec<Node>>("teachers") {
+            Some(teachers) => {
+                t_structs = teachers
+                    .into_iter()
+                    .map(|t| Teacher {
+                        name: t.get("name").unwrap(),
+                        sex: Some(Sex::from(t.get::<String>("sex").unwrap())),
+                    })
+                    .collect();
+            }
+            None => {
+                println!("Teachers is empty ({})", name)
+            }
+        }
         students.push(Student {
             name,
+            teachers: t_structs,
             grade,
             sex,
-            teachers: vec![Teacher { name: teacher_n }],
-        });
+        })
     }
+
+    println!("{:#?}", students);
 
     let weights = Weights {
         has_teacher: 10,
