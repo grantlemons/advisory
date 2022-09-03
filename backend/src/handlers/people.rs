@@ -3,15 +3,18 @@ use axum::{extract::Extension, http::StatusCode, Form, Json};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Teacher {
     pub name: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, merge::Merge)]
 pub struct Student {
+    #[merge(skip)]
     pub name: String,
+    #[merge(strategy = merge::vec::append)]
     pub teachers: Vec<Teacher>,
+    #[merge(skip)]
     pub grade: Grade,
     pub sex: Option<Sex>,
 }
@@ -27,7 +30,7 @@ impl Default for Student {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Grade {
     Freshman,
     Sophomore,
@@ -35,10 +38,32 @@ pub enum Grade {
     Senior,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+impl From<i64> for Grade {
+    fn from(n: i64) -> Self {
+        match n {
+            9 => Self::Freshman,
+            10 => Self::Sophomore,
+            11 => Self::Junior,
+            12 => Self::Senior,
+            _ => panic!("Grade must be from 9-12"),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Sex {
     Male,
     Female,
+}
+
+impl From<String> for Sex {
+    fn from(s: String) -> Self {
+        match s.as_str() {
+            "Male" => Self::Male,
+            "Female" => Self::Female,
+            _ => panic!("{} not in list of sexes", s),
+        }
+    }
 }
 
 /// Handler to add a teacher, either a advisor or a student to the database

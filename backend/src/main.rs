@@ -58,6 +58,7 @@ async fn main() {
             teachers: vec![Teacher { name: teacher_n }],
         });
     }
+    students.as_iter().map(|x|, ).collect();
 
     let weights = Weights {
         has_teacher: 10,
