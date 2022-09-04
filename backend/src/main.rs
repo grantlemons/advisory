@@ -93,6 +93,7 @@ async fn main() {
 }
 
 /// Healthcheck handler
+/// Returns `Healthy!` if healthy
 async fn health() -> &'static str {
     "Healthy!"
 }
