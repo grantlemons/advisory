@@ -11,6 +11,8 @@ edition = "2021"
 [dependencies]
 axum = { version = "0.5.15", features = ["form"] }
 axum-server = { version = "0.4.2", features = ["tls-rustls"] }
+chrono = "0.4.22"
+fern = { version = "0.6.1", features = ["chrono", "colored"] }
 log = "0.4.17"
 neo4rs = { git = "https://github.com/grantlemons/neo4rs" }
 serde = { version = "1.0.144", features = ["derive"] }

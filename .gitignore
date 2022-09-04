@@ -1,3 +1,4 @@
 /target
 /backend/self_signed_certs/*
 !/backend/self_signed_certs/.gitkeep
+output.log

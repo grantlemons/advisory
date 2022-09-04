@@ -1,7 +1,6 @@
 use super::people::*;
 use crate::SharedState;
 use axum::{extract::Extension, Json};
-use neo4rs::*;
 use std::sync::Arc;
 
 /// Representation of an advisory
@@ -21,10 +20,29 @@ pub(crate) struct Advisory {
     remaining_grade: (i16, i16, i16, i16),
 }
 
+impl std::fmt::Display for Advisory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let names: Vec<&String> = self.advisors.iter().map(|t| &t.name).collect();
+        write!(f, "(")?;
+        match names.split_last() {
+            Some(n) => {
+                for i in n.1 {
+                    write!(f, "{}, ", i)?
+                }
+            }
+            None => {}
+        };
+        match names.split_last() {
+            Some(n) => write!(f, "{})", n.0),
+            None => write!(f, ")"),
+        }
+    }
+}
+
 impl Advisory {
     /// Adds a [`Student`] struct to the students vector
     pub(crate) fn add_student(&mut self, s: Student) {
-        log::trace!("Adding student {:?} to advisory {:?}", s, self);
+        log::debug!("Adding student {} to advisory {}", s, self);
         // Reduce number of remaining "spots" for the added student's sex
         if let Some(sex) = &s.sex {
             match sex {
@@ -32,7 +50,7 @@ impl Advisory {
                 Sex::Female => self.remaining_sex.1 -= 1,
             }
         }
-        log::trace!("Sex 'spots': {:?}", self.remaining_sex);
+        log::debug!("Sex 'spots' in {}: {:?}", self, self.remaining_sex);
         // Reduce number of remaining "spots" for the added student's grade
         match s.grade {
             Grade::Freshman => self.remaining_grade.0 -= 1,
@@ -40,67 +58,67 @@ impl Advisory {
             Grade::Junior => self.remaining_grade.2 -= 1,
             Grade::Senior => self.remaining_grade.3 -= 1,
         }
-        log::trace!("Grade 'spots': {:?}", self.remaining_grade);
+        log::debug!("Grade 'spots' in {}: {:?}", self, self.remaining_grade);
 
         self.students.push(s);
     }
 
     /// Gets the remaining number or "spots" left for a given sex in an advisory
     pub(crate) fn get_remaining_sex(&self, sex: &Option<Sex>) -> i16 {
-        log::trace!("Getting remaining 'spots' by sex");
+        log::debug!("Getting remaining 'spots' by sex");
         if let Some(sex) = sex {
-            log::trace!("Getting remaining 'spots' for {:?}", sex);
+            log::debug!("Getting remaining 'spots' for {} in {}", sex, self);
             let num = match sex {
                 Sex::Male => self.remaining_sex.0,
                 Sex::Female => self.remaining_sex.1,
             };
-            log::trace!("{:?} has {} 'spots' left", sex, num);
+            log::debug!("{} has {} 'spots' left in {}", sex, num, self);
             num
         } else {
-            log::trace!("Sex inputted was None type");
+            log::debug!("Sex inputted was None type");
             0
         }
     }
 
     /// Gets the remaining number of "spots" left for a given grade in an advisory
     pub(crate) fn get_remaining_grade(&self, grade: &Grade) -> i16 {
-        log::trace!("Getting remaining 'spots' for {:?}", grade);
+        log::debug!("Getting remaining 'spots' for {} in {}", grade, self);
         let num = match grade {
             Grade::Freshman => self.remaining_grade.0,
             Grade::Sophomore => self.remaining_grade.1,
             Grade::Junior => self.remaining_grade.2,
             Grade::Senior => self.remaining_grade.3,
         };
-        log::trace!("{:?} has {} 'spots' left", grade, num);
+        log::debug!("{} has {} 'spots' left in {}", grade, num, self);
         num
     }
 
     /// Adds a [`Teacher`] struct to the advisors vector if Some
     pub(crate) fn add_teacher(&mut self, t: Option<Teacher>) {
         if let Some(t) = t {
-            log::trace!("Adding teacher {:?} to advisory {:?}", t, self);
+            log::debug!("Adding teacher {} to advisory {}", t, self);
             self.advisors.push(t);
         } else {
-            log::trace!("Added teacher is None type: doing nothing");
+            log::debug!("Added teacher is None type: doing nothing");
         }
     }
 
     /// Checks whether one of the advisors teaches the given student
     pub(crate) fn has_teacher(&self, s: &Student) -> bool {
-        log::trace!("Checking if {:?} has a teacher in {:?}", s, self);
+        log::debug!("Checking if {} has a teacher in {}", s, self);
         let mut has = false;
         for i in &s.teachers {
             if self.advisors.contains(i) {
                 has = true;
             }
         }
-        log::trace!("{:?} has a teacher in {:?}: {}", s, self, has);
+        log::debug!("{} has a teacher in {}: {}", s, self, has);
         has
     }
 
     /// Default advisory values given target number of students for the advisory
     pub(crate) fn default(n: i16) -> Advisory {
-        log::trace!("Initialized new advisory via default");
+        log::debug!("Initialized new advisory via default");
         Self {
             advisors: Vec::<Teacher>::new(),
             students: Vec::<Student>::new(),
@@ -131,14 +149,14 @@ pub(crate) async fn build_advisories(
     // create vector of advisories to fill
     let s: i16 = students.len() as i16;
     let a: i16 = state.num_advisories;
-    log::trace!("{} Students, {} Advisories", s, a);
+    log::debug!("{} Students, {} Advisories", s, a);
     let mut advisories: Vec<Advisory> = vec![Advisory::default(s / a); a.try_into().unwrap()];
 
     // add teachers to advisories
     for i in &mut advisories {
         let t1 = teachers.pop();
         let t2 = teachers.pop();
-        log::trace!("Adding {:?} & {:?} to {:?}", t1, t2, i);
+        log::debug!("Adding {:?} to {}", vec![&t1, &t2], i);
         i.add_teacher(t1);
         i.add_teacher(t2);
     }
@@ -147,33 +165,31 @@ pub(crate) async fn build_advisories(
         let max: Option<usize> = advisories
             .iter()
             .map(|x| {
-                log::trace!("Calculating weight for {} & {:?}", i.name, x);
+                log::debug!("Calculating weight for {} & {}", i, x);
                 let weight = (state.weights.has_teacher as i32
                     * x.has_teacher(&i) as i32
                     * (s / a) as i32)
                     + (state.weights.sex_diverse as i32 * x.get_remaining_sex(&i.sex) as i32)
                     + (state.weights.grade_diverse as i32 * x.get_remaining_grade(&i.grade) as i32);
-                log::trace!("Weight for {} & {:?} is {}", i.name, x, weight);
+                log::debug!("Weight for {} & ({}) is {}", i, x, weight);
                 weight
             })
             .enumerate()
             .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .map(|(index, _)| index);
         if let Some(max) = max {
-            log::trace!("Adding {} to {:?}", i.name, advisories[max].advisors);
+            log::debug!("Adding {} to {}", i, advisories[max]);
             advisories[max].add_student(i);
         }
     }
-    log::trace!(
-        "build_advisories complete: advisories are {:#?}",
-        advisories
-    );
+    log::debug!("build_advisories complete");
     advisories
 }
 
 /// Helper function for [`build_advisories`] to get vector of students from neo4j database using [`neo4rs`]
 async fn get_students(state: &Arc<SharedState>) -> Vec<Student> {
-    log::trace!("Getting students from database");
+    log::debug!("Getting students from database");
+    use neo4rs::*;
 
     // Get the result of a Cypher query to the neo4j database
     let mut result = state.graph
@@ -190,15 +206,15 @@ async fn get_students(state: &Arc<SharedState>) -> Vec<Student> {
         let grade: Grade = Grade::from(student.get::<i64>("grade").unwrap());
         let sex: Option<Sex> = Some(Sex::from(student.get::<String>("sex").unwrap()));
 
-        log::trace!(
-            "Student data is {{name: {}, grade: {:?}, sex: {:?}}}",
+        log::debug!(
+            "Student data is {{name: {}, grade: {}, sex: {:?}}}",
             name,
             grade,
             sex
         );
 
         // Get the student's teachers
-        log::trace!("Getting {}'s teachers", name);
+        log::debug!("Getting {}'s teachers", name);
         let mut t_structs: Vec<Teacher> = Vec::new();
         match row.get::<Vec<Node>>("teachers") {
             Some(teachers) => {
@@ -222,16 +238,17 @@ async fn get_students(state: &Arc<SharedState>) -> Vec<Student> {
             grade,
             sex,
         };
-        log::trace!("Adding student to vec: {:?}", student);
+        log::debug!("Adding {} to students vector", student);
         students.push(student)
     }
-    log::trace!("Done getting students!");
+    log::debug!("Done getting students!");
     students
 }
 
 /// Helper function for [`build_advisories`] to get vector of teachers from neo4j database using [`neo4rs`]
 async fn get_teachers(state: &Arc<SharedState>) -> Vec<Teacher> {
-    log::trace!("Getting teachers from database");
+    log::debug!("Getting teachers from database");
+    use neo4rs::*;
 
     // Get the result of a Cypher query to the neo4j database
     let mut result = state
@@ -248,13 +265,13 @@ async fn get_teachers(state: &Arc<SharedState>) -> Vec<Teacher> {
         let name: String = teacher.get("name").unwrap();
         let sex: Option<Sex> = Some(Sex::from(teacher.get::<String>("sex").unwrap()));
 
-        log::trace!("Teacher data is {{name: {}, sex: {:?}}}", name, sex);
+        log::debug!("Teacher data is {{name: {}, sex: {:?}}}", name, sex);
 
         // Add teacher will all fields to the teachers vector
         let teacher = Teacher { name, sex };
-        log::trace!("Adding teacher to vec: {:?}", teacher);
+        log::debug!("Adding {} to teacher vector", teacher);
         teachers.push(teacher)
     }
-    log::trace!("Done getting teachers!");
+    log::debug!("Done getting teachers!");
     teachers
 }

@@ -10,6 +10,12 @@ pub(crate) struct Teacher {
     pub(crate) sex: Option<Sex>,
 }
 
+impl std::fmt::Display for Teacher {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
 /// Representation of a teacher
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub(crate) struct Student {
@@ -21,6 +27,12 @@ pub(crate) struct Student {
     pub(crate) grade: Grade,
     /// Student's biological sex, represented by the optional [`Sex`] enum
     pub(crate) sex: Option<Sex>,
+}
+
+impl std::fmt::Display for Student {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
+    }
 }
 
 /// Default values of the [`Student`] struct
@@ -59,6 +71,18 @@ impl From<i64> for Grade {
     }
 }
 
+impl std::fmt::Display for Grade {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let string = match self {
+            Self::Freshman => "Freshman",
+            Self::Sophomore => "Sophomore",
+            Self::Junior => "Junior",
+            Self::Senior => "Senior",
+        };
+        write!(f, "{}", string)
+    }
+}
+
 /// Representaion of possible sexes for students within database
 ///
 /// Adding more options requires changing the sex "spots" tuple in [`super::advisories::Advisory`] as well as adding the mapping to the implementations.
@@ -79,6 +103,16 @@ impl From<String> for Sex {
             "Female" => Self::Female,
             _ => panic!("{} not in list of sexes", s),
         }
+    }
+}
+
+impl std::fmt::Display for Sex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let string = match self {
+            Self::Male => "Male",
+            Self::Female => "Female",
+        };
+        write!(f, "{}", string)
     }
 }
 

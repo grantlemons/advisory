@@ -9,7 +9,6 @@
 
 use axum::{routing::*, Extension, Json, Router};
 use axum_server::tls_rustls::RustlsConfig;
-use neo4rs::*;
 use serde::Deserialize;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
@@ -25,7 +24,7 @@ use handlers::*;
 /// Shared state for accessing the database
 #[allow(dead_code)]
 pub(crate) struct SharedState {
-    graph: Arc<Graph>,
+    graph: Arc<neo4rs::Graph>,
     num_advisories: i16,
     weights: Weights,
 }
@@ -50,11 +49,14 @@ pub(crate) struct Weights {
 /// Main async function run when executing the crate
 #[tokio::main]
 async fn main() {
+    // Setup logger
+    setup_logger().expect("Unable to setup logger with fern");
+
     // connect to datbase
     let uri = "127.0.0.1:7687";
     let user = "neo4j";
     let pass = "test";
-    let graph = Arc::new(Graph::new(uri, user, pass).await.unwrap());
+    let graph = Arc::new(neo4rs::Graph::new(uri, user, pass).await.unwrap());
 
     // Create default settings for testing
     //TODO: Change from hardcoded weights and number of advisories to using an endpoint to set user config
@@ -134,4 +136,22 @@ async fn info() -> Json<CrateInfo> {
         license: env!("CARGO_PKG_LICENSE"),
         repository: env!("CARGO_PKG_REPOSITORY"),
     })
+}
+
+/// Logger configuration using [`fern`]
+fn setup_logger() -> Result<(), fern::InitError> {
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "{}[{}][{}] {}",
+                chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+                record.target(),
+                record.level(),
+                message
+            ))
+        })
+        .level(log::LevelFilter::Debug)
+        .chain(fern::log_file("output.log")?)
+        .apply()?;
+    Ok(())
 }
