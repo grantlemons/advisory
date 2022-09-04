@@ -36,11 +36,11 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "axum-server",
+ "log",
  "neo4rs",
  "serde",
  "serde_json",
  "tokio",
- "tracing",
 ]
 
 [[package]]

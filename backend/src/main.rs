@@ -95,7 +95,7 @@ async fn main() {
 
     // IP and Port to bind to
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    tracing::debug!("listening on {}", addr);
+    log::debug!("listening on {}", addr);
 
     // Bind axum app to configured IP and Port
     axum_server::bind_rustls(addr, config)

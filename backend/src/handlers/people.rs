@@ -90,8 +90,8 @@ pub(crate) async fn add_teacher(
     Form(teacher): Form<Teacher>,
     Extension(_state): Extension<Arc<SharedState>>,
 ) -> Result<Json<Teacher>, StatusCode> {
-    tracing::debug!("POST made to people/teacher");
-    tracing::debug!("New teacher {:?} added", teacher);
+    log::debug!("POST made to people/teacher");
+    log::debug!("New teacher {:?} added", teacher);
     Ok(Json(teacher))
 }
 
@@ -102,7 +102,7 @@ pub(crate) async fn add_student(
     Form(student): Form<Student>,
     Extension(_state): Extension<Arc<SharedState>>,
 ) -> Result<Json<Student>, StatusCode> {
-    tracing::debug!("POST made to people/student");
-    tracing::debug!("New student {:?} added", student);
+    log::debug!("POST made to people/student");
+    log::debug!("New student {:?} added", student);
     Ok(Json(student))
 }
