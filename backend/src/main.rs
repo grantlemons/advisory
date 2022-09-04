@@ -1,3 +1,10 @@
+//! A crate for running the backend of an application used to sort students into advisories based on
+//! specific criteria with weighted values that can be configured via an endpoint.
+//!
+//! **Notes**
+//!
+//! A custom fork of neo4rs is used to add functionality for handling vectors as a return type from neo4j
+
 use axum::{routing::*, Extension, Json, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use neo4rs::*;
@@ -7,15 +14,15 @@ use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 /// Handlers for different HTTP requests made to the server
 mod handlers {
     /// Handlers that generate advisories when requested
-    pub mod advisories;
+    pub(crate) mod advisories;
     /// Handlers that handle adding and managing students and advisors
-    pub mod people;
+    pub(crate) mod people;
 }
 use handlers::*;
 
 /// Shared state for accessing the database
 #[allow(dead_code)]
-pub struct SharedState {
+pub(crate) struct SharedState {
     graph: Arc<Graph>,
     num_advisories: i16,
     weights: Weights,
@@ -23,14 +30,17 @@ pub struct SharedState {
 
 /// Weights from 0-10 used to assign importance to each possible parameter
 #[derive(Debug, Deserialize)]
-pub struct Weights {
+pub(crate) struct Weights {
     /// The importance that each student an an advisory has one of the advisors as a teacher
+    ///
     /// Value from 0-10
     has_teacher: i8,
     /// The importance of biological sex diversity within advisories
+    ///
     /// Value from 0-10
     sex_diverse: i8,
     /// The importance of grade diversity within advisories
+    ///
     /// Value from 0-10
     grade_diverse: i8,
 }
@@ -93,6 +103,7 @@ async fn main() {
 }
 
 /// Healthcheck handler
+///
 /// Returns `Healthy!` if healthy
 async fn health() -> &'static str {
     "Healthy!"
@@ -100,7 +111,7 @@ async fn health() -> &'static str {
 
 /// Information on version and other fields set in the cargo manifest
 #[derive(Debug, serde::Serialize)]
-pub struct CrateInfo {
+pub(crate) struct CrateInfo {
     name: &'static str,
     authors: Vec<&'static str>,
     version: &'static str,
@@ -110,6 +121,7 @@ pub struct CrateInfo {
 }
 
 /// Crate information handler used to get information on the server
+///
 /// Uses [`CrateInfo`] struct
 async fn info() -> Json<CrateInfo> {
     Json(CrateInfo {

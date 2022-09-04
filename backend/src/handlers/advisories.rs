@@ -6,22 +6,24 @@ use std::sync::Arc;
 
 /// Representation of an advisory
 #[derive(serde::Serialize, Clone, Debug)]
-pub struct Advisory {
+pub(crate) struct Advisory {
     /// Vector of [`Teacher`] structs
     advisors: Vec<Teacher>,
     /// Vector of [`Student`] structs
     students: Vec<Student>,
     /// Remaining "spots" for each [`Sex`]
+    ///
     /// Represents (Male, Female)
     remaining_sex: (i16, i16),
     /// Remaining "spots" for each [`Grade`]
+    ///
     /// Represents (Freshman, Sophomore, Junior, Senior)
     remaining_grade: (i16, i16, i16, i16),
 }
 
 impl Advisory {
     /// Adds a [`Student`] struct to the students vector
-    pub fn add_student(&mut self, s: Student) {
+    pub(crate) fn add_student(&mut self, s: Student) {
         // Reduce number of remaining "spots" for the added student's sex
         if let Some(sex) = &s.sex {
             match sex {
@@ -40,7 +42,7 @@ impl Advisory {
     }
 
     /// Gets the remaining number or "spots" left for a given sex in an advisory
-    pub fn get_remaining_sex(&self, sex: &Option<Sex>) -> i16 {
+    pub(crate) fn get_remaining_sex(&self, sex: &Option<Sex>) -> i16 {
         if let Some(sex) = sex {
             match sex {
                 Sex::Male => self.remaining_sex.0,
@@ -52,7 +54,7 @@ impl Advisory {
     }
 
     /// Gets the remaining number of "spots" left for a given grade in an advisory
-    pub fn get_remaining_grade(&self, grade: &Grade) -> i16 {
+    pub(crate) fn get_remaining_grade(&self, grade: &Grade) -> i16 {
         match grade {
             Grade::Freshman => self.remaining_grade.0,
             Grade::Sophomore => self.remaining_grade.1,
@@ -62,12 +64,12 @@ impl Advisory {
     }
 
     /// Adds a [`Teacher`] struct to the advisors vector
-    pub fn add_teacher(&mut self, t: Teacher) {
+    pub(crate) fn add_teacher(&mut self, t: Teacher) {
         self.advisors.push(t);
     }
 
     /// Checks whether one of the advisors teaches the given student
-    pub fn has_teacher(&self, s: &Student) -> bool {
+    pub(crate) fn has_teacher(&self, s: &Student) -> bool {
         let mut has = false;
         for i in &s.teachers {
             if self.advisors.contains(i) {
@@ -78,7 +80,7 @@ impl Advisory {
     }
 
     /// Default advisory values given target number of students for the advisory
-    pub fn default(n: i16) -> Advisory {
+    pub(crate) fn default(n: i16) -> Advisory {
         Self {
             advisors: Vec::<Teacher>::new(),
             students: Vec::<Student>::new(),
@@ -90,14 +92,17 @@ impl Advisory {
 }
 
 /// Wrapper of [`build_advisories`] called by https get requests to `/`
-pub async fn get_advisories(state: Extension<Arc<SharedState>>) -> Json<Vec<Advisory>> {
+pub(crate) async fn get_advisories(state: Extension<Arc<SharedState>>) -> Json<Vec<Advisory>> {
     tracing::debug!("GET made to get_advisories");
     Json(build_advisories(state).await)
 }
 
 /// Places students into advisories and returns a vector of them
+///
 /// Called by [`get_advisories`]
-pub async fn build_advisories(Extension(state): Extension<Arc<SharedState>>) -> Vec<Advisory> {
+pub(crate) async fn build_advisories(
+    Extension(state): Extension<Arc<SharedState>>,
+) -> Vec<Advisory> {
     tracing::debug!("Building advisories");
     // create vectors from data from database
     let students: Vec<Student> = get_students(&state).await;

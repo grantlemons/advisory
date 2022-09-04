@@ -1,5 +1,5 @@
 [package]
-name = "frontend"
+name = "advisory-frontend"
 version = "0.1.0"
 authors = ["Grant Lemons"]
 repository = "https://github.com/grantlemons/advisory"

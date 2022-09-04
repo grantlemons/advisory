@@ -5,22 +5,22 @@ use std::sync::Arc;
 
 /// Representation of a teacher
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct Teacher {
-    pub name: String,
-    pub sex: Option<Sex>,
+pub(crate) struct Teacher {
+    pub(crate) name: String,
+    pub(crate) sex: Option<Sex>,
 }
 
 /// Representation of a teacher
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct Student {
+pub(crate) struct Student {
     /// Student's name - should be in `First Last` format, but can be anything that distinguishes them from other students
-    pub name: String,
+    pub(crate) name: String,
     /// Vector list of the student's teacher for the current academic school year
-    pub teachers: Vec<Teacher>,
+    pub(crate) teachers: Vec<Teacher>,
     /// Student's grade represented with the [`Grade`] enum
-    pub grade: Grade,
+    pub(crate) grade: Grade,
     /// Student's biological sex, represented by the optional [`Sex`] enum
-    pub sex: Option<Sex>,
+    pub(crate) sex: Option<Sex>,
 }
 
 /// Default values of the [`Student`] struct
@@ -36,9 +36,10 @@ impl Default for Student {
 }
 
 /// Representaion of possible grades for students
+///
 /// Adding more options requires changing the grade "spots" tuple in [`super::advisories::Advisory`] as well as adding the mapping to the implementations
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-pub enum Grade {
+pub(crate) enum Grade {
     Freshman,
     Sophomore,
     Junior,
@@ -59,11 +60,13 @@ impl From<i64> for Grade {
 }
 
 /// Representaion of possible sexes for students within database
-/// Adding more options requires changing the sex "spots" tuple in [`super::advisories::Advisory`] as well as adding the mapping to the implementations
+///
+/// Adding more options requires changing the sex "spots" tuple in [`super::advisories::Advisory`] as well as adding the mapping to the implementations.
+///
 /// I understand that grouping it like this might be somewhat sensitive, but it is needed for attempting diversity in the advisories. Sex is used in place of gender to avoid
 /// complexities and ambiguity by representing biological sex. I know that there are some exceptions, but there is no pressing need to accommodate that edge case currently.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-pub enum Sex {
+pub(crate) enum Sex {
     Male,
     Female,
 }
@@ -80,10 +83,10 @@ impl From<String> for Sex {
 }
 
 /// Handler to add a teacher, either a advisor or a student to the database
+///
 /// Uses [`Teacher`] as a form for input
-#[axum_macros::debug_handler]
 //TODO: actually add node to remote database
-pub async fn add_teacher(
+pub(crate) async fn add_teacher(
     Form(teacher): Form<Teacher>,
     Extension(_state): Extension<Arc<SharedState>>,
 ) -> Result<Json<Teacher>, StatusCode> {
@@ -93,9 +96,9 @@ pub async fn add_teacher(
 }
 
 /// Handler to add a student, either a advisor or a student to the database
+///
 /// Uses [`Student`] as a form for input
-#[axum_macros::debug_handler]
-pub async fn add_student(
+pub(crate) async fn add_student(
     Form(student): Form<Student>,
     Extension(_state): Extension<Arc<SharedState>>,
 ) -> Result<Json<Student>, StatusCode> {

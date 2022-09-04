@@ -30,5 +30,5 @@ cargo build --release
 Alternatively, to run without producing an executable execute
 
 <pre>
-cargo run -p <i>backend</i> | <i>frontend</i>
+cargo run -p <i>advisory-backend</i> | <i>advisory-frontend</i>
 </pre>
