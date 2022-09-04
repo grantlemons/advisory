@@ -3,20 +3,27 @@ use axum::{extract::Extension, http::StatusCode, Form, Json};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
+/// Representation of a teacher
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Teacher {
     pub name: String,
     pub sex: Option<Sex>,
 }
 
+/// Representation of a teacher
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Student {
+    /// Student's name - should be in `First Last` format, but can be anything that distinguishes them from other students
     pub name: String,
+    /// Vector list of the student's teacher for the current academic school year
     pub teachers: Vec<Teacher>,
+    /// Student's grade represented with the [`Grade`] enum
     pub grade: Grade,
+    /// Student's biological sex, represented by the optional [`Sex`] enum
     pub sex: Option<Sex>,
 }
 
+/// Default values of the [`Student`] struct
 impl Default for Student {
     fn default() -> Student {
         Self {
@@ -28,6 +35,8 @@ impl Default for Student {
     }
 }
 
+/// Representaion of possible grades for students
+/// Adding more options requires changing the grade "spots" tuple in [`super::advisories::Advisory`] as well as adding the mapping to the implementations
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Grade {
     Freshman,
@@ -36,6 +45,7 @@ pub enum Grade {
     Senior,
 }
 
+/// Mapping for string to [`Grade`] enum used for parsing info from database
 impl From<i64> for Grade {
     fn from(n: i64) -> Self {
         match n {
@@ -48,12 +58,17 @@ impl From<i64> for Grade {
     }
 }
 
+/// Representaion of possible sexes for students within database
+/// Adding more options requires changing the sex "spots" tuple in [`super::advisories::Advisory`] as well as adding the mapping to the implementations
+/// I understand that grouping it like this might be somewhat sensitive, but it is needed for attempting diversity in the advisories. Sex is used in place of gender to avoid
+/// complexities and ambiguity by representing biological sex. I know that there are some exceptions, but there is no pressing need to accommodate that edge case currently.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum Sex {
     Male,
     Female,
 }
 
+/// Mapping for string to [`Sex`] enum used for parsing info from database
 impl From<String> for Sex {
     fn from(s: String) -> Self {
         match s.as_str() {

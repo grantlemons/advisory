@@ -21,10 +21,17 @@ pub struct SharedState {
     weights: Weights,
 }
 
+/// Weights from 0-10 used to assign importance to each possible parameter
 #[derive(Debug, Deserialize)]
 pub struct Weights {
+    /// The importance that each student an an advisory has one of the advisors as a teacher
+    /// Value from 0-10
     has_teacher: i8,
+    /// The importance of biological sex diversity within advisories
+    /// Value from 0-10
     sex_diverse: i8,
+    /// The importance of grade diversity within advisories
+    /// Value from 0-10
     grade_diverse: i8,
 }
 
@@ -37,6 +44,8 @@ async fn main() {
     let pass = "test";
     let graph = Arc::new(Graph::new(uri, user, pass).await.unwrap());
 
+    // Create default settings for testing
+    //TODO: Change from hardcoded weights and number of advisories to using an endpoint to set user config
     let weights = Weights {
         has_teacher: 10,
         sex_diverse: 5,
@@ -48,6 +57,8 @@ async fn main() {
         weights,
     });
 
+    // Get SSL certificates from file
+    // Refer to `README.md` for instruction on generating these
     let config = RustlsConfig::from_pem_file(
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("self_signed_certs")
@@ -59,6 +70,7 @@ async fn main() {
     .await
     .unwrap();
 
+    // Axum setup and configuration
     let app = Router::new()
         // Add routes to specific handler functions
         .route("/health", get(health)) // Health check
@@ -69,9 +81,11 @@ async fn main() {
         // Add shared state to all requests
         .layer(Extension(state));
 
+    // IP and Port to bind to
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::debug!("listening on {}", addr);
 
+    // Bind axum app to configured IP and Port
     axum_server::bind_rustls(addr, config)
         .serve(app.into_make_service())
         .await
@@ -94,7 +108,7 @@ pub struct CrateInfo {
     repository: &'static str,
 }
 
-/// Crate information handler
+/// Crate information handler used to get information on the server
 /// Uses [`CrateInfo`] struct
 async fn info() -> Json<CrateInfo> {
     Json(CrateInfo {

@@ -4,22 +4,32 @@ use axum::{extract::Extension, Json};
 use neo4rs::*;
 use std::sync::Arc;
 
+/// Representation of an advisory
 #[derive(serde::Serialize, Clone, Debug)]
 pub struct Advisory {
+    /// Vector of [`Teacher`] structs
     advisors: Vec<Teacher>,
+    /// Vector of [`Student`] structs
     students: Vec<Student>,
+    /// Remaining "spots" for each [`Sex`]
+    /// Represents (Male, Female)
     remaining_sex: (i16, i16),
+    /// Remaining "spots" for each [`Grade`]
+    /// Represents (Freshman, Sophomore, Junior, Senior)
     remaining_grade: (i16, i16, i16, i16),
 }
 
 impl Advisory {
+    /// Adds a [`Student`] struct to the students vector
     pub fn add_student(&mut self, s: Student) {
+        // Reduce number of remaining "spots" for the added student's sex
         if let Some(sex) = &s.sex {
             match sex {
                 Sex::Male => self.remaining_sex.0 -= 1,
                 Sex::Female => self.remaining_sex.1 -= 1,
             }
         }
+        // Reduce number of remaining "spots" for the added student's grade
         match s.grade {
             Grade::Freshman => self.remaining_grade.0 -= 1,
             Grade::Sophomore => self.remaining_grade.1 -= 1,
@@ -29,6 +39,7 @@ impl Advisory {
         self.students.push(s);
     }
 
+    /// Gets the remaining number or "spots" left for a given sex in an advisory
     pub fn get_remaining_sex(&self, sex: &Option<Sex>) -> i16 {
         if let Some(sex) = sex {
             match sex {
@@ -40,6 +51,7 @@ impl Advisory {
         }
     }
 
+    /// Gets the remaining number of "spots" left for a given grade in an advisory
     pub fn get_remaining_grade(&self, grade: &Grade) -> i16 {
         match grade {
             Grade::Freshman => self.remaining_grade.0,
@@ -49,10 +61,12 @@ impl Advisory {
         }
     }
 
+    /// Adds a [`Teacher`] struct to the advisors vector
     pub fn add_teacher(&mut self, t: Teacher) {
         self.advisors.push(t);
     }
 
+    /// Checks whether one of the advisors teaches the given student
     pub fn has_teacher(&self, s: &Student) -> bool {
         let mut has = false;
         for i in &s.teachers {
@@ -63,10 +77,12 @@ impl Advisory {
         has
     }
 
+    /// Default advisory values given target number of students for the advisory
     pub fn default(n: i16) -> Advisory {
         Self {
             advisors: Vec::<Teacher>::new(),
             students: Vec::<Student>::new(),
+            // Set number of "spots" based on number of students in advisory
             remaining_sex: (n / 2, n / 2),
             remaining_grade: (n / 4, n / 4, n / 4, n / 4),
         }
@@ -118,19 +134,24 @@ pub async fn build_advisories(Extension(state): Extension<Arc<SharedState>>) -> 
     advisories
 }
 
-/// Helper function for [`build_advisories`] to get vector of students from neo4j database
+/// Helper function for [`build_advisories`] to get vector of students from neo4j database using [`neo4rs`]
 async fn get_students(state: &Arc<SharedState>) -> Vec<Student> {
+    // Get the result of a Cypher query to the neo4j database
     let mut result = state.graph
         .execute(query("MATCH (s:Student)<-[:TEACHES]-(t) RETURN distinct(s) as students, collect(t) as teachers"))
         .await
         .unwrap();
+
+    // Create and initialize returned vector
     let mut students: Vec<Student> = Vec::new();
     while let Ok(Some(row)) = result.next().await {
+        // Get student data from returned row of the database query
         let student: Node = row.get("students").unwrap();
         let name: String = student.get("name").unwrap();
         let grade: Grade = Grade::from(student.get::<i64>("grade").unwrap());
         let sex: Option<Sex> = Some(Sex::from(student.get::<String>("sex").unwrap()));
 
+        // Get the student's teachers
         let mut t_structs: Vec<Teacher> = Vec::new();
         match row.get::<Vec<Node>>("teachers") {
             Some(teachers) => {
@@ -146,6 +167,8 @@ async fn get_students(state: &Arc<SharedState>) -> Vec<Student> {
                 println!("Teachers is empty ({})", name)
             }
         }
+
+        // Add student with all fields to the students vector
         students.push(Student {
             name,
             teachers: t_structs,
@@ -156,19 +179,24 @@ async fn get_students(state: &Arc<SharedState>) -> Vec<Student> {
     students
 }
 
-/// Helper function for [`build_advisories`] to get vector of teachers from neo4j database
+/// Helper function for [`build_advisories`] to get vector of teachers from neo4j database using [`neo4rs`]
 async fn get_teachers(state: &Arc<SharedState>) -> Vec<Teacher> {
+    // Get the result of a Cypher query to the neo4j database
     let mut result = state
         .graph
         .execute(query("MATCH (t:Teacher) RETURN distinct(t) as teachers"))
         .await
         .unwrap();
+
+    // Create and initialize returned vector
     let mut teachers: Vec<Teacher> = Vec::new();
     while let Ok(Some(row)) = result.next().await {
+        // Get teacher data from returned row of the database query
         let teacher: Node = row.get("teachers").unwrap();
         let name: String = teacher.get("name").unwrap();
         let sex: Option<Sex> = Some(Sex::from(teacher.get::<String>("sex").unwrap()));
 
+        // Add teacher will all fields to the teachers vector
         teachers.push(Teacher { name, sex })
     }
     teachers
