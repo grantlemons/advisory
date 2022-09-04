@@ -1,10 +1,10 @@
 use super::people::*;
-use crate::SharedState;
+use crate::{SharedState, Weights};
 use axum::{extract::Extension, Json};
 use neo4rs::*;
 use std::sync::Arc;
 
-#[derive(serde::Serialize, Clone)]
+#[derive(serde::Serialize, Clone, Debug)]
 pub struct Advisory {
     advisors: Vec<Teacher>,
     students: Vec<Student>,
@@ -73,47 +73,39 @@ impl Advisory {
     }
 }
 
+/// Wrapper of [`build_advisories`] called by https get requests to `/`
 pub async fn get_advisories(state: Extension<Arc<SharedState>>) -> Json<Vec<Advisory>> {
     tracing::debug!("GET made to get_advisories");
     Json(build_advisories(state).await)
 }
 
+/// Places students into advisories and returns a vector of them
+/// Called by [`get_advisories`]
 pub async fn build_advisories(Extension(state): Extension<Arc<SharedState>>) -> Vec<Advisory> {
     tracing::debug!("Building advisories");
+    // create vectors from data from database
+    let students: Vec<Student> = get_students(&state).await;
+    let mut teachers = get_teachers(&state).await;
 
-    let a = state.num_advisories;
-    let weights = &state.weights;
-    let students = get_students(&state).await;
-    let _teachers = get_teachers(&state).await;
-    let mut advisories: Vec<Advisory> =
-        vec![Advisory::default(students.len() as i16 / a); a.try_into().unwrap()];
+    // create vector of advisories to fill
+    let s: i16 = students.len() as i16;
+    let a: i16 = state.num_advisories;
+    let mut advisories: Vec<Advisory> = vec![Advisory::default(s / a); a.try_into().unwrap()];
 
-    // todo!("Add teachers to advisories");
+    // add teachers to advisories
+    for i in &mut advisories {
+        i.add_teacher(teachers.remove(0));
+        i.add_teacher(teachers.remove(0));
+        println!("{:?}", i.advisors);
+    }
+    // add students to advisories
     for i in students {
         let max: Option<usize> = advisories
             .iter()
             .map(|x| {
-                println!(
-                    "{} teacher weight: {} ({:#?})",
-                    i.name,
-                    (weights.has_teacher as i32 * x.has_teacher(&i) as i8 as i32),
-                    x.has_teacher(&i),
-                );
-                println!(
-                    "{} sex weight: {} ({})",
-                    i.name,
-                    (weights.sex_diverse as i32 * x.get_remaining_sex(&i.sex) as i32),
-                    x.get_remaining_sex(&i.sex),
-                );
-                println!(
-                    "{} grade weight: {} ({})",
-                    i.name,
-                    (weights.grade_diverse as i32 * x.get_remaining_grade(&i.grade) as i32),
-                    x.get_remaining_grade(&i.grade),
-                );
-                (weights.has_teacher as i32 * x.has_teacher(&i) as i8 as i32)
-                    + (weights.sex_diverse as i32 * x.get_remaining_sex(&i.sex) as i32)
-                    + (weights.grade_diverse as i32 * x.get_remaining_grade(&i.grade) as i32)
+                (state.weights.has_teacher as i32 * x.has_teacher(&i) as i32 * (s / a) as i32)
+                    + (state.weights.sex_diverse as i32 * x.get_remaining_sex(&i.sex) as i32)
+                    + (state.weights.grade_diverse as i32 * x.get_remaining_grade(&i.grade) as i32)
             })
             .enumerate()
             .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
@@ -126,6 +118,7 @@ pub async fn build_advisories(Extension(state): Extension<Arc<SharedState>>) -> 
     advisories
 }
 
+/// Helper function for [`build_advisories`] to get vector of students from neo4j database
 async fn get_students(state: &Arc<SharedState>) -> Vec<Student> {
     let mut result = state.graph
         .execute(query("MATCH (s:Student)<-[:TEACHES]-(t) RETURN distinct(s) as students, collect(t) as teachers"))
@@ -163,6 +156,7 @@ async fn get_students(state: &Arc<SharedState>) -> Vec<Student> {
     students
 }
 
+/// Helper function for [`build_advisories`] to get vector of teachers from neo4j database
 async fn get_teachers(state: &Arc<SharedState>) -> Vec<Teacher> {
     let mut result = state
         .graph
