@@ -9,7 +9,8 @@ services:
       - 7474:7474
   backend:
     container_name: backend
-    env_file: ".env"
+    environment:
+      - DATABASE_URI=database:7687
     build:
       context: backend
       dockerfile: Dockerfile

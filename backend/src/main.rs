@@ -52,11 +52,14 @@ async fn main() {
     // Setup logger
     setup_logger().expect("Unable to setup logger with fern");
 
-    // connect to datbase
-    let uri = "127.0.0.1:7687";
+    // Connect to datbase
+    let uri = match std::env::var("DATABASE_URI") {
+        Ok(u) => u,
+        Err(_) => "localhost:7687".to_string(),
+    };
     let user = "neo4j";
     let pass = "test";
-    let graph = Arc::new(neo4rs::Graph::new(uri, user, pass).await.unwrap());
+    let graph = Arc::new(neo4rs::Graph::new(uri.as_str(), user, pass).await.unwrap());
 
     // Create default settings for testing
     //TODO: Change from hardcoded weights and number of advisories to using an endpoint to set user config
