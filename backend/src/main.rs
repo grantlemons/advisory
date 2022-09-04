@@ -35,7 +35,7 @@ async fn main() {
     let uri = "127.0.0.1:7687";
     let user = "neo4j";
     let pass = "test";
-    let graph = Arc::new(Graph::new(&uri, user, pass).await.unwrap());
+    let graph = Arc::new(Graph::new(uri, user, pass).await.unwrap());
 
     let weights = Weights {
         has_teacher: 10,
@@ -44,7 +44,7 @@ async fn main() {
     };
     let state = Arc::new(SharedState {
         graph,
-        num_advisories: 4,
+        num_advisories: 2,
         weights,
     });
 
