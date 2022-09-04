@@ -1,6 +1,8 @@
 //! A crate for running the backend of an application used to sort students into advisories based on
 //! specific criteria with weighted values that can be configured via an endpoint.
 //!
+//! ---
+//!
 //! **Notes**
 //!
 //! A custom fork of neo4rs is used to add functionality for handling vectors as a return type from neo4j
