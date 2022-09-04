@@ -6,6 +6,7 @@ services:
       - NEO4J_AUTH=neo4j/test
     ports:
       - 7687:7687
+      - 7474:7474
   backend:
     container_name: backend
     env_file: ".env"
