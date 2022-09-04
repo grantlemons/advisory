@@ -1,5 +1,5 @@
 use super::people::*;
-use crate::{SharedState, Weights};
+use crate::SharedState;
 use axum::{extract::Extension, Json};
 use neo4rs::*;
 use std::sync::Arc;
