@@ -207,9 +207,17 @@ async fn get_students(state: &Arc<SharedState>, uid: &str) -> Vec<Student> {
     use neo4rs::*;
 
     // Get the result of a Cypher query to the neo4j database
-    let mut result = state.graph
-        .execute(query("MATCH (s:Student { user_id: $UID })<-[:TEACHES]-(t) RETURN distinct(s) as students, collect(t) as teachers")
-        .param("UID", uid.clone()))
+    let mut result = state
+        .graph
+        .execute(
+            query(
+                "MATCH (s:Student { user_id: $UID })<-[:TEACHES]-(t) \
+                RETURN \
+                distinct(s) as students, \
+                collect(t) as teachers",
+            )
+            .param("UID", uid.clone()),
+        )
         .await
         .unwrap();
 
@@ -270,8 +278,11 @@ async fn get_teachers(state: &Arc<SharedState>, uid: &str) -> Vec<Teacher> {
     let mut result = state
         .graph
         .execute(
-            query("MATCH (t:Teacher { user_id: $UID }) RETURN distinct(t) as teachers")
-                .param("UID", uid.clone()),
+            query(
+                "MATCH (t:Teacher { user_id: $UID }) \
+                RETURN distinct(t) as teachers",
+            )
+            .param("UID", uid.clone()),
         )
         .await
         .unwrap();

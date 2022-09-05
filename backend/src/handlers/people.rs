@@ -139,10 +139,13 @@ pub(crate) async fn add_teacher(
     state
         .graph
         .execute(
-            query("CREATE (t:Teacher { name: $NAME, sex: $SEX, user_id: $UID })")
-                .param("NAME", form.name.as_str())
-                .param("SEX", form.sex.to_string())
-                .param("UID", form.uid.as_str()),
+            query(
+                "CREATE \
+                (t:Teacher { name: $NAME, sex: $SEX, user_id: $UID })",
+            )
+            .param("NAME", form.name.as_str())
+            .param("SEX", form.sex.to_string())
+            .param("UID", form.uid.as_str()),
         )
         .await
         .unwrap();
@@ -174,11 +177,15 @@ pub(crate) async fn add_student(
     state
         .graph
         .execute(
-            query("MATCH (t:Teacher) WHERE t.name in [$TARR] CREATE (t)-[:TEACHES]->(s:Student { name: $NAME, sex: $SEX, user_id: $UID })")
-                .param("TARR", teacher_names)
-                .param("NAME", form.name.as_str())
-                .param("SEX", form.sex.to_string())
-                .param("UID", form.uid.as_str()),
+            query(
+                "MATCH (t:Teacher) \
+                WHERE t.name in [$TARR] \
+                CREATE (t)-[:TEACHES]->(s:Student { name: $NAME, sex: $SEX, user_id: $UID })",
+            )
+            .param("TARR", teacher_names)
+            .param("NAME", form.name.as_str())
+            .param("SEX", form.sex.to_string())
+            .param("UID", form.uid.as_str()),
         )
         .await
         .unwrap();
