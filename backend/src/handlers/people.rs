@@ -1,11 +1,11 @@
 use crate::SharedState;
 use axum::{extract::Extension, http::StatusCode, Form, Json};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::{fmt::Debug, sync::Arc};
 
 /// Representation of a teacher
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Teacher {
+pub struct Teacher {
     pub(crate) name: String,
     pub(crate) sex: Option<Sex>,
 }
@@ -116,18 +116,47 @@ impl std::fmt::Display for Sex {
     }
 }
 
+/// Form used for post requests to people/teacher
+#[derive(Deserialize, Serialize)]
+pub struct TeacherForm {
+    name: String,
+    sex: Sex,
+    uid: String,
+}
+
 /// Handler to add a teacher, either a advisor or a student to the database
 ///
 /// Uses [`Teacher`] as a form for input
 //TODO: actually add node to remote database
 #[axum_macros::debug_handler]
 pub(crate) async fn add_teacher(
-    Form(teacher): Form<Teacher>,
-    Extension(_state): Extension<Arc<SharedState>>,
-) -> Result<Json<Teacher>, StatusCode> {
+    Form(form): Form<TeacherForm>,
+    Extension(state): Extension<Arc<SharedState>>,
+) -> Result<Json<TeacherForm>, StatusCode> {
+    use neo4rs::*;
     log::debug!("POST made to people/teacher");
-    log::debug!("New teacher {:?} added", teacher);
-    Ok(Json(teacher))
+    log::debug!("New teacher {:?} added", form.name);
+    state
+        .graph
+        .execute(
+            query("CREATE (t:Teacher { name: $NAME, sex: $SEX, user_id: $UID })")
+                .param("NAME", form.name.as_str())
+                .param("SEX", form.sex.to_string())
+                .param("UID", form.uid.as_str()),
+        )
+        .await
+        .unwrap();
+    Ok(Json(form))
+}
+
+/// Form used for post requests to people/student
+#[derive(Deserialize, Serialize)]
+pub struct StudentForm {
+    name: String,
+    teachers: Vec<Teacher>,
+    sex: Sex,
+    grade: Grade,
+    uid: String,
 }
 
 /// Handler to add a student, either a advisor or a student to the database
@@ -135,10 +164,23 @@ pub(crate) async fn add_teacher(
 /// Uses [`Student`] as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn add_student(
-    Form(student): Form<Student>,
-    Extension(_state): Extension<Arc<SharedState>>,
-) -> Result<Json<Student>, StatusCode> {
+    Form(form): Form<StudentForm>,
+    Extension(state): Extension<Arc<SharedState>>,
+) -> Result<Json<StudentForm>, StatusCode> {
+    use neo4rs::*;
     log::debug!("POST made to people/student");
-    log::debug!("New student {:?} added", student);
-    Ok(Json(student))
+    log::debug!("New student {:?} added", form.name);
+    let teacher_names: Vec<String> = form.teachers.iter().map(|t| t.name.clone()).collect();
+    state
+        .graph
+        .execute(
+            query("MATCH (t:Teacher) WHERE t.name in [$TARR] CREATE (t)-[:TEACHES]->(s:Student { name: $NAME, sex: $SEX, user_id: $UID })")
+                .param("TARR", teacher_names)
+                .param("NAME", form.name.as_str())
+                .param("SEX", form.sex.to_string())
+                .param("UID", form.uid.as_str()),
+        )
+        .await
+        .unwrap();
+    Ok(Json(form))
 }
