@@ -120,6 +120,7 @@ impl std::fmt::Display for Sex {
 ///
 /// Uses [`Teacher`] as a form for input
 //TODO: actually add node to remote database
+#[axum_macros::debug_handler]
 pub(crate) async fn add_teacher(
     Form(teacher): Form<Teacher>,
     Extension(_state): Extension<Arc<SharedState>>,
@@ -132,6 +133,7 @@ pub(crate) async fn add_teacher(
 /// Handler to add a student, either a advisor or a student to the database
 ///
 /// Uses [`Student`] as a form for input
+#[axum_macros::debug_handler]
 pub(crate) async fn add_student(
     Form(student): Form<Student>,
     Extension(_state): Extension<Arc<SharedState>>,

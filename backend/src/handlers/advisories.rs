@@ -1,6 +1,7 @@
 use super::people::*;
 use crate::SharedState;
-use axum::{extract::Extension, Json};
+use axum::{extract::Extension, http::StatusCode, Form, Json};
+use serde::Deserialize;
 use std::sync::Arc;
 
 /// Representation of an advisory
@@ -129,10 +130,23 @@ impl Advisory {
     }
 }
 
+/// Form for [`get_advisories`]'s input
+#[derive(Deserialize, Debug)]
+pub(crate) struct AdvisoryForm {
+    /// The ID of the user's account within the database.
+    ///
+    /// Can be based on different things, like auth cred
+    pub(crate) uid: String,
+}
+
 /// Wrapper of [`build_advisories`] called by https get requests to `/`
-pub(crate) async fn get_advisories(state: Extension<Arc<SharedState>>) -> Json<Vec<Advisory>> {
+#[axum_macros::debug_handler]
+pub(crate) async fn get_advisories(
+    Form(form): Form<AdvisoryForm>,
+    state: Extension<Arc<SharedState>>,
+) -> Result<Json<Vec<Advisory>>, StatusCode> {
     log::debug!("GET made to get_advisories");
-    Json(build_advisories(state).await)
+    build_advisories(state, form.uid.as_str()).await
 }
 
 /// Places students into advisories and returns a vector of them
@@ -140,11 +154,12 @@ pub(crate) async fn get_advisories(state: Extension<Arc<SharedState>>) -> Json<V
 /// Called by [`get_advisories`]
 pub(crate) async fn build_advisories(
     Extension(state): Extension<Arc<SharedState>>,
-) -> Vec<Advisory> {
+    uid: &str,
+) -> Result<Json<Vec<Advisory>>, StatusCode> {
     log::debug!("Building advisories");
     // create vectors from data from database
-    let students: Vec<Student> = get_students(&state).await;
-    let mut teachers = get_teachers(&state).await;
+    let students: Vec<Student> = get_students(&state, uid).await;
+    let mut teachers = get_teachers(&state, uid).await;
 
     // create vector of advisories to fill
     let s: i16 = students.len() as i16;
@@ -183,17 +198,17 @@ pub(crate) async fn build_advisories(
         }
     }
     log::debug!("build_advisories complete");
-    advisories
+    Ok(Json(advisories))
 }
 
 /// Helper function for [`build_advisories`] to get vector of students from neo4j database using [`neo4rs`]
-async fn get_students(state: &Arc<SharedState>) -> Vec<Student> {
+async fn get_students(state: &Arc<SharedState>, uid: &str) -> Vec<Student> {
     log::debug!("Getting students from database");
     use neo4rs::*;
 
     // Get the result of a Cypher query to the neo4j database
     let mut result = state.graph
-        .execute(query("MATCH (s:Student)<-[:TEACHES]-(t) RETURN distinct(s) as students, collect(t) as teachers"))
+        .execute(query("MATCH (s:Student { user_id: $UID })<-[:TEACHES]-(t) RETURN distinct(s) as students, collect(t) as teachers").param("UID", uid.clone()))
         .await
         .unwrap();
 
@@ -246,14 +261,17 @@ async fn get_students(state: &Arc<SharedState>) -> Vec<Student> {
 }
 
 /// Helper function for [`build_advisories`] to get vector of teachers from neo4j database using [`neo4rs`]
-async fn get_teachers(state: &Arc<SharedState>) -> Vec<Teacher> {
+async fn get_teachers(state: &Arc<SharedState>, uid: &str) -> Vec<Teacher> {
     log::debug!("Getting teachers from database");
     use neo4rs::*;
 
     // Get the result of a Cypher query to the neo4j database
     let mut result = state
         .graph
-        .execute(query("MATCH (t:Teacher) RETURN distinct(t) as teachers"))
+        .execute(
+            query("MATCH (t:Teacher { user_id: $UID }) RETURN distinct(t) as teachers")
+                .param("UID", uid.clone()),
+        )
         .await
         .unwrap();
 
