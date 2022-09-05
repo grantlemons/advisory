@@ -53,13 +53,13 @@ async fn main() {
     setup_logger().expect("Unable to setup logger with fern");
 
     // Connect to datbase
-    let uri = match std::env::var("DATABASE_URI") {
-        Ok(u) => u,
-        Err(_) => "localhost:7687".to_string(),
+    let uri = match std::env::var("DOCKER") {
+        Ok(_) => "database:7687",
+        Err(_) => "localhost:7687",
     };
     let user = "neo4j";
     let pass = "test";
-    let graph = Arc::new(neo4rs::Graph::new(uri.as_str(), user, pass).await.unwrap());
+    let graph = Arc::new(neo4rs::Graph::new(uri, user, pass).await.unwrap());
 
     // Create default settings for testing
     //TODO: Change from hardcoded weights and number of advisories to using an endpoint to set user config
@@ -99,7 +99,10 @@ async fn main() {
         .layer(Extension(state));
 
     // IP and Port to bind to
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = match std::env::var("DOCKER") {
+        Ok(_) => SocketAddr::from(([0, 0, 0, 0], 3000)),
+        Err(_) => SocketAddr::from(([127, 0, 0, 1], 3000)),
+    };
     log::debug!("listening on {}", addr);
 
     // Bind axum app to configured IP and Port

@@ -10,14 +10,14 @@ services:
   backend:
     container_name: backend
     environment:
-      - DATABASE_URI=database:7687
+      - DOCKER=true
     build:
       context: backend
       dockerfile: Dockerfile
     ports:
       - 127.0.0.1:80:3000
     healthcheck:
-      test: curl -X GET --fail http://0.0.0.0:8000/health -Is
+      test: curl -X GET --fail http://0.0.0.0:3000/health -Is --insecure
       interval: 20s
       timeout: 5s
       retries: 10
