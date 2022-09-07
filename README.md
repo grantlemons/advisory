@@ -49,3 +49,5 @@ Alternatively, to run without producing an executable execute
 <pre>
 cargo run -p <i>advisory-backend</i> | <i>advisory-frontend</i>
 </pre>
+
+(Only include one of two of the seperated values above)
