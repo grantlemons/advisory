@@ -4,8 +4,6 @@
 
 ## Setup & Execution
 
----
-
 ### TLS Certificates
 
 Create certificates via OpenSSL
