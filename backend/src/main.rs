@@ -122,7 +122,7 @@ async fn main() {
     };
     log::debug!("listening on {}", addr);
 
-    // spawn a second server to redirect http requests to this server
+    // spawn a second server to redirect http requests to the https server
     tokio::spawn(redirect_http_to_https(ports, addr.ip()));
 
     // Bind axum app to configured IP and Port
