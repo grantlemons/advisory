@@ -216,7 +216,7 @@ async fn get_students(state: &Arc<SharedState>, uid: &str) -> Vec<Student> {
                 distinct(s) as students, \
                 collect(t) as teachers",
             )
-            .param("UID", uid.clone()),
+            .param("UID", uid),
         )
         .await
         .unwrap();
@@ -282,7 +282,7 @@ async fn get_teachers(state: &Arc<SharedState>, uid: &str) -> Vec<Teacher> {
                 "MATCH (t:Teacher { user_id: $UID }) \
                 RETURN distinct(t) as teachers",
             )
-            .param("UID", uid.clone()),
+            .param("UID", uid),
         )
         .await
         .unwrap();
