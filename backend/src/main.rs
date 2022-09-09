@@ -9,7 +9,6 @@
 
 use axum::{routing::*, Extension, Json, Router};
 use axum_server::tls_rustls::RustlsConfig;
-use serde::Deserialize;
 use std::{
     net::{IpAddr, SocketAddr},
     path::PathBuf,
@@ -29,25 +28,6 @@ use handlers::*;
 #[allow(dead_code)]
 pub(crate) struct SharedState {
     graph: Arc<neo4rs::Graph>,
-    num_advisories: i16,
-    weights: Weights,
-}
-
-/// Weights from 0-10 used to assign importance to each possible parameter
-#[derive(Debug, Deserialize)]
-pub(crate) struct Weights {
-    /// The importance that each student an an advisory has one of the advisors as a teacher
-    ///
-    /// Value from 0-10
-    has_teacher: i8,
-    /// The importance of biological sex diversity within advisories
-    ///
-    /// Value from 0-10
-    sex_diverse: i8,
-    /// The importance of grade diversity within advisories
-    ///
-    /// Value from 0-10
-    grade_diverse: i8,
 }
 
 /// Ports bound to for http and https connections
@@ -72,18 +52,7 @@ async fn main() {
     let pass = "test";
     let graph = Arc::new(neo4rs::Graph::new(uri, user, pass).await.unwrap());
 
-    // Create default settings for testing
-    //TODO: Change from hardcoded weights and number of advisories to using an endpoint to set user config
-    let weights = Weights {
-        has_teacher: 10,
-        sex_diverse: 5,
-        grade_diverse: 5,
-    };
-    let state = Arc::new(SharedState {
-        graph,
-        num_advisories: 2,
-        weights,
-    });
+    let state = Arc::new(SharedState { graph });
 
     // Get SSL certificates from file
     // Refer to `README.md` for instruction on generating these

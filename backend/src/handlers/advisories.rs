@@ -130,6 +130,24 @@ impl Advisory {
     }
 }
 
+/// Weights from 0-10 used to assign importance to each possible parameter in the 'score calculation'
+/// Used by [`AdvisoryForm`]
+#[derive(Deserialize, Debug)]
+pub(crate) struct Weights {
+    /// The importance that each student an an advisory has one of the advisors as a teacher
+    ///
+    /// Value from 0-10
+    has_teacher: i8,
+    /// The importance of biological sex diversity within advisories
+    ///
+    /// Value from 0-10
+    sex_diverse: i8,
+    /// The importance of grade diversity within advisories
+    ///
+    /// Value from 0-10
+    grade_diverse: i8,
+}
+
 /// Form for [`get_advisories`]'s input
 #[derive(Deserialize, Debug)]
 pub(crate) struct AdvisoryForm {
@@ -137,6 +155,10 @@ pub(crate) struct AdvisoryForm {
     ///
     /// Can be based on different things, like auth cred
     pub(crate) uid: String,
+    /// The respective value of each factor in the calculation of advisory 'scores'
+    pub(crate) weights: Weights,
+    /// Number of advisories to be generated
+    pub(crate) num_advisories: i16,
 }
 
 /// Wrapper of [`build_advisories`] called by https get requests to `/`
@@ -146,7 +168,7 @@ pub(crate) async fn get_advisories(
     state: Extension<Arc<SharedState>>,
 ) -> Result<Json<Vec<Advisory>>, StatusCode> {
     log::debug!("GET made to get_advisories");
-    build_advisories(state, form.uid.as_str()).await
+    build_advisories(state, form).await
 }
 
 /// Places students into advisories and returns a vector of them
@@ -154,16 +176,16 @@ pub(crate) async fn get_advisories(
 /// Called by [`get_advisories`]
 pub(crate) async fn build_advisories(
     Extension(state): Extension<Arc<SharedState>>,
-    uid: &str,
+    form: AdvisoryForm,
 ) -> Result<Json<Vec<Advisory>>, StatusCode> {
     log::debug!("Building advisories");
     // create vectors from data from database
-    let students: Vec<Student> = get_students(&state, uid).await;
-    let mut teachers = get_teachers(&state, uid).await;
+    let students: Vec<Student> = get_students(&state, form.uid.as_str()).await;
+    let mut teachers = get_teachers(&state, form.uid.as_str()).await;
 
     // create vector of advisories to fill
     let s: i16 = students.len() as i16;
-    let a: i16 = state.num_advisories;
+    let a: i16 = form.num_advisories;
     log::debug!("{} Students, {} Advisories", s, a);
     let mut advisories: Vec<Advisory> = vec![Advisory::default(s / a); a.try_into().unwrap()];
 
@@ -181,11 +203,11 @@ pub(crate) async fn build_advisories(
             .iter()
             .map(|x| {
                 log::debug!("Calculating weight for {} & {}", i, x);
-                let weight = (state.weights.has_teacher as i32
+                let weight = (form.weights.has_teacher as i32
                     * x.has_teacher(&i) as i32
                     * (s / a) as i32)
-                    + (state.weights.sex_diverse as i32 * x.get_remaining_sex(&i.sex) as i32)
-                    + (state.weights.grade_diverse as i32 * x.get_remaining_grade(&i.grade) as i32);
+                    + (form.weights.sex_diverse as i32 * x.get_remaining_sex(&i.sex) as i32)
+                    + (form.weights.grade_diverse as i32 * x.get_remaining_grade(&i.grade) as i32);
                 log::debug!("Weight for {} & ({}) is {}", i, x, weight);
                 weight
             })
