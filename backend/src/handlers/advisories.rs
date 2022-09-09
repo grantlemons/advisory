@@ -1,11 +1,11 @@
 use super::people::*;
 use crate::SharedState;
 use axum::{extract::Extension, http::StatusCode, Form, Json};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 /// Representation of an advisory
-#[derive(serde::Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub(crate) struct Advisory {
     /// Vector of [`Teacher`] structs
     advisors: Vec<Teacher>,
@@ -132,24 +132,24 @@ impl Advisory {
 
 /// Weights from 0-10 used to assign importance to each possible parameter in the 'score calculation'
 /// Used by [`AdvisoryForm`]
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct Weights {
     /// The importance that each student an an advisory has one of the advisors as a teacher
     ///
     /// Value from 0-10
-    has_teacher: i8,
+    pub(crate) has_teacher: i8,
     /// The importance of biological sex diversity within advisories
     ///
     /// Value from 0-10
-    sex_diverse: i8,
+    pub(crate) sex_diverse: i8,
     /// The importance of grade diversity within advisories
     ///
     /// Value from 0-10
-    grade_diverse: i8,
+    pub(crate) grade_diverse: i8,
 }
 
 /// Form for [`get_advisories`]'s input
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct AdvisoryForm {
     /// The ID of the user's account within the database.
     ///

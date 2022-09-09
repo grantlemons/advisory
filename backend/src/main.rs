@@ -22,6 +22,10 @@ mod handlers {
     /// Handlers that handle adding and managing students and advisors
     pub(crate) mod people;
 }
+#[cfg(test)]
+mod tests {
+    mod advisory_building;
+}
 use handlers::*;
 
 /// Shared state for accessing the database
@@ -51,7 +55,6 @@ async fn main() {
     let user = "neo4j";
     let pass = "test";
     let graph = Arc::new(neo4rs::Graph::new(uri, user, pass).await.unwrap());
-
     let state = Arc::new(SharedState { graph });
 
     // Get SSL certificates from file
@@ -66,17 +69,6 @@ async fn main() {
     )
     .await
     .unwrap();
-
-    // Axum setup and configuration
-    let app = Router::new()
-        // Add routes to specific handler functions
-        .route("/health", get(health)) // Health check
-        .route("/info", get(info))
-        .route("/people/teacher", post(people::add_teacher))
-        .route("/people/student", post(people::add_student))
-        .route("/", get(advisories::get_advisories))
-        // Add shared state to all requests
-        .layer(Extension(state));
 
     // Ports for http & https redirect
     let ports = Ports {
@@ -96,9 +88,23 @@ async fn main() {
 
     // Bind axum app to configured IP and Port
     axum_server::bind_rustls(addr, config)
-        .serve(app.into_make_service())
+        .serve(app(state).into_make_service())
         .await
         .unwrap();
+}
+
+fn app(state: Arc<SharedState>) -> Router {
+    // Axum setup and configuration
+    let app = Router::new()
+        // Add routes to specific handler functions
+        .route("/health", get(health)) // Health check
+        .route("/info", get(info))
+        .route("/people/teacher", post(people::add_teacher))
+        .route("/people/student", post(people::add_student))
+        .route("/", put(advisories::get_advisories))
+        // Add shared state to all requests
+        .layer(Extension(state));
+    app
 }
 
 /// Function to redirect http requests to https

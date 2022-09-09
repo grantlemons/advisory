@@ -17,6 +17,7 @@ fern = { version = "0.6.1", features = ["chrono", "colored"] }
 jsonwebtoken = "8.1.1"
 log = "0.4.17"
 neo4rs = { git = "https://github.com/grantlemons/neo4rs" }
+reqwest = { version = "0.11.11", features = ["serde_json", "blocking", "json"] }
 serde = { version = "1.0.144", features = ["derive"] }
 serde_json = "1.0.85"
 tokio = { version = "1.20.1", features = ["full"] }
