@@ -31,7 +31,7 @@ To run in detached mode, append either the `--detach` or `--wait` flag to the co
 
 If there have been any changes to code since the last time you ran the startup command for this project, you'll need to append the `--build` flag to force docker to implement the new changes in the container image.
 
-In order to connect to the backend, send an HTTP request to the appropriate endpoint of `https://localhost/`.
+In order to connect to the backend when running in Docker, send an HTTP request to the appropriate endpoint of `https://localhost/`.
 
 ## Compiling Locally
 
@@ -51,3 +51,5 @@ cargo run -p <i>advisory-backend</i> | <i>advisory-frontend</i>
 </pre>
 
 (Only include one of two of the seperated values above)
+
+In order to connect to the backend when running locally, send an HTTP request to the appropriate endpoint of `https://localhost:3000/` or `https://localhost:7878/`.
