@@ -1,6 +1,6 @@
 use super::people::*;
 use crate::SharedState;
-use axum::{extract::Extension, http::StatusCode, Form, Json};
+use axum::{extract::Extension, http::StatusCode, Json};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -164,7 +164,7 @@ pub(crate) struct AdvisoryForm {
 /// Wrapper of [`build_advisories`] called by https get requests to `/`
 #[axum_macros::debug_handler]
 pub(crate) async fn get_advisories(
-    Form(form): Form<AdvisoryForm>,
+    Json(form): Json<AdvisoryForm>,
     state: Extension<Arc<SharedState>>,
 ) -> Result<Json<Vec<Advisory>>, StatusCode> {
     log::debug!("GET made to get_advisories");

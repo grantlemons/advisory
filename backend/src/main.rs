@@ -95,7 +95,7 @@ async fn main() {
 
 fn app(state: Arc<SharedState>) -> Router {
     // Axum setup and configuration
-    let app = Router::new()
+    Router::new()
         // Add routes to specific handler functions
         .route("/health", get(health)) // Health check
         .route("/info", get(info))
@@ -103,8 +103,7 @@ fn app(state: Arc<SharedState>) -> Router {
         .route("/people/student", post(people::add_student))
         .route("/", put(advisories::get_advisories))
         // Add shared state to all requests
-        .layer(Extension(state));
-    app
+        .layer(Extension(state))
 }
 
 /// Function to redirect http requests to https

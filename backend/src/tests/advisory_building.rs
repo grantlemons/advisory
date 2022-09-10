@@ -1,23 +1,12 @@
-fn get_certificate() -> reqwest::Result<reqwest::Certificate> {
-    let mut buf = Vec::new();
-    std::io::Read::read_to_end(
-        &mut std::fs::File::open("self_signed_certs/cert.pem")
-            .expect("Unable to open certificate PEM file"),
-        &mut buf,
-    )
-    .expect("Unable to read certificate PEM file");
-    reqwest::Certificate::from_pem(&buf)
-}
-
 fn send_request(form: &crate::advisories::AdvisoryForm) -> Vec<crate::advisories::Advisory> {
-    let cert = get_certificate().expect("Unable to get certificate from local file");
     let client = reqwest::blocking::Client::builder()
-        .add_root_certificate(cert)
+        .danger_accept_invalid_certs(true)
+        .https_only(true)
         .build()
         .expect("Unable to build client");
     let response: Vec<crate::advisories::Advisory> = client
         .put("https://localhost:8080/")
-        .form(form)
+        .json(form)
         .send()
         .expect("Unable to get response from server")
         .json()
