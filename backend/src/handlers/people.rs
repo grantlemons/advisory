@@ -1,4 +1,4 @@
-use crate::SharedState;
+use crate::{SharedState, Verify};
 use axum::{extract::Extension, http::StatusCode, Form, Json};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, sync::Arc};
@@ -8,6 +8,12 @@ use std::{fmt::Debug, sync::Arc};
 pub struct Teacher {
     pub(crate) name: String,
     pub(crate) sex: Option<Sex>,
+}
+
+impl crate::Verify for Teacher {
+    fn verify(&self) -> bool {
+        !self.name.is_empty()
+    }
 }
 
 impl std::fmt::Display for Teacher {
@@ -124,6 +130,12 @@ pub struct TeacherForm {
     uid: String,
 }
 
+impl crate::Verify for TeacherForm {
+    fn verify(&self) -> bool {
+        !self.name.is_empty() && !self.uid.is_empty()
+    }
+}
+
 /// Handler to add a teacher, either a advisor or a student to the database
 ///
 /// Uses [`Teacher`] as a form for input
@@ -134,6 +146,10 @@ pub(crate) async fn add_teacher(
     Extension(state): Extension<Arc<SharedState>>,
 ) -> Result<Json<TeacherForm>, StatusCode> {
     use neo4rs::*;
+
+    if !form.verify() {
+        return Err(StatusCode::UNPROCESSABLE_ENTITY);
+    }
     log::debug!("POST made to people/teacher");
     log::debug!("New teacher {:?} added", form.name);
     state
@@ -162,6 +178,17 @@ pub struct StudentForm {
     uid: String,
 }
 
+impl crate::Verify for StudentForm {
+    fn verify(&self) -> bool {
+        // Check if each teacher is valid
+        let mut teachers_valid = true;
+        for i in &self.teachers {
+            teachers_valid = teachers_valid || !i.verify()
+        }
+        !self.name.is_empty() && teachers_valid && !self.uid.is_empty()
+    }
+}
+
 /// Handler to add a student, either a advisor or a student to the database
 ///
 /// Uses [`Student`] as a form for input
@@ -171,6 +198,10 @@ pub(crate) async fn add_student(
     Extension(state): Extension<Arc<SharedState>>,
 ) -> Result<Json<StudentForm>, StatusCode> {
     use neo4rs::*;
+
+    if !form.verify() {
+        return Err(StatusCode::UNPROCESSABLE_ENTITY);
+    }
     log::debug!("POST made to people/student");
     log::debug!("New student {:?} added", form.name);
     let teacher_names: Vec<String> = form.teachers.iter().map(|t| t.name.clone()).collect();

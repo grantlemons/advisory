@@ -28,6 +28,11 @@ mod tests {
 }
 use handlers::*;
 
+/// Verify trait for input validation
+pub trait Verify {
+    fn verify(&self) -> bool;
+}
+
 /// Shared state for accessing the database
 #[allow(dead_code)]
 pub(crate) struct SharedState {

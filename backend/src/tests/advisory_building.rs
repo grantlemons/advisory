@@ -1,21 +1,10 @@
-fn send_request(form: &crate::advisories::AdvisoryForm) -> Vec<crate::advisories::Advisory> {
-    let client = reqwest::blocking::Client::builder()
-        .danger_accept_invalid_certs(true)
-        .https_only(true)
-        .build()
-        .expect("Unable to build client");
-    let response: Vec<crate::advisories::Advisory> = client
-        .put("https://localhost:8080/")
-        .json(form)
-        .send()
-        .expect("Unable to get response from server")
-        .json()
-        .expect("Unable to deserialize result");
-    response
-}
+use reqwest::StatusCode;
 
 #[tokio::main]
-async fn create_server() {
+async fn send_request(
+    form: crate::advisories::AdvisoryForm,
+) -> Result<Vec<crate::advisories::Advisory>, StatusCode> {
+    // Connect to datbase
     let uri = match std::env::var("DOCKER") {
         Ok(_) => "database:7687",
         Err(_) => "localhost:7687",
@@ -23,42 +12,58 @@ async fn create_server() {
     let user = "neo4j";
     let pass = "test";
     let graph = std::sync::Arc::new(neo4rs::Graph::new(uri, user, pass).await.unwrap());
-    let state = std::sync::Arc::new(crate::SharedState { graph });
-    let config = axum_server::tls_rustls::RustlsConfig::from_pem_file(
-        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("self_signed_certs")
-            .join("cert.pem"),
-        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("self_signed_certs")
-            .join("key.pem"),
-    )
-    .await
-    .unwrap();
-    let addr = std::net::SocketAddr::from(([127, 0, 0, 1], 8080));
-    // Bind axum app to configured IP and Port
-    axum_server::bind_rustls(addr, config)
-        .serve(crate::app(state).into_make_service())
-        .await
-        .unwrap();
+    crate::advisories::build_advisories(&graph, form).await
 }
+
+/// Default weights for tests
+const DEF_WEIGHTS: crate::advisories::Weights = crate::advisories::Weights {
+    has_teacher: 10,
+    sex_diverse: 4,
+    grade_diverse: 6,
+};
 
 #[test]
 fn get_two_advisories() {
-    std::thread::spawn(|| {
-        create_server();
-    });
-    let weights = crate::advisories::Weights {
-        has_teacher: 10,
-        sex_diverse: 4,
-        grade_diverse: 6,
-    };
     let form = crate::advisories::AdvisoryForm {
         uid: "vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9".to_string(),
-        weights,
+        weights: DEF_WEIGHTS,
         num_advisories: 2,
     };
 
-    let advisories = send_request(&form);
-    println!("{:#?}", advisories);
-    assert_eq!(advisories.len(), 2);
+    match send_request(form) {
+        Ok(a) => {
+            assert_eq!(a.len(), 2)
+        }
+        Err(_) => panic!("Zero advisory test returned Ok when it should error"),
+    }
+}
+
+#[test]
+fn get_five_advisories() {
+    let form = crate::advisories::AdvisoryForm {
+        uid: "vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9".to_string(),
+        weights: DEF_WEIGHTS,
+        num_advisories: 5,
+    };
+
+    match send_request(form) {
+        Ok(a) => {
+            assert_eq!(a.len(), 5)
+        }
+        Err(_) => panic!("Zero advisory test returned Ok when it should error"),
+    }
+}
+
+#[test]
+fn get_zero_advisories() {
+    let form = crate::advisories::AdvisoryForm {
+        uid: "vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9".to_string(),
+        weights: DEF_WEIGHTS,
+        num_advisories: 0,
+    };
+
+    match send_request(form) {
+        Ok(_) => panic!("Zero advisory test returned Ok when it should error"),
+        Err(e) => assert_eq!(e, StatusCode::UNPROCESSABLE_ENTITY),
+    }
 }

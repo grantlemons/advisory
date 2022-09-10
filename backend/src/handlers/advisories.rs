@@ -1,5 +1,5 @@
 use super::people::*;
-use crate::SharedState;
+use crate::{SharedState, Verify};
 use axum::{extract::Extension, http::StatusCode, Json};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -148,6 +148,15 @@ pub(crate) struct Weights {
     pub(crate) grade_diverse: i8,
 }
 
+impl crate::Verify for Weights {
+    fn verify(&self) -> bool {
+        let range = 0..=10;
+        range.contains(&self.has_teacher)
+            && range.contains(&self.sex_diverse)
+            && range.contains(&self.grade_diverse)
+    }
+}
+
 /// Form for [`get_advisories`]'s input
 #[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct AdvisoryForm {
@@ -161,6 +170,12 @@ pub(crate) struct AdvisoryForm {
     pub(crate) num_advisories: i16,
 }
 
+impl crate::Verify for AdvisoryForm {
+    fn verify(&self) -> bool {
+        !self.uid.is_empty() && self.weights.verify() && self.num_advisories > 0
+    }
+}
+
 /// Wrapper of [`build_advisories`] called by https get requests to `/`
 #[axum_macros::debug_handler]
 pub(crate) async fn get_advisories(
@@ -168,20 +183,28 @@ pub(crate) async fn get_advisories(
     state: Extension<Arc<SharedState>>,
 ) -> Result<Json<Vec<Advisory>>, StatusCode> {
     log::debug!("GET made to get_advisories");
-    build_advisories(state, form).await
+    Ok(Json(
+        build_advisories(&state.graph, form)
+            .await
+            .expect("Unable to build advisories"),
+    ))
 }
 
 /// Places students into advisories and returns a vector of them
 ///
 /// Called by [`get_advisories`]
 pub(crate) async fn build_advisories(
-    Extension(state): Extension<Arc<SharedState>>,
+    graph: &neo4rs::Graph,
     form: AdvisoryForm,
-) -> Result<Json<Vec<Advisory>>, StatusCode> {
+) -> Result<Vec<Advisory>, StatusCode> {
     log::debug!("Building advisories");
+    if !form.verify() {
+        return Err(StatusCode::UNPROCESSABLE_ENTITY);
+    }
+
     // create vectors from data from database
-    let students: Vec<Student> = get_students(&state, form.uid.as_str()).await;
-    let mut teachers = get_teachers(&state, form.uid.as_str()).await;
+    let students: Vec<Student> = get_students(&graph, form.uid.as_str()).await;
+    let mut teachers = get_teachers(&graph, form.uid.as_str()).await;
 
     // create vector of advisories to fill
     let s: i16 = students.len() as i16;
@@ -220,17 +243,16 @@ pub(crate) async fn build_advisories(
         }
     }
     log::debug!("build_advisories complete");
-    Ok(Json(advisories))
+    Ok(advisories)
 }
 
 /// Helper function for [`build_advisories`] to get vector of students from neo4j database using [`neo4rs`]
-async fn get_students(state: &Arc<SharedState>, uid: &str) -> Vec<Student> {
+async fn get_students(graph: &neo4rs::Graph, uid: &str) -> Vec<Student> {
     log::debug!("Getting students from database");
     use neo4rs::*;
 
     // Get the result of a Cypher query to the neo4j database
-    let mut result = state
-        .graph
+    let mut result = graph
         .execute(
             query(
                 "MATCH (s:Student { user_id: $UID })<-[:TEACHES]-(t) \
@@ -292,13 +314,12 @@ async fn get_students(state: &Arc<SharedState>, uid: &str) -> Vec<Student> {
 }
 
 /// Helper function for [`build_advisories`] to get vector of teachers from neo4j database using [`neo4rs`]
-async fn get_teachers(state: &Arc<SharedState>, uid: &str) -> Vec<Teacher> {
+async fn get_teachers(graph: &neo4rs::Graph, uid: &str) -> Vec<Teacher> {
     log::debug!("Getting teachers from database");
     use neo4rs::*;
 
     // Get the result of a Cypher query to the neo4j database
-    let mut result = state
-        .graph
+    let mut result = graph
         .execute(
             query(
                 "MATCH (t:Teacher { user_id: $UID }) \
