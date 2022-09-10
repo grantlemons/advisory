@@ -1,5 +1,5 @@
 use crate::{SharedState, Verify};
-use axum::{extract::Extension, http::StatusCode, Form, Json};
+use axum::{extract::Extension, http::StatusCode, Json};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, sync::Arc};
 
@@ -136,38 +136,6 @@ impl crate::Verify for TeacherForm {
     }
 }
 
-/// Handler to add a teacher, either a advisor or a student to the database
-///
-/// Uses [`Teacher`] as a form for input
-//TODO: actually add node to remote database
-#[axum_macros::debug_handler]
-pub(crate) async fn add_teacher(
-    Form(form): Form<TeacherForm>,
-    Extension(state): Extension<Arc<SharedState>>,
-) -> Result<Json<TeacherForm>, StatusCode> {
-    use neo4rs::*;
-
-    if !form.verify() {
-        return Err(StatusCode::UNPROCESSABLE_ENTITY);
-    }
-    log::debug!("POST made to people/teacher");
-    log::debug!("New teacher {:?} added", form.name);
-    state
-        .graph
-        .execute(
-            query(
-                "CREATE \
-                (t:Teacher { name: $NAME, sex: $SEX, user_id: $UID })",
-            )
-            .param("NAME", form.name.as_str())
-            .param("SEX", form.sex.to_string())
-            .param("UID", form.uid.as_str()),
-        )
-        .await
-        .unwrap();
-    Ok(Json(form))
-}
-
 /// Form used for post requests to people/student
 #[derive(Deserialize, Serialize)]
 pub struct StudentForm {
@@ -183,21 +151,105 @@ impl crate::Verify for StudentForm {
         // Check if each teacher is valid
         let mut teachers_valid = true;
         for i in &self.teachers {
-            teachers_valid = teachers_valid || !i.verify()
+            teachers_valid = teachers_valid && i.verify()
         }
         !self.name.is_empty() && teachers_valid && !self.uid.is_empty()
     }
 }
 
-/// Handler to add a student, either a advisor or a student to the database
+/// Form used for post requests to people/student
+#[derive(Deserialize, Serialize)]
+pub struct StudentsForm(Vec<StudentForm>);
+
+impl crate::Verify for StudentsForm {
+    fn verify(&self) -> bool {
+        // Check if each teacher is valid
+        let mut students_valid = true;
+        for i in &self.0 {
+            students_valid = students_valid && i.verify();
+        }
+        students_valid
+    }
+}
+
+/// Handler to add a teacher to the database
 ///
-/// Uses [`Student`] as a form for input
+/// Uses [`TeacherForm`] as a form for input
 #[axum_macros::debug_handler]
-pub(crate) async fn add_student(
-    Form(form): Form<StudentForm>,
+pub(crate) async fn add_teacher_handler(
     Extension(state): Extension<Arc<SharedState>>,
-) -> Result<Json<StudentForm>, StatusCode> {
-    use neo4rs::*;
+    Json(form): Json<TeacherForm>,
+) -> Result<Json<u8>, StatusCode> {
+    Ok(Json(
+        add_teacher(&state.graph, form)
+            .await
+            .expect("Unable to add teacher"),
+    ))
+}
+
+/// Handler to add a student to the database
+///
+/// Uses [`StudentForm`] as a form for input
+#[axum_macros::debug_handler]
+pub(crate) async fn add_student_handler(
+    Extension(state): Extension<Arc<SharedState>>,
+    Json(form): Json<StudentForm>,
+) -> Result<Json<u8>, StatusCode> {
+    Ok(Json(
+        add_student(&state.graph, form)
+            .await
+            .expect("Unable to add student"),
+    ))
+}
+
+/// Handler to add many students
+///
+/// Uses [`StudentsForm`] as a form for input
+#[axum_macros::debug_handler]
+pub(crate) async fn add_student_bulk(
+    Json(form): Json<StudentsForm>,
+    Extension(state): Extension<Arc<SharedState>>,
+) -> Result<Json<u8>, StatusCode> {
+    if !form.verify() {
+        return Err(StatusCode::UNPROCESSABLE_ENTITY);
+    }
+    for student in form.0 {
+        add_student(&state.graph, student).await?;
+    }
+    Ok(Json(1))
+}
+
+pub(crate) async fn add_teacher(
+    graph: &neo4rs::Graph,
+    form: TeacherForm,
+) -> Result<u8, StatusCode> {
+    use neo4rs::query;
+
+    if !form.verify() {
+        return Err(StatusCode::UNPROCESSABLE_ENTITY);
+    }
+    log::debug!("POST made to people/teacher");
+    log::debug!("New teacher {:?} added", form.name);
+    graph
+        .execute(
+            query(
+                "CREATE \
+                (t:Teacher { name: $NAME, sex: $SEX, user_id: $UID })",
+            )
+            .param("NAME", form.name.as_str())
+            .param("SEX", form.sex.to_string())
+            .param("UID", form.uid.as_str()),
+        )
+        .await
+        .unwrap();
+    Ok(1)
+}
+
+pub(crate) async fn add_student(
+    graph: &neo4rs::Graph,
+    form: StudentForm,
+) -> Result<u8, StatusCode> {
+    use neo4rs::query;
 
     if !form.verify() {
         return Err(StatusCode::UNPROCESSABLE_ENTITY);
@@ -205,8 +257,7 @@ pub(crate) async fn add_student(
     log::debug!("POST made to people/student");
     log::debug!("New student {:?} added", form.name);
     let teacher_names: Vec<String> = form.teachers.iter().map(|t| t.name.clone()).collect();
-    state
-        .graph
+    graph
         .execute(
             query(
                 "MATCH (t:Teacher) \
@@ -220,5 +271,5 @@ pub(crate) async fn add_student(
         )
         .await
         .unwrap();
-    Ok(Json(form))
+    Ok(1)
 }

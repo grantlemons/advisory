@@ -105,8 +105,9 @@ fn app(state: Arc<SharedState>) -> Router {
         // Add routes to specific handler functions
         .route("/health", get(health)) // Health check
         .route("/info", get(info))
-        .route("/people/teacher", post(people::add_teacher))
-        .route("/people/student", post(people::add_student))
+        .route("/people/teacher", post(people::add_teacher_handler))
+        .route("/people/student", post(people::add_student_handler))
+        .route("/people/student/bulk", post(people::add_student_bulk))
         .route("/", put(advisories::get_advisories))
         // Add shared state to all requests
         .layer(Extension(state))
