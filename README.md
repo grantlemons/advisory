@@ -10,9 +10,9 @@ Create certificates via OpenSSL
 
 - If not installed, install OpenSSL
 - Navigate to the project's root directory (the one this README is in)
-- Create certificates with the following bash command
+- Execute the following bash command and answer the given prompts
 
-```bash
+```txt
 openssl req -x509 -newkey rsa:2048 -nodes -keyout backend/self_signed_certs/key.pem -out backend/self_signed_certs/cert.pem
 ```
 
@@ -23,7 +23,7 @@ The backend and database can be run in Docker containers locally for testing ECS
 - Install `docker` & `docker-compose` if not already installed
 - Navigate to the base directory and execute the following command
 
-```bash
+```txt
 docker compose up
 ```
 
@@ -36,9 +36,9 @@ In order to connect to the backend when running in Docker, send an HTTP request 
 ## Compiling Locally
 
 - If not installed, install rust & rustup
-- Run the following bash command in the project directory
+- Execute the following bash command in the project's root directory
 
-```bash
+```txt
 cargo build --release
 ```
 
@@ -47,9 +47,24 @@ cargo build --release
 Alternatively, to run without producing an executable execute
 
 <pre>
-cargo run -p <i>advisory-backend</i> | <i>advisory-frontend</i>
+cargo run --release -p <i>advisory-backend</i> | <i>advisory-frontend</i>
 </pre>
 
 (Only include one of two of the seperated values above)
 
 In order to connect to the backend when running locally, send an HTTP request to the appropriate endpoint of `https://localhost:3000/` or `https://localhost:7878/`.
+
+## Testing
+
+- Navagate to the project's root directory
+- Startup database with the following command
+
+```txt
+docker compose up database --wait
+```
+
+- Run all unit & integration tests with the following command
+
+```txt
+cargo test --release
+```
