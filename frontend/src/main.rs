@@ -2,6 +2,7 @@ use eframe::{egui, run_native};
 
 struct FrontendApp;
 
+#[allow(clippy::derivable_impls)] // remove after implementing
 impl Default for FrontendApp {
     fn default() -> Self {
         Self {}
