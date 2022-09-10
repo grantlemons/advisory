@@ -203,8 +203,8 @@ pub(crate) async fn build_advisories(
     }
 
     // create vectors from data from database
-    let students: Vec<Student> = get_students(&graph, form.uid.as_str()).await;
-    let mut teachers = get_teachers(&graph, form.uid.as_str()).await;
+    let students: Vec<Student> = get_students(graph, form.uid.as_str()).await?;
+    let mut teachers: Vec<Teacher> = get_teachers(graph, form.uid.as_str()).await?;
 
     // create vector of advisories to fill
     let s: i16 = students.len() as i16;
@@ -247,12 +247,12 @@ pub(crate) async fn build_advisories(
 }
 
 /// Helper function for [`build_advisories`] to get vector of students from neo4j database using [`neo4rs`]
-async fn get_students(graph: &neo4rs::Graph, uid: &str) -> Vec<Student> {
+async fn get_students(graph: &neo4rs::Graph, uid: &str) -> Result<Vec<Student>, StatusCode> {
     log::debug!("Getting students from database");
     use neo4rs::*;
 
     // Get the result of a Cypher query to the neo4j database
-    let mut result = graph
+    let mut result = match graph
         .execute(
             query(
                 "MATCH (s:Student { user_id: $UID })<-[:TEACHES]-(t) \
@@ -263,7 +263,10 @@ async fn get_students(graph: &neo4rs::Graph, uid: &str) -> Vec<Student> {
             .param("UID", uid),
         )
         .await
-        .unwrap();
+    {
+        Ok(res) => res,
+        Err(_) => return Err(StatusCode::BAD_GATEWAY),
+    };
 
     // Create and initialize returned vector
     let mut students: Vec<Student> = Vec::new();
@@ -310,16 +313,16 @@ async fn get_students(graph: &neo4rs::Graph, uid: &str) -> Vec<Student> {
         students.push(student)
     }
     log::debug!("Done getting students!");
-    students
+    Ok(students)
 }
 
 /// Helper function for [`build_advisories`] to get vector of teachers from neo4j database using [`neo4rs`]
-async fn get_teachers(graph: &neo4rs::Graph, uid: &str) -> Vec<Teacher> {
+async fn get_teachers(graph: &neo4rs::Graph, uid: &str) -> Result<Vec<Teacher>, StatusCode> {
     log::debug!("Getting teachers from database");
     use neo4rs::*;
 
     // Get the result of a Cypher query to the neo4j database
-    let mut result = graph
+    let mut result = match graph
         .execute(
             query(
                 "MATCH (t:Teacher { user_id: $UID }) \
@@ -328,7 +331,10 @@ async fn get_teachers(graph: &neo4rs::Graph, uid: &str) -> Vec<Teacher> {
             .param("UID", uid),
         )
         .await
-        .unwrap();
+    {
+        Ok(res) => res,
+        Err(_) => return Err(StatusCode::BAD_GATEWAY),
+    };
 
     // Create and initialize returned vector
     let mut teachers: Vec<Teacher> = Vec::new();
@@ -346,5 +352,5 @@ async fn get_teachers(graph: &neo4rs::Graph, uid: &str) -> Vec<Teacher> {
         teachers.push(teacher)
     }
     log::debug!("Done getting teachers!");
-    teachers
+    Ok(teachers)
 }

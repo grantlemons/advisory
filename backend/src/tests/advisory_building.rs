@@ -32,9 +32,9 @@ fn get_two_advisories() {
 
     match send_request(form) {
         Ok(a) => {
-            assert_eq!(a.len(), 2)
+            assert_eq!(a.len(), 2);
         }
-        Err(_) => panic!("Zero advisory test returned Ok when it should error"),
+        Err(e) => panic!("Test returned Err: {}", e),
     }
 }
 
@@ -48,9 +48,9 @@ fn get_five_advisories() {
 
     match send_request(form) {
         Ok(a) => {
-            assert_eq!(a.len(), 5)
+            assert_eq!(a.len(), 5);
         }
-        Err(_) => panic!("Zero advisory test returned Ok when it should error"),
+        Err(e) => panic!("Test returned Err: {}", e),
     }
 }
 
@@ -63,7 +63,9 @@ fn get_zero_advisories() {
     };
 
     match send_request(form) {
-        Ok(_) => panic!("Zero advisory test returned Ok when it should error"),
-        Err(e) => assert_eq!(e, StatusCode::UNPROCESSABLE_ENTITY),
+        Ok(_) => panic!("Test returned Ok when it should error"),
+        Err(e) => {
+            assert_eq!(StatusCode::UNPROCESSABLE_ENTITY.as_u16(), e.as_u16());
+        }
     }
 }

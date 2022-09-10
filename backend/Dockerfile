@@ -5,7 +5,7 @@ RUN echo "fn main() {}\n" > dummy.rs
 RUN sed -i 's/src\/main.rs/dummy.rs/' Cargo.toml
 RUN cargo build --release
 COPY . .
-RUN cargo build --offline --release
+RUN cargo build --release --offline
 
 FROM debian:buster-slim
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*

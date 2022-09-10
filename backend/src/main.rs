@@ -25,6 +25,7 @@ mod handlers {
 #[cfg(test)]
 mod tests {
     mod advisory_building;
+    mod info_handlers;
 }
 use handlers::*;
 
@@ -163,7 +164,7 @@ async fn health() -> &'static str {
 }
 
 /// Information on version and other fields set in the cargo manifest
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, serde::Serialize, PartialEq, Eq)]
 pub(crate) struct CrateInfo {
     name: &'static str,
     authors: Vec<&'static str>,

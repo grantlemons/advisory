@@ -9,6 +9,8 @@ services:
       - 7474:7474
   backend:
     container_name: backend
+    depends_on:
+      - database
     volumes:
       - ./logs/:/logs/:rw
     environment:
