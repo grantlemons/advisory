@@ -24,6 +24,7 @@ mod handlers {
 }
 #[cfg(test)]
 mod tests {
+    mod adding_people;
     mod advisory_building;
     mod info_handlers;
 }

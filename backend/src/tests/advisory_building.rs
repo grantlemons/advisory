@@ -25,7 +25,7 @@ const DEF_WEIGHTS: crate::advisories::Weights = crate::advisories::Weights {
 #[test]
 fn get_two_advisories() {
     let form = crate::advisories::AdvisoryForm {
-        uid: "vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9".to_string(),
+        uid: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
         weights: DEF_WEIGHTS,
         num_advisories: 2,
     };
@@ -41,7 +41,7 @@ fn get_two_advisories() {
 #[test]
 fn get_five_advisories() {
     let form = crate::advisories::AdvisoryForm {
-        uid: "vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9".to_string(),
+        uid: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
         weights: DEF_WEIGHTS,
         num_advisories: 5,
     };
@@ -57,7 +57,7 @@ fn get_five_advisories() {
 #[test]
 fn get_zero_advisories() {
     let form = crate::advisories::AdvisoryForm {
-        uid: "vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9".to_string(),
+        uid: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
         weights: DEF_WEIGHTS,
         num_advisories: 0,
     };

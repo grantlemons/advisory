@@ -293,7 +293,7 @@ async fn get_students(graph: &neo4rs::Graph, uid: &str) -> Result<Vec<Student>, 
                     .into_iter()
                     .map(|t| Teacher {
                         name: t.get("name").unwrap(),
-                        sex: Some(Sex::from(t.get::<String>("sex").unwrap())),
+                        sex: Sex::from(t.get::<String>("sex").unwrap()),
                     })
                     .collect();
             }
@@ -342,7 +342,7 @@ async fn get_teachers(graph: &neo4rs::Graph, uid: &str) -> Result<Vec<Teacher>, 
         // Get teacher data from returned row of the database query
         let teacher: Node = row.get("teachers").unwrap();
         let name: String = teacher.get("name").unwrap();
-        let sex: Option<Sex> = Some(Sex::from(teacher.get::<String>("sex").unwrap()));
+        let sex: Sex = Sex::from(teacher.get::<String>("sex").unwrap());
 
         log::debug!("Teacher data is {{name: {}, sex: {:?}}}", name, sex);
 

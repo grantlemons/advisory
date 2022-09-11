@@ -7,7 +7,7 @@ use std::{fmt::Debug, sync::Arc};
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Teacher {
     pub(crate) name: String,
-    pub(crate) sex: Option<Sex>,
+    pub(crate) sex: Sex,
 }
 
 impl crate::Verify for Teacher {
@@ -123,11 +123,11 @@ impl std::fmt::Display for Sex {
 }
 
 /// Form used for post requests to people/teacher
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct TeacherForm {
-    name: String,
-    sex: Sex,
-    uid: String,
+    pub(crate) name: String,
+    pub(crate) sex: Sex,
+    pub(crate) uid: String,
 }
 
 impl crate::Verify for TeacherForm {
@@ -137,13 +137,13 @@ impl crate::Verify for TeacherForm {
 }
 
 /// Form used for post requests to people/student
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct StudentForm {
-    name: String,
-    teachers: Vec<Teacher>,
-    sex: Sex,
-    grade: Grade,
-    uid: String,
+    pub(crate) name: String,
+    pub(crate) teachers: Vec<TeacherForm>,
+    pub(crate) sex: Sex,
+    pub(crate) grade: Grade,
+    pub(crate) uid: String,
 }
 
 impl crate::Verify for StudentForm {
@@ -158,7 +158,7 @@ impl crate::Verify for StudentForm {
 }
 
 /// Form used for post requests to people/student
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct StudentsForm(Vec<StudentForm>);
 
 impl crate::Verify for StudentsForm {
@@ -180,6 +180,7 @@ pub(crate) async fn add_teacher_handler(
     Extension(state): Extension<Arc<SharedState>>,
     Json(form): Json<TeacherForm>,
 ) -> Result<Json<u8>, StatusCode> {
+    log::debug!("POST made to people/teacher");
     Ok(Json(
         add_teacher(&state.graph, form)
             .await
@@ -195,6 +196,7 @@ pub(crate) async fn add_student_handler(
     Extension(state): Extension<Arc<SharedState>>,
     Json(form): Json<StudentForm>,
 ) -> Result<Json<u8>, StatusCode> {
+    log::debug!("POST made to people/student");
     Ok(Json(
         add_student(&state.graph, form)
             .await
@@ -210,6 +212,7 @@ pub(crate) async fn add_student_bulk(
     Json(form): Json<StudentsForm>,
     Extension(state): Extension<Arc<SharedState>>,
 ) -> Result<Json<u8>, StatusCode> {
+    log::debug!("POST made to people/student/bulk");
     if !form.verify() {
         return Err(StatusCode::UNPROCESSABLE_ENTITY);
     }
@@ -228,17 +231,13 @@ pub(crate) async fn add_teacher(
     if !form.verify() {
         return Err(StatusCode::UNPROCESSABLE_ENTITY);
     }
-    log::debug!("POST made to people/teacher");
     log::debug!("New teacher {:?} added", form.name);
     graph
-        .execute(
-            query(
-                "CREATE \
-                (t:Teacher { name: $NAME, sex: $SEX, user_id: $UID })",
-            )
-            .param("NAME", form.name.as_str())
-            .param("SEX", form.sex.to_string())
-            .param("UID", form.uid.as_str()),
+        .run(
+            query("CREATE (t:Teacher { name: $name, sex: $sex, user_id: $uid })")
+                .param("name", String::from(form.name))
+                .param("sex", form.sex.to_string())
+                .param("uid", String::from(form.uid)),
         )
         .await
         .unwrap();
@@ -254,22 +253,35 @@ pub(crate) async fn add_student(
     if !form.verify() {
         return Err(StatusCode::UNPROCESSABLE_ENTITY);
     }
-    log::debug!("POST made to people/student");
     log::debug!("New student {:?} added", form.name);
-    let teacher_names: Vec<String> = form.teachers.iter().map(|t| t.name.clone()).collect();
+    let teacher_names: Vec<String> = form
+        .teachers
+        .iter()
+        .map(|t| format!("{}", t.name.clone()))
+        .collect();
     graph
-        .execute(
-            query(
-                "MATCH (t:Teacher) \
-                WHERE t.name in [$TARR] \
-                CREATE (t)-[:TEACHES]->(s:Student { name: $NAME, sex: $SEX, user_id: $UID })",
-            )
-            .param("TARR", teacher_names)
-            .param("NAME", form.name.as_str())
-            .param("SEX", form.sex.to_string())
-            .param("UID", form.uid.as_str()),
+        .run(
+            query("CREATE (s:Student { name: $name, sex: $sex, user_id: $uid })")
+                .param("name", String::from(&form.name))
+                .param("sex", form.sex.to_string())
+                .param("uid", String::from(&form.uid)),
         )
         .await
-        .unwrap();
+        .expect("Unable to send query to database");
+    graph
+        .run(
+            query(
+                "MATCH (t:Teacher {user_id: $uid}), (s:Student { name: $name, sex: $sex, user_id: $uid }) \
+                WHERE t.name in $tarr \
+                CREATE (t)-[:TEACHES]->(s) \
+                RETURN t, s",
+            )
+            .param("tarr", teacher_names)
+            .param("name", String::from(&form.name))
+            .param("sex", form.sex.to_string())
+            .param("uid", String::from(&form.uid)),
+        )
+        .await
+        .expect("Unable to send query to database");
     Ok(1)
 }
