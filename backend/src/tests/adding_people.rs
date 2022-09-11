@@ -11,7 +11,7 @@ async fn get_graph() -> neo4rs::Graph {
 }
 
 #[tokio::test]
-async fn create_student_grant() {
+async fn create_student() {
     let graph = get_graph().await;
 
     let downes = TeacherForm {
