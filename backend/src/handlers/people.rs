@@ -180,7 +180,7 @@ pub(crate) async fn add_teacher_handler(
     Extension(state): Extension<Arc<SharedState>>,
     Json(form): Json<TeacherForm>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::debug!("POST made to people/teacher");
+    log::info!("POST made to people/teacher");
     Ok(Json(
         add_teacher(&state.graph, form)
             .await
@@ -196,7 +196,7 @@ pub(crate) async fn add_student_handler(
     Extension(state): Extension<Arc<SharedState>>,
     Json(form): Json<StudentForm>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::debug!("POST made to people/student");
+    log::info!("POST made to people/student");
     Ok(Json(
         add_student(&state.graph, form)
             .await
@@ -212,7 +212,7 @@ pub(crate) async fn add_student_bulk(
     Json(form): Json<StudentsForm>,
     Extension(state): Extension<Arc<SharedState>>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::debug!("POST made to people/student/bulk");
+    log::info!("POST made to people/student/bulk");
     if !form.verify() {
         return Err(StatusCode::UNPROCESSABLE_ENTITY);
     }
@@ -231,7 +231,7 @@ pub(crate) async fn add_teacher(
     if !form.verify() {
         return Err(StatusCode::UNPROCESSABLE_ENTITY);
     }
-    log::debug!("New teacher {:?} added", form.name);
+    log::info!("New teacher {:?} added", form.name);
     graph
         .run(
             query("CREATE (t:Teacher { name: $name, sex: $sex, user_id: $uid })")
@@ -253,7 +253,7 @@ pub(crate) async fn add_student(
     if !form.verify() {
         return Err(StatusCode::UNPROCESSABLE_ENTITY);
     }
-    log::debug!("New student {:?} added", form.name);
+    log::info!("New student {:?} added", form.name);
     let teacher_names: Vec<String> = form
         .teachers
         .iter()

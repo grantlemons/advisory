@@ -88,7 +88,7 @@ async fn main() {
         Ok(_) => SocketAddr::from(([0, 0, 0, 0], ports.https)),
         Err(_) => SocketAddr::from(([127, 0, 0, 1], ports.https)),
     };
-    log::debug!("listening on {}", addr);
+    log::info!("listening on {}", addr);
 
     // spawn a second server to redirect http requests to the https server
     tokio::spawn(redirect_http_to_https(ports, addr.ip()));
@@ -150,7 +150,7 @@ async fn redirect_http_to_https(ports: Ports, ip: IpAddr) {
     };
 
     let addr = SocketAddr::new(ip, ports.http);
-    log::debug!("http redirect listening on {}", addr);
+    log::info!("http redirect listening on {}", addr);
 
     axum_server::bind(addr)
         .serve(Handler::into_make_service(redirect))
@@ -202,7 +202,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
                 message
             ))
         })
-        .level(log::LevelFilter::Debug)
+        .level(log::LevelFilter::Info)
         .chain(std::io::stdout())
         .chain(fern::log_file(format!(
             "/logs/{}.log",
