@@ -157,7 +157,7 @@ impl crate::Verify for StudentForm {
     }
 }
 
-/// Form used for post requests to people/student
+/// Form used for post requests to people/student/bulk
 #[derive(Deserialize, Serialize, Clone)]
 pub struct StudentsForm(Vec<StudentForm>);
 
@@ -169,6 +169,21 @@ impl crate::Verify for StudentsForm {
             students_valid = students_valid && i.verify();
         }
         students_valid
+    }
+}
+
+/// Form used for post requests to people/student/bulk
+#[derive(Deserialize, Serialize, Clone)]
+pub struct TeachersForm(Vec<TeacherForm>);
+
+impl crate::Verify for TeachersForm {
+    fn verify(&self) -> bool {
+        // Check if each teacher is valid
+        let mut teachers_valid = true;
+        for i in &self.0 {
+            teachers_valid = teachers_valid && i.verify();
+        }
+        teachers_valid
     }
 }
 
@@ -186,6 +201,24 @@ pub(crate) async fn add_teacher_handler(
             .await
             .expect("Unable to add teacher"),
     ))
+}
+
+/// Handler to add many teachers
+///
+/// Uses [`TeachersForm`] as a form for input
+#[axum_macros::debug_handler]
+pub(crate) async fn add_teacher_bulk(
+    Json(form): Json<TeachersForm>,
+    Extension(state): Extension<Arc<SharedState>>,
+) -> Result<Json<u8>, StatusCode> {
+    log::info!("POST made to people/teacher/bulk");
+    if !form.verify() {
+        return Err(StatusCode::UNPROCESSABLE_ENTITY);
+    }
+    for teacher in form.0 {
+        add_teacher(&state.graph, teacher).await?;
+    }
+    Ok(Json(1))
 }
 
 /// Handler to add a student to the database

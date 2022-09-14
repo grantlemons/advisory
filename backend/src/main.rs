@@ -108,6 +108,7 @@ fn app(state: Arc<SharedState>) -> Router {
         .route("/info", get(info))
         .route("/people/teacher", post(people::add_teacher_handler))
         .route("/people/student", post(people::add_student_handler))
+        .route("/people/teacher/bulk", post(people::add_teacher_bulk))
         .route("/people/student/bulk", post(people::add_student_bulk))
         .route("/", put(advisories::get_advisories))
         // Add shared state to all requests
