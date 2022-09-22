@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "rollup -c",
-    "dev": "yarn run build && rollup -c -w",
+    "dev": "rollup -c -w",
     "start": "yarn run build && sirv public --no-clear"
   },
   "devDependencies": {
