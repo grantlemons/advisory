@@ -42,15 +42,13 @@ In order to connect to the backend when running in Docker, send an HTTP request 
 cargo build --release
 ```
 
-- To run, find the appropriate executable file in `/target/release/` and run it
+- To run, find the executable file in `/target/release/` and run it
 
 Alternatively, to run without producing an executable execute
 
 <pre>
-cargo run --release -p <i>advisory-backend</i> | <i>advisory-frontend</i>
+cargo run --release -p advisory-backend
 </pre>
-
-(Only include one of two of the seperated values above)
 
 In order to connect to the backend when running locally, send an HTTP request to the appropriate endpoint of `https://localhost:3000/` or `https://localhost:7878/`.
 
