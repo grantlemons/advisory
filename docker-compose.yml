@@ -27,3 +27,13 @@ services:
       timeout: 5s
       retries: 10
       start_period: 5s
+  frontend:
+    container_name: frontend
+    depends_on:
+      - backend
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    ports:
+      - 0.0.0.0:8080:80
+
