@@ -7,3 +7,6 @@
 <Button color="primary" on:click={() => count++} variant="unelevated">
     <Label>Press To Increment: {count}</Label>
 </Button>
+<Button color="secondary" on:click={() => count++} variant="unelevated">
+    <Label>Press To Increment: {count}</Label>
+</Button>
