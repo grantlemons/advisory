@@ -3,3 +3,4 @@
 !/backend/self_signed_certs/.gitkeep
 /logs/*
 !/logs/.gitkeep
+/node_modules/
