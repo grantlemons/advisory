@@ -1,12 +1,15 @@
-FROM node AS build
-
+FROM node as builder
 WORKDIR /app
-
-COPY package.json ./
-COPY yarn.lock ./
+COPY . .
 RUN yarn install
-COPY . ./
 RUN yarn run build
 
-FROM nginx:stable-alpine
-COPY --from=build /app/dist /usr/share/nginx/html
+# -------
+
+FROM node:18-slim
+WORKDIR /app
+COPY --from=builder /app/package.json .
+COPY --from=builder /app/yarn.lock .
+COPY --from=builder /app/build .
+RUN yarn --prod
+CMD ["node", "index.js"]
