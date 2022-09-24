@@ -13,6 +13,7 @@ dist-ssr
 *.local
 *.svelte-kit
 build
+static/*.css
 
 # Editor directories and files
 .vscode/*
