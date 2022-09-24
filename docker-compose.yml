@@ -19,8 +19,8 @@ services:
       context: backend
       dockerfile: Dockerfile
     ports:
-      - 0.0.0.0:80:7878
-      - 0.0.0.0:443:3000
+      - 0.0.0.0:81:7878
+      - 0.0.0.0:8000:3000
     healthcheck:
       test: curl -X GET --fail http://0.0.0.0:3000/health -Is --insecure
       interval: 20s
@@ -35,5 +35,5 @@ services:
       context: frontend
       dockerfile: Dockerfile
     ports:
-      - 0.0.0.0:8080:3000
+      - 0.0.0.0:80:80
 

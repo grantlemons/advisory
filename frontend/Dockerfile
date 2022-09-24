@@ -6,10 +6,5 @@ RUN yarn run build
 
 # -------
 
-FROM node:18-slim
-WORKDIR /app
-COPY --from=builder /app/package.json .
-COPY --from=builder /app/yarn.lock .
-COPY --from=builder /app/build .
-RUN yarn --prod
-CMD ["node", "index.js"]
+FROM nginx:1.23.1-alpine
+COPY --from=builder /app/build /usr/share/nginx/html
