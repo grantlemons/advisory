@@ -7,9 +7,15 @@
     let email = '';
     let password = '';
 
-    function sign_in() {}
-    function sign_up() {}
-    function sign_w_google() {}
+    function sign_in() {
+        alert(`email: ${email}\npassword: ${password}`);
+    }
+    function sign_up() {
+        alert(`email: ${email}\npassword: ${password}`);
+    }
+    function sign_w_google() {
+        alert(`email: ${email}\npassword: ${password}`);
+    }
 </script>
 
 <div class="right">
