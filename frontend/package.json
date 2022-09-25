@@ -4,14 +4,17 @@
     "private": true,
     "scripts": {
         "dev": "vite dev",
-        "build": "yarn run gentheme && vite build",
+        "build": "yarn run gentheme && yarn run vbuild",
         "gentheme": "svelte-kit sync && smui-theme compile static/smui.css -i src/theme",
+        "vbuild": "vite build",
         "preview": "vite preview",
         "test": "playwright test",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
         "lint": "yarn run format && eslint .",
-        "format": "prettier --plugin-search-dir . --config .prettierrc.toml --write ."
+        "format": "prettier --plugin-search-dir . --config .prettierrc.toml --write .",
+        "docker:build": "docker compose build frontend --no-cache",
+        "docker": "docker compose up frontend --build --no-deps --force-recreate --wait"
     },
     "devDependencies": {
         "@playwright/test": "^1.25.0",

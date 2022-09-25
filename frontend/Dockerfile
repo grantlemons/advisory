@@ -1,8 +1,13 @@
 FROM node as builder
 WORKDIR /app
-COPY . .
+COPY ./package.json ./
+COPY ./yarn.lock ./
+COPY ./svelte.config.js ./
+COPY ./src/theme/ ./src/theme
 RUN yarn install
-RUN yarn run build
+RUN mkdir ./static && yarn run gentheme
+COPY . .
+RUN yarn run vbuild
 
 # -------
 
