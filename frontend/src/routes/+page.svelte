@@ -71,7 +71,7 @@
     }
     .content {
         row-gap: 20px;
-        min-width: 30%;
+        min-width: 40%;
         max-width: 85%;
     }
     .input {
