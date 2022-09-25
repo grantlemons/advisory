@@ -18,6 +18,10 @@
     }
 </script>
 
+<div class="left">
+    <h1>Image Here</h1>
+</div>
+
 <div class="right">
     <div class="content">
         <div class="input">
@@ -74,6 +78,17 @@
 </div>
 
 <style>
+    .left {
+        position: absolute;
+        height: 100vh;
+        width: 50vw;
+        background-color: #939393;
+
+        text-align: center;
+        line-height: 90vh;
+        font-family: Roboto;
+        color: #595959;
+    }
     .right {
         position: absolute;
         display: flex;
