@@ -1,7 +1,6 @@
 <script lang="ts">
-    import Button, { Label } from '@smui/button';
-    import Textfield from '@smui/textfield';
-
+    import Button from '../lib/Button.svelte';
+    import Input from '../lib/Input.svelte';
     import HRule from '../lib/Horizontal-Rule.svelte';
 
     let email = '';
@@ -18,123 +17,69 @@
     }
 </script>
 
-<div class="left">
-    <h1>Image Here</h1>
+<div class="half left centered_contents">
+    <h1 style="margin-top: 0;margin-bottom: 0;">Image Here</h1>
 </div>
 
-<div class="right">
-    <div class="content">
-        <div class="input">
-            <Textfield
-                style="width: 100%"
-                variant="outlined"
-                bind:value={email}
-                label="Email"
-            />
-            <Textfield
-                style="width: 100%"
-                variant="outlined"
-                bind:value={password}
-                label="Password"
-            />
+<div class="half right centered_contents">
+    <div class="content flex centered_contents">
+        <div class="input flex centered_contents">
+            <Input bind:value={email} label="Email" />
+            <Input bind:value={password} label="Password" />
         </div>
 
-        <div class="buttons">
-            <div class="button signin">
-                <Button
-                    color="secondary"
-                    on:click={sign_in}
-                    variant="unelevated"
-                >
-                    <Label>Sign In</Label>
-                </Button>
-            </div>
-
-            <HRule color="#939393" thickness={2} />
-
-            <div class="button google">
-                <Button
-                    color="secondary"
-                    on:click={sign_w_google}
-                    variant="unelevated"
-                >
-                    <Label>Sign In With Google</Label>
-                </Button>
-            </div>
-
-            <!-- LARGER SPACE -->
-
-            <div class="button signup">
-                <Button
-                    color="secondary"
-                    on:click={sign_up}
-                    variant="unelevated"
-                >
-                    <Label>Sign Up</Label>
-                </Button>
-            </div>
+        <div class="buttons flex centered_contents">
+            <Button on:click={sign_in} label="Sign In" />
+            <HRule />
+            <Button on:click={sign_w_google} label="Sign In With Google" />
+            <div style="height: 20%;" />
+            <Button on:click={sign_up} label="Sign Up" />
         </div>
     </div>
 </div>
 
 <style>
-    .left {
-        position: absolute;
+    /* traits */
+    .half {
         height: 100vh;
         width: 50vw;
+    }
+    .flex {
+        display: flex;
+        flex-direction: column;
+    }
+    .centered_contents {
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    /* left side */
+    .left {
+        float: left;
         background-color: #939393;
 
-        text-align: center;
-        line-height: 90vh;
+        line-height: 100vh;
         font-family: Roboto;
         color: #595959;
     }
-    .right {
-        position: absolute;
-        display: flex;
-        justify-content: center;
 
-        align-items: center;
-        margin-left: 50%;
-        height: 100vh;
-        width: 50vw;
+    /* right side */
+    .right {
+        float: right;
+        display: flex;
     }
     .content {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
         row-gap: 20px;
-
-        align-items: center;
-        width: 30%;
+        min-width: 30%;
+        max-width: 85%;
     }
     .input {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
         row-gap: 10px;
-
-        align-items: center;
         width: 100%;
     }
     .buttons {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
         row-gap: 10px;
-
-        align-items: center;
         width: 100%;
-    }
-    .button {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        row-gap: 10px;
-
-        width: 100%;
-    }
-    .signup {
-        margin-top: 30px;
     }
 </style>
