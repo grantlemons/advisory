@@ -29,7 +29,7 @@
         <div class="buttons flex vert_center hori_center">
             <Button on:click={sign_up} label="Sign Up" />
             <HRule />
-            <Button hidden={true} label="Sign In With Google" />
+            <div style="height: 36px;" />
             <div style="height: 20%;" />
             <a href="/" style="all: inherit;">
                 <Button label="Go Back / Log In" />
