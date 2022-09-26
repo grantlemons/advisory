@@ -1,5 +1,5 @@
 use crate::{
-    advisory::advisory::Advisory,
+    advisories::advisory::Advisory,
     forms::advisory::AdvisoryForm,
     people::{grade::Grade, sex::Sex, student::Student, teacher::Teacher},
     SharedState, Verify,

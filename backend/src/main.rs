@@ -17,7 +17,7 @@ use std::{
 
 /// Various functions and structs used elsewhere in the code
 mod lib {
-    pub(crate) mod advisory {
+    pub(crate) mod advisories {
         pub(crate) mod advisory;
         pub(crate) mod weights;
     }
@@ -35,8 +35,7 @@ mod lib {
         pub(crate) mod teacher;
     }
 }
-#[allow(unused_imports)]
-use lib::advisory;
+use lib::advisories;
 use lib::forms;
 use lib::people;
 
@@ -47,6 +46,9 @@ mod handlers {
     /// Handlers that handle adding and managing students and advisors
     pub(crate) mod people;
 }
+use handlers::advisories::*;
+use handlers::people::*;
+
 #[cfg(test)]
 mod tests {
     mod adding_people;
@@ -130,23 +132,11 @@ fn app(state: Arc<SharedState>) -> Router {
         // Add routes to specific handler functions
         .route("/health", get(health)) // Health check
         .route("/info", get(info))
-        .route(
-            "/people/teacher",
-            post(handlers::people::add_teacher_handler),
-        )
-        .route(
-            "/people/student",
-            post(handlers::people::add_student_handler),
-        )
-        .route(
-            "/people/teacher/bulk",
-            post(handlers::people::add_teacher_bulk),
-        )
-        .route(
-            "/people/student/bulk",
-            post(handlers::people::add_student_bulk),
-        )
-        .route("/", put(handlers::advisories::get_advisories))
+        .route("/people/teacher", post(add_teacher_handler))
+        .route("/people/student", post(add_student_handler))
+        .route("/people/teacher/bulk", post(add_teacher_bulk))
+        .route("/people/student/bulk", post(add_student_bulk))
+        .route("/", put(get_advisories))
         // Add shared state to all requests
         .layer(Extension(state))
 }

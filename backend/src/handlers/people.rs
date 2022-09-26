@@ -88,9 +88,9 @@ pub(crate) async fn add_teacher(
     graph
         .run(
             query("CREATE (t:Teacher { name: $name, sex: $sex, user_id: $uid })")
-                .param("name", String::from(form.name))
+                .param("name", form.name)
                 .param("sex", form.sex.to_string())
-                .param("uid", String::from(form.uid)),
+                .param("uid", form.uid),
         )
         .await
         .unwrap();
@@ -107,11 +107,7 @@ pub(crate) async fn add_student(
         return Err(StatusCode::UNPROCESSABLE_ENTITY);
     }
     log::info!("New student {:?} added", form.name);
-    let teacher_names: Vec<String> = form
-        .teachers
-        .iter()
-        .map(|t| format!("{}", t.name.clone()))
-        .collect();
+    let teacher_names: Vec<String> = form.teachers.iter().map(|t| t.name.clone()).collect();
     graph
         .run(
             query("CREATE (s:Student { name: $name, sex: $sex, user_id: $uid })")

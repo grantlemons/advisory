@@ -1,4 +1,4 @@
-use crate::advisory::weights::Weights;
+use crate::advisories::weights::Weights;
 use serde::{Deserialize, Serialize};
 
 /// Form for [`get_advisories`]'s input
