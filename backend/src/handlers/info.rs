@@ -8,17 +8,6 @@ pub(crate) async fn get_health() -> &'static str {
     "Healthy!"
 }
 
-/// Information on version and other fields set in the cargo manifest
-#[derive(Debug, Serialize, PartialEq, Eq)]
-pub(crate) struct CrateInfo {
-    name: &'static str,
-    authors: Vec<&'static str>,
-    version: &'static str,
-    description: &'static str,
-    license: &'static str,
-    repository: &'static str,
-}
-
 /// Crate information handler used to get information on the server
 ///
 /// Uses [`CrateInfo`] struct
@@ -31,4 +20,15 @@ pub(crate) async fn get_info() -> Json<CrateInfo> {
         license: env!("CARGO_PKG_LICENSE"),
         repository: env!("CARGO_PKG_REPOSITORY"),
     })
+}
+
+/// Information on version and other fields set in the cargo manifest
+#[derive(Debug, Serialize, PartialEq, Eq)]
+pub(crate) struct CrateInfo {
+    pub(crate) name: &'static str,
+    pub(crate) authors: Vec<&'static str>,
+    pub(crate) version: &'static str,
+    pub(crate) description: &'static str,
+    pub(crate) license: &'static str,
+    pub(crate) repository: &'static str,
 }

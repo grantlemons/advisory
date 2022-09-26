@@ -1,12 +1,12 @@
 #[tokio::test]
 async fn healthcheck() {
-    let result = crate::health().await;
+    let result = crate::get_health().await;
     assert_eq!(result, "Healthy!");
 }
 
 #[tokio::test]
 async fn info() {
-    let result: crate::CrateInfo = crate::info().await.0;
+    let result: crate::CrateInfo = crate::get_info().await.0;
     assert_eq!(
         result,
         crate::CrateInfo {
