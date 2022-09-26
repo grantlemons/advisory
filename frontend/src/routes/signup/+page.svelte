@@ -3,26 +3,23 @@
     import Input from '$lib/Input.svelte';
     import HRule from '$lib/Horizontal-Rule.svelte';
     import Logo from '$lib/Logo.svelte';
-    import { email, password } from '$lib/auth_store';
+    import { email } from '$lib/auth_store';
 
-    let password_value = '';
     let email_value = '';
+    let password = '';
     let password2 = '';
 
-    password.subscribe((value) => {
-        password_value = value;
-    });
     email.subscribe((value) => {
         email_value = value;
     });
 
     function sign_up() {
-        if (password_value !== password2) {
+        if (password !== password2) {
             alert('Password inputs do not match!');
-            password.set('');
+            password = '';
             password2 = '';
         } else {
-            alert(`email: ${email_value}\npassword: ${password_value}`);
+            alert(`email: ${email_value}\npassword: ${password}`);
         }
     }
 </script>
@@ -38,7 +35,7 @@
         </div>
         <div class="input flex vert_center hori_center">
             <Input bind:value={$email} label="Email" />
-            <Input bind:value={$password} label="Password" />
+            <Input bind:value={password} label="Password" />
             <Input bind:value={password2} label="Repeat Password" />
         </div>
 
