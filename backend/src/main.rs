@@ -15,6 +15,31 @@ use std::{
     sync::Arc,
 };
 
+/// Various functions and structs used elsewhere in the code
+mod lib {
+    pub(crate) mod advisory {
+        pub(crate) mod advisory;
+        pub(crate) mod weights;
+    }
+    pub(crate) mod forms {
+        pub(crate) mod advisory;
+        pub(crate) mod student;
+        pub(crate) mod students;
+        pub(crate) mod teacher;
+        pub(crate) mod teachers;
+    }
+    pub(crate) mod people {
+        pub(crate) mod grade;
+        pub(crate) mod sex;
+        pub(crate) mod student;
+        pub(crate) mod teacher;
+    }
+}
+#[allow(unused_imports)]
+use lib::advisory;
+use lib::forms;
+use lib::people;
+
 /// Handlers for different HTTP requests made to the server
 mod handlers {
     /// Handlers that generate advisories when requested
@@ -28,7 +53,6 @@ mod tests {
     mod advisory_building;
     mod info_handlers;
 }
-use handlers::*;
 
 /// Verify trait for input validation
 pub trait Verify {
@@ -106,11 +130,23 @@ fn app(state: Arc<SharedState>) -> Router {
         // Add routes to specific handler functions
         .route("/health", get(health)) // Health check
         .route("/info", get(info))
-        .route("/people/teacher", post(people::add_teacher_handler))
-        .route("/people/student", post(people::add_student_handler))
-        .route("/people/teacher/bulk", post(people::add_teacher_bulk))
-        .route("/people/student/bulk", post(people::add_student_bulk))
-        .route("/", put(advisories::get_advisories))
+        .route(
+            "/people/teacher",
+            post(handlers::people::add_teacher_handler),
+        )
+        .route(
+            "/people/student",
+            post(handlers::people::add_student_handler),
+        )
+        .route(
+            "/people/teacher/bulk",
+            post(handlers::people::add_teacher_bulk),
+        )
+        .route(
+            "/people/student/bulk",
+            post(handlers::people::add_student_bulk),
+        )
+        .route("/", put(handlers::advisories::get_advisories))
         // Add shared state to all requests
         .layer(Extension(state))
 }
