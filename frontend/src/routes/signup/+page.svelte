@@ -7,10 +7,7 @@
     let email = '';
     let password = '';
 
-    function sign_in() {
-        alert(`email: ${email}\npassword: ${password}`);
-    }
-    function sign_w_google() {
+    function sign_up() {
         alert(`email: ${email}\npassword: ${password}`);
     }
 </script>
@@ -30,12 +27,12 @@
         </div>
 
         <div class="buttons flex vert_center hori_center">
-            <Button on:click={sign_in} label="Sign In" />
+            <Button on:click={sign_up} label="Sign Up" />
             <HRule />
-            <Button on:click={sign_w_google} label="Sign In With Google" />
+            <Button hidden={true} label="Sign In With Google" />
             <div style="height: 20%;" />
-            <a href="/signup" style="all: inherit;">
-                <Button label="Sign Up" />
+            <a href="/" style="all: inherit;">
+                <Button label="Go Back / Log In" />
             </a>
         </div>
     </div>
