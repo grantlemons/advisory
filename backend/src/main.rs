@@ -7,7 +7,7 @@
 //!
 //! A custom fork of neo4rs is used to add functionality for handling vectors as a return type from neo4j
 
-use axum::{routing::*, Extension, Json, Router};
+use axum::{routing::*, Extension, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use std::{
     net::{IpAddr, SocketAddr},
@@ -43,10 +43,13 @@ use lib::people;
 mod handlers {
     /// Handlers that generate advisories when requested
     pub(crate) mod advisories;
+    /// Handlers for server info and health check
+    pub(crate) mod info;
     /// Handlers that handle adding and managing students and advisors
     pub(crate) mod people;
 }
 use handlers::advisories::*;
+use handlers::info::*;
 use handlers::people::*;
 
 #[cfg(test)]
@@ -64,14 +67,14 @@ pub trait Verify {
 /// Shared state for accessing the database
 #[allow(dead_code)]
 pub(crate) struct SharedState {
-    graph: Arc<neo4rs::Graph>,
+    pub(crate) graph: Arc<neo4rs::Graph>,
 }
 
 /// Ports bound to for http and https connections
 #[derive(Clone, Copy)]
 struct Ports {
-    http: u16,
-    https: u16,
+    pub(crate) http: u16,
+    pub(crate) https: u16,
 }
 
 /// Main async function run when executing the crate
@@ -130,8 +133,8 @@ fn app(state: Arc<SharedState>) -> Router {
     // Axum setup and configuration
     Router::new()
         // Add routes to specific handler functions
-        .route("/health", get(health)) // Health check
-        .route("/info", get(info))
+        .route("/health", get(get_health)) // Health check
+        .route("/info", get(get_info))
         .route("/people/teacher", post(add_teacher_handler))
         .route("/people/student", post(add_student_handler))
         .route("/people/teacher/bulk", post(add_teacher_bulk))
@@ -183,38 +186,6 @@ async fn redirect_http_to_https(ports: Ports, ip: IpAddr) {
         .serve(Handler::into_make_service(redirect))
         .await
         .unwrap();
-}
-
-/// Healthcheck handler
-///
-/// Returns `Healthy!` if healthy
-async fn health() -> &'static str {
-    "Healthy!"
-}
-
-/// Information on version and other fields set in the cargo manifest
-#[derive(Debug, serde::Serialize, PartialEq, Eq)]
-pub(crate) struct CrateInfo {
-    name: &'static str,
-    authors: Vec<&'static str>,
-    version: &'static str,
-    description: &'static str,
-    license: &'static str,
-    repository: &'static str,
-}
-
-/// Crate information handler used to get information on the server
-///
-/// Uses [`CrateInfo`] struct
-async fn info() -> Json<CrateInfo> {
-    Json(CrateInfo {
-        name: env!("CARGO_PKG_NAME"),
-        authors: env!("CARGO_PKG_AUTHORS").split(',').collect(),
-        version: env!("CARGO_PKG_VERSION"),
-        description: env!("CARGO_PKG_DESCRIPTION"),
-        license: env!("CARGO_PKG_LICENSE"),
-        repository: env!("CARGO_PKG_REPOSITORY"),
-    })
 }
 
 /// Logger configuration using [`fern`]
