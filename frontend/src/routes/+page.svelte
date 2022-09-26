@@ -3,15 +3,27 @@
     import Input from '$lib/Input.svelte';
     import HRule from '$lib/Horizontal-Rule.svelte';
     import Logo from '$lib/Logo.svelte';
+    import { email, password } from '$lib/auth_store';
 
-    let email = '';
-    let password = '';
+    let password_value = '';
+    let email_value = '';
+
+    password.subscribe((value) => {
+        password_value = value;
+    });
+    email.subscribe((value) => {
+        email_value = value;
+    });
 
     function sign_in() {
-        alert(`email: ${email}\npassword: ${password}`);
+        alert(`email: ${email_value}\npassword: ${password_value}`);
+        if (false) {
+            password.set('');
+        }
     }
     function sign_w_google() {
-        alert(`email: ${email}\npassword: ${password}`);
+        email.set('');
+        password.set('');
     }
 </script>
 
@@ -25,8 +37,8 @@
             <Logo name={true} />
         </div>
         <div class="input flex vert_center hori_center">
-            <Input bind:value={email} label="Email" />
-            <Input bind:value={password} label="Password" />
+            <Input bind:value={$email} label="Email" />
+            <Input bind:value={$password} label="Password" />
         </div>
 
         <div class="buttons flex vert_center hori_center">
