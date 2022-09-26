@@ -1,7 +1,8 @@
 <script lang="ts">
-    import Button from '../lib/Button.svelte';
-    import Input from '../lib/Input.svelte';
-    import HRule from '../lib/Horizontal-Rule.svelte';
+    import Button from '$lib/Button.svelte';
+    import Input from '$lib/Input.svelte';
+    import HRule from '$lib/Horizontal-Rule.svelte';
+    import Logo from '$lib/Logo.svelte';
 
     let email = '';
     let password = '';
@@ -23,6 +24,9 @@
 
 <div class="half right centered_contents">
     <div class="content flex centered_contents">
+        <div class="logo flex centered_contents">
+            <Logo name={true} />
+        </div>
         <div class="input flex centered_contents">
             <Input bind:value={email} label="Email" />
             <Input bind:value={password} label="Password" />
@@ -73,6 +77,8 @@
         row-gap: 20px;
         min-width: 40%;
         max-width: 85%;
+        position: relative;
+        bottom: 3%;
     }
     .input {
         row-gap: 10px;
