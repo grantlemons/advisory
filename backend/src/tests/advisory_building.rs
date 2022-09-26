@@ -1,9 +1,10 @@
+use crate::advisories::{advisory::Advisory, weights::Weights};
+use crate::forms::advisory::AdvisoryForm;
+use crate::handlers::advisories::build_advisories;
 use reqwest::StatusCode;
 
 #[tokio::main]
-async fn send_request(
-    form: crate::advisories::AdvisoryForm,
-) -> Result<Vec<crate::advisories::Advisory>, StatusCode> {
+async fn send_request(form: AdvisoryForm) -> Result<Vec<Advisory>, StatusCode> {
     // Connect to datbase
     let uri = match std::env::var("DOCKER") {
         Ok(_) => "database:7687",
@@ -12,11 +13,11 @@ async fn send_request(
     let user = "neo4j";
     let pass = "test";
     let graph = std::sync::Arc::new(neo4rs::Graph::new(uri, user, pass).await.unwrap());
-    crate::advisories::build_advisories(&graph, form).await
+    build_advisories(&graph, form).await
 }
 
 /// Default weights for tests
-const DEF_WEIGHTS: crate::advisories::Weights = crate::advisories::Weights {
+const DEF_WEIGHTS: Weights = Weights {
     has_teacher: 10,
     sex_diverse: 4,
     grade_diverse: 6,
@@ -24,7 +25,7 @@ const DEF_WEIGHTS: crate::advisories::Weights = crate::advisories::Weights {
 
 #[test]
 fn get_two_advisories() {
-    let form = crate::advisories::AdvisoryForm {
+    let form = AdvisoryForm {
         uid: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
         weights: DEF_WEIGHTS,
         num_advisories: 2,
@@ -40,7 +41,7 @@ fn get_two_advisories() {
 
 #[test]
 fn get_five_advisories() {
-    let form = crate::advisories::AdvisoryForm {
+    let form = AdvisoryForm {
         uid: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
         weights: DEF_WEIGHTS,
         num_advisories: 5,
@@ -56,7 +57,7 @@ fn get_five_advisories() {
 
 #[test]
 fn get_zero_advisories() {
-    let form = crate::advisories::AdvisoryForm {
+    let form = AdvisoryForm {
         uid: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
         weights: DEF_WEIGHTS,
         num_advisories: 0,
