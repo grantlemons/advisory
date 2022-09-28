@@ -1,0 +1,11 @@
+{
+	"name": "advisory-builder",
+	"private": "true",
+	"scripts": {
+		"format": "yarn --cwd frontend run format & cargo fmt",
+		"build:local": "yarn --cwd frontend build && & cargo build",
+		"run:local": "yarn run dev && cargo run",
+		"build:docker": "docker compose build",
+		"run:docker": "docker compose up"
+	}
+}
