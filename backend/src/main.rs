@@ -19,6 +19,7 @@ use std::{
 mod lib {
     pub(crate) mod advisories {
         pub(crate) mod advisory;
+        pub(crate) mod builder;
         pub(crate) mod weights;
     }
     pub(crate) mod forms {
@@ -34,8 +35,10 @@ mod lib {
         pub(crate) mod student;
         pub(crate) mod teacher;
     }
+    pub(crate) mod database;
 }
 use lib::advisories;
+use lib::database;
 use lib::forms;
 use lib::people;
 
