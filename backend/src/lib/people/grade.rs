@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Representaion of possible grades for students
 ///
-/// Adding more options requires changing the grade "spots" tuple in [`super::advisories::Advisory`] as well as adding the mapping to the implementations
+/// Adding more options requires changing the grade "spots" tuple in [`crate::advisories::advisory::Advisory`] as well as adding the mapping to the implementations
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub(crate) enum Grade {
     Freshman,

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Representaion of possible sexes for students within database
 ///
-/// Adding more options requires changing the sex "spots" tuple in [`super::advisories::Advisory`] as well as adding the mapping to the implementations.
+/// Adding more options requires changing the sex "spots" tuple in [`crate::advisories::advisory::Advisory`] as well as adding the mapping to the implementations.
 ///
 /// I understand that grouping it like this might be somewhat sensitive, but it is needed for attempting diversity in the advisories. Sex is used in place of gender to avoid
 /// complexities and ambiguity by representing biological sex. I know that there are some exceptions, but there is no pressing need to accommodate that edge case currently.

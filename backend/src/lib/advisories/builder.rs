@@ -9,7 +9,7 @@ use axum::http::StatusCode;
 
 /// Places students into advisories and returns a vector of them
 ///
-/// Called by [`get_advisories`]
+/// Called by [`crate::advisories::advisory::Advisory`]
 pub(crate) async fn build_advisories(
     graph: &neo4rs::Graph,
     form: AdvisoryForm,

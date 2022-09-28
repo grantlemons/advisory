@@ -1,7 +1,71 @@
-use crate::people::{grade::Grade, sex::Sex, student::Student, teacher::Teacher};
+use crate::{
+    forms::{student::StudentForm, teacher::TeacherForm},
+    people::{grade::Grade, sex::Sex, student::Student, teacher::Teacher},
+    Verify,
+};
 use axum::http::StatusCode;
 
-/// Helper function for [`build_advisories`] to get vector of students from neo4j database using [`neo4rs`]
+pub(crate) async fn add_teacher(
+    graph: &neo4rs::Graph,
+    form: TeacherForm,
+) -> Result<u8, StatusCode> {
+    use neo4rs::query;
+
+    if !form.verify() {
+        return Err(StatusCode::UNPROCESSABLE_ENTITY);
+    }
+    log::info!("New teacher {:?} added", form.name);
+    graph
+        .run(
+            query("CREATE (t:Teacher { name: $name, sex: $sex, user_id: $uid })")
+                .param("name", form.name)
+                .param("sex", form.sex.to_string())
+                .param("uid", form.uid),
+        )
+        .await
+        .unwrap();
+    Ok(1)
+}
+
+pub(crate) async fn add_student(
+    graph: &neo4rs::Graph,
+    form: StudentForm,
+) -> Result<u8, StatusCode> {
+    use neo4rs::query;
+
+    if !form.verify() {
+        return Err(StatusCode::UNPROCESSABLE_ENTITY);
+    }
+    log::info!("New student {:?} added", form.name);
+    let teacher_names: Vec<String> = form.teachers.iter().map(|t| t.name.clone()).collect();
+    graph
+        .run(
+            query("CREATE (s:Student { name: $name, sex: $sex, user_id: $uid })")
+                .param("name", String::from(&form.name))
+                .param("sex", form.sex.to_string())
+                .param("uid", String::from(&form.uid)),
+        )
+        .await
+        .expect("Unable to send query to database");
+    graph
+        .run(
+            query(
+                "MATCH (t:Teacher {user_id: $uid}), (s:Student { name: $name, sex: $sex, user_id: $uid }) \
+                WHERE t.name in $tarr \
+                CREATE (t)-[:TEACHES]->(s) \
+                RETURN t, s",
+            )
+            .param("tarr", teacher_names)
+            .param("name", String::from(&form.name))
+            .param("sex", form.sex.to_string())
+            .param("uid", String::from(&form.uid)),
+        )
+        .await
+        .expect("Unable to send query to database");
+    Ok(1)
+}
+
+/// Helper function for [`crate::advisories::builder::build_advisories`] to get vector of students from neo4j database using [`neo4rs`]
 pub(crate) async fn get_students(
     graph: &neo4rs::Graph,
     uid: &str,
@@ -74,7 +138,7 @@ pub(crate) async fn get_students(
     Ok(students)
 }
 
-/// Helper function for [`build_advisories`] to get vector of teachers from neo4j database using [`neo4rs`]
+/// Helper function for [`crate::advisories::builder::build_advisories`] to get vector of teachers from neo4j database using [`neo4rs`]
 pub(crate) async fn get_teachers(
     graph: &neo4rs::Graph,
     uid: &str,
