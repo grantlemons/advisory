@@ -89,6 +89,8 @@
         row-gap: 20px;
         min-width: 40%;
         max-width: 85%;
+        min-height: fit-content;
+        max-height: 70vh;
         position: relative;
         bottom: 3%;
     }
