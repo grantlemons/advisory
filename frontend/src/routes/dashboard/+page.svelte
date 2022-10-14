@@ -55,7 +55,7 @@
     .left {
         position: absolute;
         left: 0;
-        background-color: #939393;
+        background-color: #d2d2d2;
 
         width: 22vw;
         min-width: 410px;
@@ -72,7 +72,7 @@
     .bottombar {
         flex: 0 1 auto;
 
-        background-color: #c1c1c1;
+        background-color: #d9d9d9;
         flex-direction: row;
         width: 100vw;
         height: 8vh;
