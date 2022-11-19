@@ -86,7 +86,7 @@ async fn main() {
     // Setup logger
     setup_logger().expect("Unable to setup logger with fern");
 
-    // Connect to datbase
+    // Connect to database
     let uri = match std::env::var("DOCKER") {
         Ok(_) => "database:7687",
         Err(_) => "localhost:7687",
