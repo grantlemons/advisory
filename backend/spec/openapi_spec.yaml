@@ -1,0 +1,187 @@
+openapi: 3.0.0
+info:
+  description: ""
+  version: 0.0.1
+  title: Advisory Generator
+  contact:
+    email: grantlemons@aol.com
+  license:
+    name: GPL3.0
+    url: https://www.gnu.org/licenses/gpl-3.0.en.html
+tags:
+  - name: advisory
+  - name: people
+  - name: info
+    description: health and version information
+paths:
+  /:
+    put:
+      tags:
+        - advisory
+      summary: Send settings and get advisories
+      description: ""
+      operationId: updatePet
+      requestBody:
+        $ref: "#/components/requestBodies/Settings"
+      responses:
+        "200":
+          description: Success
+  /people/teacher:
+    post:
+      tags:
+        - people
+      summary: Add teacher to database
+      requestBody:
+        $ref: "#/components/requestBodies/Teacher"
+      responses:
+        "200":
+          description: Success
+  /people/student:
+    post:
+      tags:
+        - people
+      summary: Add teacher to database
+      requestBody:
+        $ref: "#/components/requestBodies/Student"
+      responses:
+        "200":
+          description: Success
+  /people/teacher/bulk:
+    post:
+      tags:
+        - people
+      summary: Add teacher to database
+      requestBody:
+        $ref: "#/components/requestBodies/TeacherBulk"
+      responses:
+        "200":
+          description: Success
+  /people/student/bulk:
+    post:
+      tags:
+        - people
+      summary: Add teacher to database
+      requestBody:
+        $ref: "#/components/requestBodies/StudentBulk"
+      responses:
+        "200":
+          description: Success
+  /health:
+    get:
+      tags:
+        - info
+      summary: check health of server
+      responses:
+        "200":
+          description: Success
+  /info:
+    get:
+      tags:
+        - info
+      summary: get general information about the server
+      responses:
+        "200":
+          description: Success
+components:
+  requestBodies:
+    Settings:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Settings"
+      required: true
+    Teacher:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Teacher"
+      required: true
+    Student:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Student"
+      required: true
+    TeacherBulk:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/TeacherBulk"
+      required: true
+    StudentBulk:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/StudentBulk"
+      required: true
+  schemas:
+    Settings:
+      type: object
+      properties:
+        uid:
+          type: string
+          format: uuid
+        weights:
+          type: object
+          properties:
+            has_teacher:
+              type: integer
+              format: int8
+              minimum: 0
+              maximum: 10
+            sex_diverse:
+              type: integer
+              format: int8
+              minimum: 0
+              maximum: 10
+            grade_diverse:
+              type: integer
+              format: int8
+              minimum: 0
+              maximum: 10
+        num_advisories:
+          type: integer
+          format: int16
+    Teacher:
+      type: object
+      properties:
+        uid:
+          type: string
+          format: uuid
+        name:
+          type: string
+        sex:
+          type: string
+          enum:
+            - Male
+            - Female
+    Student:
+      type: object
+      properties:
+        uid:
+          type: string
+          format: uuid
+        name:
+          type: string
+        sex:
+          type: string
+          enum:
+            - Male
+            - Female
+        teachers:
+          type: array
+        grade:
+          type: string
+          enum:
+            - Freshman
+            - Sophomore
+            - Junior
+            - Senior
+    TeacherBulk:
+      type: array
+      items:
+        $ref: "#/components/schemas/Teacher"
+    StudentBulk:
+      type: array
+      items:
+        $ref: "#/components/schemas/Student"
