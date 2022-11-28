@@ -40,9 +40,10 @@ pub(crate) async fn add_student(
     let teacher_names: Vec<String> = form.teachers.iter().map(|t| t.name.clone()).collect();
     graph
         .run(
-            query("CREATE (s:Student { name: $name, sex: $sex, user_id: $uid })")
+            query("CREATE (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $uid })")
                 .param("name", String::from(&form.name))
                 .param("sex", form.sex.to_string())
+                .param("grade", form.grade.to_string())
                 .param("uid", String::from(&form.uid)),
         )
         .await
@@ -50,14 +51,15 @@ pub(crate) async fn add_student(
     graph
         .run(
             query(
-                "MATCH (t:Teacher {user_id: $uid}), (s:Student { name: $name, sex: $sex, user_id: $uid }) \
-                WHERE t.name in $tarr \
+                "MATCH (t:Teacher {user_id: $uid}), (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $uid }) \
+                WHERE t.name in $t_arr \
                 CREATE (t)-[:TEACHES]->(s) \
                 RETURN t, s",
             )
-            .param("tarr", teacher_names)
+            .param("t_arr", teacher_names)
             .param("name", String::from(&form.name))
             .param("sex", form.sex.to_string())
+            .param("grade", form.grade.to_string())
             .param("uid", String::from(&form.uid)),
         )
         .await
