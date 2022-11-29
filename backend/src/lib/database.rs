@@ -43,7 +43,7 @@ pub(crate) async fn add_student(
             query("CREATE (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $uid })")
                 .param("name", String::from(&form.name))
                 .param("sex", form.sex.to_string())
-                .param("grade", form.grade.to_string())
+                .param("grade", i64::from(form.clone().grade))
                 .param("uid", String::from(&form.uid)),
         )
         .await
@@ -59,7 +59,7 @@ pub(crate) async fn add_student(
             .param("t_arr", teacher_names)
             .param("name", String::from(&form.name))
             .param("sex", form.sex.to_string())
-            .param("grade", form.grade.to_string())
+            .param("grade", i64::from(form.grade))
             .param("uid", String::from(&form.uid)),
         )
         .await

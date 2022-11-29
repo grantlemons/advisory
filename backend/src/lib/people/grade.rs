@@ -24,13 +24,13 @@ impl From<i64> for Grade {
     }
 }
 
-impl To<i64> for Grade {
-    fn to(&self) -> i64 {
-        match self {
-            Self::Freshman => 9,
-            Self::Sophomore => 10,
-            Self::Junior => 11,
-            Self::Senior => 12,
+impl From<Grade> for i64 {
+    fn from(g: Grade) -> Self {
+        match g {
+            Grade::Freshman => 9,
+            Grade::Sophomore => 10,
+            Grade::Junior => 11,
+            Grade::Senior => 12,
         }
     }
 }
