@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// Form for [`crate::database`]'s input
+/// Form for [`crate::database::clear_people`]'s input
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub(crate) struct DeleteForm {
     /// The ID of the user's account within the database.
