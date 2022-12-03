@@ -1,7 +1,8 @@
 use crate::{
     database::{add_student, add_teacher, clear_people},
     forms::{
-        student::StudentForm, students::StudentsForm, teacher::TeacherForm, teachers::TeachersForm,
+        delete::DeleteForm, student::StudentForm, students::StudentsForm, teacher::TeacherForm,
+        teachers::TeachersForm,
     },
     SharedState, Verify,
 };
@@ -14,7 +15,7 @@ use std::sync::Arc;
 #[axum_macros::debug_handler]
 pub(crate) async fn clear_people_handler(
     Extension(state): Extension<Arc<SharedState>>,
-    Json(form): Json<TeacherForm>,
+    Json(form): Json<DeleteForm>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("DELETE made to people/clear");
     Ok(Json(clear_people(&state.graph, form.clone()).await.expect(
