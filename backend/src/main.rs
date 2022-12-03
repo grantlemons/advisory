@@ -139,6 +139,7 @@ fn app(state: Arc<SharedState>) -> Router {
         // Add routes to specific handler functions
         .route("/health", get(get_health)) // Health check
         .route("/info", get(get_info))
+        .route("/people", delete(clear_people_handler))
         .route("/people/teacher", post(add_teacher_handler))
         .route("/people/student", post(add_student_handler))
         .route("/people/teacher/bulk", post(add_teacher_bulk))

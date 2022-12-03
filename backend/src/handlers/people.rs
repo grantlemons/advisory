@@ -17,10 +17,12 @@ pub(crate) async fn clear_people_handler(
     Extension(state): Extension<Arc<SharedState>>,
     Json(form): Json<DeleteForm>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::info!("DELETE made to people/clear");
-    Ok(Json(clear_people(&state.graph, form.clone()).await.expect(
-        format!("Unable to clear people for {}", form.uid).as_str(),
-    )))
+    log::info!("DELETE made to people");
+    Ok(Json(
+        clear_people(&state.graph, form.clone())
+            .await
+            .unwrap_or_else(|_| panic!("Unable to clear people for {}", form.uid)),
+    ))
 }
 
 /// Handler to add a teacher to the database
