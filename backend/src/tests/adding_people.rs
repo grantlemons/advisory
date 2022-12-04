@@ -1,4 +1,4 @@
-use crate::database::{add_student, add_teacher};
+use crate::database::{add_student, add_teacher, clear_people};
 use crate::people::{Grade, Sex, Student, Teacher};
 
 async fn get_graph() -> neo4rs::Graph {
@@ -31,13 +31,13 @@ async fn create_student() {
         Ok(res) => {
             assert_eq!(res, 1)
         }
-        Err(e) => panic!("Adding teacher returned Err: {}", e),
+        Err(e) => panic!("TEACHER STAGE 1/2: Test returned Err: {}", e),
     };
     match add_teacher(&graph, hesseltine.clone()).await {
         Ok(res) => {
             assert_eq!(res, 1)
         }
-        Err(e) => panic!("Adding teacher returned Err: {}", e),
+        Err(e) => panic!("TEACHER STAGE 2/2: Test returned Err: {}", e),
     };
 
     let form = Student {
@@ -52,6 +52,16 @@ async fn create_student() {
         Ok(res) => {
             assert_eq!(res, 1);
         }
-        Err(e) => panic!("Test returned Err: {}", e),
+        Err(e) => panic!("STUDENT STAGE: Test returned Err: {}", e),
+    }
+
+    let clear_form = crate::UserIDForm {
+        user_id: user_id.clone(),
+    };
+    match clear_people(&graph, clear_form).await {
+        Ok(res) => {
+            assert_eq!(res, 1);
+        }
+        Err(e) => panic!("CLEAR STAGE: Test returned Err: {}", e),
     }
 }
