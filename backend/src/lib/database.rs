@@ -1,14 +1,10 @@
 use crate::{
-    forms::{StudentForm, TeacherForm, UserIDForm},
-    people::{grade::Grade, sex::Sex, student::Student, teacher::Teacher},
-    Verify,
+    people::{Grade, Sex, Student, Teacher},
+    UserIDForm, Verify,
 };
 use axum::http::StatusCode;
 
-pub(crate) async fn add_teacher(
-    graph: &neo4rs::Graph,
-    form: TeacherForm,
-) -> Result<u8, StatusCode> {
+pub(crate) async fn add_teacher(graph: &neo4rs::Graph, form: Teacher) -> Result<u8, StatusCode> {
     use neo4rs::query;
 
     if !form.verify() {
@@ -43,10 +39,7 @@ pub(crate) async fn clear_people(
     Ok(1)
 }
 
-pub(crate) async fn add_student(
-    graph: &neo4rs::Graph,
-    form: StudentForm,
-) -> Result<u8, StatusCode> {
+pub(crate) async fn add_student(graph: &neo4rs::Graph, form: Student) -> Result<u8, StatusCode> {
     use neo4rs::query;
 
     if !form.verify() {
@@ -115,9 +108,10 @@ pub(crate) async fn get_students(
     while let Ok(Some(row)) = result.next().await {
         // Get student data from returned row of the database query
         let student: Node = row.get("students").unwrap();
+        let user_id: String = student.get("user_id").unwrap();
         let name: String = student.get("name").unwrap();
         let grade: Grade = Grade::from(student.get::<i64>("grade").unwrap());
-        let sex: Option<Sex> = Some(Sex::from(student.get::<String>("sex").unwrap()));
+        let sex: Sex = Sex::from(student.get::<String>("sex").unwrap());
 
         log::info!(
             "Student data is {{name: {}, grade: {}, sex: {:?}}}",
@@ -134,6 +128,7 @@ pub(crate) async fn get_students(
                 t_structs = teachers
                     .into_iter()
                     .map(|t| Teacher {
+                        user_id: t.get("user_id").unwrap(),
                         name: t.get("name").unwrap(),
                         sex: Sex::from(t.get::<String>("sex").unwrap()),
                     })
@@ -146,6 +141,7 @@ pub(crate) async fn get_students(
 
         // Add student with all fields to the students vector
         let student = Student {
+            user_id,
             name,
             teachers: t_structs,
             grade,
@@ -186,13 +182,14 @@ pub(crate) async fn get_teachers(
     while let Ok(Some(row)) = result.next().await {
         // Get teacher data from returned row of the database query
         let teacher: Node = row.get("teachers").unwrap();
+        let user_id: String = teacher.get("user_id").unwrap();
         let name: String = teacher.get("name").unwrap();
         let sex: Sex = Sex::from(teacher.get::<String>("sex").unwrap());
 
         log::info!("Teacher data is {{name: {}, sex: {:?}}}", name, sex);
 
         // Add teacher will all fields to the teachers vector
-        let teacher = Teacher { name, sex };
+        let teacher = Teacher { user_id, name, sex };
         log::info!("Adding {} to teacher vector", teacher);
         teachers.push(teacher)
     }

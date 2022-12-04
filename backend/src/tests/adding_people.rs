@@ -1,6 +1,5 @@
 use crate::database::{add_student, add_teacher};
-use crate::forms::{StudentForm, TeacherForm};
-use crate::people::{grade::Grade, sex::Sex};
+use crate::people::{Grade, Sex, Student, Teacher};
 
 async fn get_graph() -> neo4rs::Graph {
     let uri = match std::env::var("DOCKER") {
@@ -15,16 +14,17 @@ async fn get_graph() -> neo4rs::Graph {
 #[tokio::test]
 async fn create_student() {
     let graph = get_graph().await;
+    let user_id = String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9");
 
-    let downes = TeacherForm {
+    let downes = Teacher {
+        user_id: user_id.clone(),
         name: String::from("Edward Downes"),
         sex: Sex::Male,
-        user_id: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
     };
-    let hesseltine = TeacherForm {
+    let hesseltine = Teacher {
+        user_id: user_id.clone(),
         name: String::from("Ashley Hesseltine"),
         sex: Sex::Female,
-        user_id: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
     };
 
     match add_teacher(&graph, downes.clone()).await {
@@ -40,12 +40,12 @@ async fn create_student() {
         Err(e) => panic!("Adding teacher returned Err: {}", e),
     };
 
-    let form = StudentForm {
+    let form = Student {
+        user_id: user_id.clone(),
         name: String::from("Grant Lemons"),
         teachers: vec![downes, hesseltine],
         sex: Sex::Male,
         grade: Grade::Senior,
-        user_id: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
     };
 
     match add_student(&graph, form).await {

@@ -1,9 +1,8 @@
 use crate::{
     advisories::advisory::Advisory,
     database::{get_students, get_teachers},
-    forms::AdvisoryForm,
-    people::{student::Student, teacher::Teacher},
-    Verify,
+    people::{Student, Teacher},
+    Settings, Verify,
 };
 use axum::http::StatusCode;
 
@@ -12,7 +11,7 @@ use axum::http::StatusCode;
 /// Called by [`crate::advisories::advisory::Advisory`]
 pub(crate) async fn build_advisories(
     graph: &neo4rs::Graph,
-    form: AdvisoryForm,
+    form: Settings,
 ) -> Result<Vec<Advisory>, StatusCode> {
     log::info!("Building advisories");
     if !form.verify() {
@@ -27,7 +26,8 @@ pub(crate) async fn build_advisories(
     let s: i16 = students.len() as i16;
     let a: i16 = form.num_advisories;
     log::info!("{} Students, {} Advisories", s, a);
-    let mut advisories: Vec<Advisory> = vec![Advisory::default(s / a); a.try_into().unwrap()];
+    let mut advisories: Vec<Advisory> =
+        vec![Advisory::default(s / a, form.user_id); a.try_into().unwrap()];
 
     // add teachers to advisories
     for i in &mut advisories {

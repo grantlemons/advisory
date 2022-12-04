@@ -18,23 +18,37 @@ use std::{
 /// Various functions and structs used elsewhere in the code
 mod lib {
     pub(crate) mod advisories {
-        pub(crate) mod advisory;
+        mod advisory;
         pub(crate) mod builder;
-        pub(crate) mod weights;
+
+        pub(crate) use advisory::Advisory;
     }
-    pub(crate) mod forms;
+    mod settings;
+    mod user_id;
+    mod weights;
     pub(crate) mod people {
-        pub(crate) mod grade;
-        pub(crate) mod sex;
-        pub(crate) mod student;
-        pub(crate) mod teacher;
+        mod grade;
+        mod sex;
+        mod student;
+        mod teacher;
+
+        pub(crate) use grade::Grade;
+        pub(crate) use sex::Sex;
+        pub(crate) use student::Student;
+        pub(crate) use teacher::Teacher;
     }
     pub(crate) mod database;
+
+    pub(crate) use settings::Settings;
+    pub(crate) use user_id::UserIDForm;
+    pub(crate) use weights::Weights;
 }
 use lib::advisories;
 use lib::database;
-use lib::forms;
 use lib::people;
+use lib::Settings;
+use lib::UserIDForm;
+use lib::Weights;
 
 /// Handlers for different HTTP requests made to the server
 mod handlers {

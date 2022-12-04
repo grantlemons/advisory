@@ -16,7 +16,18 @@ pub struct Teacher {
 
 impl crate::Verify for Teacher {
     fn verify(&self) -> bool {
-        !self.name.is_empty()
+        !self.name.is_empty() && !self.user_id.is_empty()
+    }
+}
+
+impl crate::Verify for Vec<Teacher> {
+    fn verify(&self) -> bool {
+        // Check if each teacher is valid
+        let mut teachers_valid = true;
+        for i in self {
+            teachers_valid = teachers_valid && i.verify();
+        }
+        teachers_valid
     }
 }
 
