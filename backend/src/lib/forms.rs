@@ -8,7 +8,7 @@ pub(crate) struct AdvisoryForm {
     /// The ID of the user's account within the database.
     ///
     /// Can be based on different things, like auth cred
-    pub(crate) uid: String,
+    pub(crate) user_id: String,
     /// The respective value of each factor in the calculation of advisory 'scores'
     pub(crate) weights: Weights,
     /// Number of advisories to be generated
@@ -17,18 +17,18 @@ pub(crate) struct AdvisoryForm {
 
 impl crate::Verify for AdvisoryForm {
     fn verify(&self) -> bool {
-        !self.uid.is_empty() && self.weights.verify() && self.num_advisories > 0
+        !self.user_id.is_empty() && self.weights.verify() && self.num_advisories > 0
     }
 }
 
 /// Form used for post requests to people/student
 #[derive(Deserialize, Serialize, Clone)]
 pub struct StudentForm {
+    pub(crate) user_id: String,
     pub(crate) name: String,
     pub(crate) teachers: Vec<TeacherForm>,
     pub(crate) sex: Sex,
     pub(crate) grade: Grade,
-    pub(crate) uid: String,
 }
 
 impl crate::Verify for StudentForm {
@@ -38,7 +38,7 @@ impl crate::Verify for StudentForm {
         for i in &self.teachers {
             teachers_valid = teachers_valid && i.verify()
         }
-        !self.name.is_empty() && teachers_valid && !self.uid.is_empty()
+        !self.name.is_empty() && teachers_valid && !self.user_id.is_empty()
     }
 }
 
@@ -60,14 +60,14 @@ impl crate::Verify for StudentsForm {
 /// Form used for post requests to people/teacher
 #[derive(Deserialize, Serialize, Clone)]
 pub struct TeacherForm {
+    pub(crate) user_id: String,
     pub(crate) name: String,
     pub(crate) sex: Sex,
-    pub(crate) uid: String,
 }
 
 impl crate::Verify for TeacherForm {
     fn verify(&self) -> bool {
-        !self.name.is_empty() && !self.uid.is_empty()
+        !self.name.is_empty() && !self.user_id.is_empty()
     }
 }
 
@@ -88,9 +88,9 @@ impl crate::Verify for TeachersForm {
 
 /// Form for [`crate::database::clear_people`]'s input
 #[derive(Deserialize, Serialize, Debug, Clone)]
-pub(crate) struct UIDForm {
+pub(crate) struct UserIDForm {
     /// The ID of the user's account within the database.
     ///
     /// Can be based on different things, like auth cred
-    pub(crate) uid: String,
+    pub(crate) user_id: String,
 }

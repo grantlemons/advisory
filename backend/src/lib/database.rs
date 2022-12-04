@@ -1,5 +1,5 @@
 use crate::{
-    forms::{StudentForm, TeacherForm, UIDForm},
+    forms::{StudentForm, TeacherForm, UserIDForm},
     people::{grade::Grade, sex::Sex, student::Student, teacher::Teacher},
     Verify,
 };
@@ -17,22 +17,27 @@ pub(crate) async fn add_teacher(
     log::info!("New teacher {:?} added", form.name);
     graph
         .run(
-            query("CREATE (t:Teacher { name: $name, sex: $sex, user_id: $uid })")
+            query("CREATE (t:Teacher { name: $name, sex: $sex, user_id: $user_id })")
                 .param("name", form.name)
                 .param("sex", form.sex.to_string())
-                .param("uid", form.uid),
+                .param("user_id", form.user_id),
         )
         .await
         .unwrap();
     Ok(1)
 }
 
-pub(crate) async fn clear_people(graph: &neo4rs::Graph, form: UIDForm) -> Result<u8, StatusCode> {
+pub(crate) async fn clear_people(
+    graph: &neo4rs::Graph,
+    form: UserIDForm,
+) -> Result<u8, StatusCode> {
     use neo4rs::query;
 
-    log::info!("Clearing all people for UID {}", form.uid);
+    log::info!("Clearing all people for UID {}", form.user_id);
     graph
-        .run(query("MATCH (p { user_id: $uid }) DETACH DELETE p").param("uid", form.uid))
+        .run(
+            query("MATCH (p { user_id: $user_id }) DETACH DELETE p").param("user_id", form.user_id),
+        )
         .await
         .unwrap();
     Ok(1)
@@ -51,18 +56,20 @@ pub(crate) async fn add_student(
     let teacher_names: Vec<String> = form.teachers.iter().map(|t| t.name.clone()).collect();
     graph
         .run(
-            query("CREATE (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $uid })")
-                .param("name", String::from(&form.name))
-                .param("sex", form.sex.to_string())
-                .param("grade", i64::from(form.clone().grade))
-                .param("uid", String::from(&form.uid)),
+            query(
+                "CREATE (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $user_id })",
+            )
+            .param("name", String::from(&form.name))
+            .param("sex", form.sex.to_string())
+            .param("grade", i64::from(form.clone().grade))
+            .param("user_id", String::from(&form.user_id)),
         )
         .await
         .expect("Unable to send query to database");
     graph
         .run(
             query(
-                "MATCH (t:Teacher {user_id: $uid}), (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $uid }) \
+                "MATCH (t:Teacher {user_id: $user_id}), (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $user_id }) \
                 WHERE t.name in $t_arr \
                 CREATE (t)-[:TEACHES]->(s) \
                 RETURN t, s",
@@ -71,7 +78,7 @@ pub(crate) async fn add_student(
             .param("name", String::from(&form.name))
             .param("sex", form.sex.to_string())
             .param("grade", i64::from(form.grade))
-            .param("uid", String::from(&form.uid)),
+            .param("user_id", String::from(&form.user_id)),
         )
         .await
         .expect("Unable to send query to database");
@@ -81,7 +88,7 @@ pub(crate) async fn add_student(
 /// Helper function for [`crate::advisories::builder::build_advisories`] to get vector of students from neo4j database using [`neo4rs`]
 pub(crate) async fn get_students(
     graph: &neo4rs::Graph,
-    uid: &str,
+    user_id: &str,
 ) -> Result<Vec<Student>, StatusCode> {
     log::info!("Getting students from database");
     use neo4rs::*;
@@ -95,7 +102,7 @@ pub(crate) async fn get_students(
                 distinct(s) as students, \
                 collect(t) as teachers",
             )
-            .param("UID", uid),
+            .param("UID", user_id),
         )
         .await
     {
@@ -154,7 +161,7 @@ pub(crate) async fn get_students(
 /// Helper function for [`crate::advisories::builder::build_advisories`] to get vector of teachers from neo4j database using [`neo4rs`]
 pub(crate) async fn get_teachers(
     graph: &neo4rs::Graph,
-    uid: &str,
+    user_id: &str,
 ) -> Result<Vec<Teacher>, StatusCode> {
     log::info!("Getting teachers from database");
     use neo4rs::*;
@@ -166,7 +173,7 @@ pub(crate) async fn get_teachers(
                 "MATCH (t:Teacher { user_id: $UID }) \
                 RETURN distinct(t) as teachers",
             )
-            .param("UID", uid),
+            .param("UID", user_id),
         )
         .await
     {

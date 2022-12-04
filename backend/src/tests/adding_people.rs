@@ -19,12 +19,12 @@ async fn create_student() {
     let downes = TeacherForm {
         name: String::from("Edward Downes"),
         sex: Sex::Male,
-        uid: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
+        user_id: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
     };
     let hesseltine = TeacherForm {
         name: String::from("Ashley Hesseltine"),
         sex: Sex::Female,
-        uid: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
+        user_id: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
     };
 
     match add_teacher(&graph, downes.clone()).await {
@@ -45,7 +45,7 @@ async fn create_student() {
         teachers: vec![downes, hesseltine],
         sex: Sex::Male,
         grade: Grade::Senior,
-        uid: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
+        user_id: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
     };
 
     match add_student(&graph, form).await {

@@ -20,8 +20,8 @@ pub(crate) async fn build_advisories(
     }
 
     // create vectors from data from database
-    let students: Vec<Student> = get_students(graph, form.uid.as_str()).await?;
-    let mut teachers: Vec<Teacher> = get_teachers(graph, form.uid.as_str()).await?;
+    let students: Vec<Student> = get_students(graph, form.user_id.as_str()).await?;
+    let mut teachers: Vec<Teacher> = get_teachers(graph, form.user_id.as_str()).await?;
 
     // create vector of advisories to fill
     let s: i16 = students.len() as i16;
