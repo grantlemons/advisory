@@ -1,7 +1,7 @@
 use crate::Weights;
 use serde::{Deserialize, Serialize};
 
-/// Form for [`crate::advisories::advisory::Advisory`]'s input
+/// Form for [`crate::advisories::Advisory`]'s input
 #[derive(Deserialize, Serialize, Debug)]
 pub(crate) struct Settings {
     /// The ID of the user's account within the database.

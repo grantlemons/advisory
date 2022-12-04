@@ -6,9 +6,9 @@ use crate::{
 use axum::{extract::Extension, http::StatusCode, Json};
 use std::sync::Arc;
 
-/// Handler to add a teacher to the database
+/// Handler to clear all people for a specific user
 ///
-/// Uses [`TeacherForm`] as a form for input
+/// Uses [`UserIDForm`] as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn clear_people_handler(
     Extension(state): Extension<Arc<SharedState>>,
@@ -40,7 +40,7 @@ pub(crate) async fn add_teacher_handler(
 
 /// Handler to add many teachers
 ///
-/// Uses [`TeachersForm`] as a form for input
+/// Uses a vector of [`Teacher`]s as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn add_teacher_bulk(
     Json(forms): Json<Vec<Teacher>>,
@@ -58,7 +58,7 @@ pub(crate) async fn add_teacher_bulk(
 
 /// Handler to add a student to the database
 ///
-/// Uses [`StudentForm`] as a form for input
+/// Uses [`Student`] as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn add_student_handler(
     Json(form): Json<Student>,
@@ -74,7 +74,7 @@ pub(crate) async fn add_student_handler(
 
 /// Handler to add many students
 ///
-/// Uses [`StudentsForm`] as a form for input
+/// Uses a vector of [`Student`]s as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn add_student_bulk(
     Json(forms): Json<Vec<Student>>,
