@@ -1,5 +1,5 @@
 use crate::{
-    forms::{student::StudentForm, teacher::TeacherForm, uid::UIDForm},
+    forms::{StudentForm, TeacherForm, UIDForm},
     people::{grade::Grade, sex::Sex, student::Student, teacher::Teacher},
     Verify,
 };

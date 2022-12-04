@@ -1,9 +1,6 @@
 use crate::{
     database::{add_student, add_teacher, clear_people},
-    forms::{
-        student::StudentForm, students::StudentsForm, teacher::TeacherForm, teachers::TeachersForm,
-        uid::UIDForm,
-    },
+    forms::{StudentForm, StudentsForm, TeacherForm, TeachersForm, UIDForm},
     SharedState, Verify,
 };
 use axum::{extract::Extension, http::StatusCode, Json};

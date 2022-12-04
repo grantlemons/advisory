@@ -1,5 +1,5 @@
 use crate::database::{add_student, add_teacher};
-use crate::forms::{student::StudentForm, teacher::TeacherForm};
+use crate::forms::{StudentForm, TeacherForm};
 use crate::people::{grade::Grade, sex::Sex};
 
 async fn get_graph() -> neo4rs::Graph {

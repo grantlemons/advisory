@@ -1,6 +1,6 @@
 use crate::advisories::builder::build_advisories;
 use crate::advisories::{advisory::Advisory, weights::Weights};
-use crate::forms::advisory::AdvisoryForm;
+use crate::forms::AdvisoryForm;
 use reqwest::StatusCode;
 
 #[tokio::main]

@@ -22,14 +22,7 @@ mod lib {
         pub(crate) mod builder;
         pub(crate) mod weights;
     }
-    pub(crate) mod forms {
-        pub(crate) mod advisory;
-        pub(crate) mod student;
-        pub(crate) mod students;
-        pub(crate) mod teacher;
-        pub(crate) mod teachers;
-        pub(crate) mod uid;
-    }
+    pub(crate) mod forms;
     pub(crate) mod people {
         pub(crate) mod grade;
         pub(crate) mod sex;
