@@ -1,7 +1,7 @@
 use crate::{
     advisories::advisory::Advisory,
     database::{get_students, get_teachers},
-    forms::advisory::AdvisoryForm,
+    forms::AdvisoryForm,
     people::{student::Student, teacher::Teacher},
     Verify,
 };

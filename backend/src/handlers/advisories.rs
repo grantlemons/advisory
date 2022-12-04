@@ -1,6 +1,6 @@
 use crate::{
     advisories::{advisory::Advisory, builder::build_advisories},
-    forms::advisory::AdvisoryForm,
+    forms::AdvisoryForm,
     SharedState,
 };
 use axum::{extract::Extension, http::StatusCode, Json};

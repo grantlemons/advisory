@@ -1,12 +1,26 @@
 use crate::{
-    database::{add_student, add_teacher},
-    forms::{
-        student::StudentForm, students::StudentsForm, teacher::TeacherForm, teachers::TeachersForm,
-    },
+    database::{add_student, add_teacher, clear_people},
+    forms::{StudentForm, StudentsForm, TeacherForm, TeachersForm, UIDForm},
     SharedState, Verify,
 };
 use axum::{extract::Extension, http::StatusCode, Json};
 use std::sync::Arc;
+
+/// Handler to add a teacher to the database
+///
+/// Uses [`TeacherForm`] as a form for input
+#[axum_macros::debug_handler]
+pub(crate) async fn clear_people_handler(
+    Extension(state): Extension<Arc<SharedState>>,
+    Json(form): Json<UIDForm>,
+) -> Result<Json<u8>, StatusCode> {
+    log::info!("DELETE made to people");
+    Ok(Json(
+        clear_people(&state.graph, form.clone())
+            .await
+            .unwrap_or_else(|_| panic!("Unable to clear people for {}", form.uid)),
+    ))
+}
 
 /// Handler to add a teacher to the database
 ///

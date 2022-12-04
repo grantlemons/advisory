@@ -1,5 +1,5 @@
 use crate::{
-    forms::{student::StudentForm, teacher::TeacherForm},
+    forms::{StudentForm, TeacherForm, UIDForm},
     people::{grade::Grade, sex::Sex, student::Student, teacher::Teacher},
     Verify,
 };
@@ -22,6 +22,17 @@ pub(crate) async fn add_teacher(
                 .param("sex", form.sex.to_string())
                 .param("uid", form.uid),
         )
+        .await
+        .unwrap();
+    Ok(1)
+}
+
+pub(crate) async fn clear_people(graph: &neo4rs::Graph, form: UIDForm) -> Result<u8, StatusCode> {
+    use neo4rs::query;
+
+    log::info!("Clearing all people for UID {}", form.uid);
+    graph
+        .run(query("MATCH (p { user_id: $uid }) DETACH DELETE p").param("uid", form.uid))
         .await
         .unwrap();
     Ok(1)

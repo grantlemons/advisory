@@ -22,13 +22,7 @@ mod lib {
         pub(crate) mod builder;
         pub(crate) mod weights;
     }
-    pub(crate) mod forms {
-        pub(crate) mod advisory;
-        pub(crate) mod student;
-        pub(crate) mod students;
-        pub(crate) mod teacher;
-        pub(crate) mod teachers;
-    }
+    pub(crate) mod forms;
     pub(crate) mod people {
         pub(crate) mod grade;
         pub(crate) mod sex;
@@ -138,6 +132,7 @@ fn app(state: Arc<SharedState>) -> Router {
         // Add routes to specific handler functions
         .route("/health", get(get_health)) // Health check
         .route("/info", get(get_info))
+        .route("/people", delete(clear_people_handler))
         .route("/people/teacher", post(add_teacher_handler))
         .route("/people/student", post(add_student_handler))
         .route("/people/teacher/bulk", post(add_teacher_bulk))
