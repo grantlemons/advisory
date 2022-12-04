@@ -26,6 +26,16 @@ paths:
       responses:
         "200":
           description: Success
+  /people:
+    delete:
+      tags:
+        - people
+      summary: Delete all people under a certain User ID
+      requestBody:
+        $ref: "#/components/requestBodies/UID"
+      responses:
+        "200":
+          description: Success 
   /people/teacher:
     post:
       tags:
@@ -102,6 +112,12 @@ components:
           schema:
             $ref: "#/components/schemas/Student"
       required: true
+    UID:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/UID"
+      required: true
     TeacherBulk:
       content:
         application/json:
@@ -177,6 +193,12 @@ components:
             - Sophomore
             - Junior
             - Senior
+    UID:
+      type: object
+      properties:
+        uid:
+          type: string
+          format: uuid
     TeacherBulk:
       type: array
       items:
