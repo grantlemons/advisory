@@ -28,11 +28,13 @@ mod lib {
     mod weights;
     pub(crate) mod people {
         mod grade;
+        mod person;
         mod sex;
         mod student;
         mod teacher;
 
         pub(crate) use grade::Grade;
+        pub(crate) use person::Person;
         pub(crate) use sex::Sex;
         pub(crate) use student::Student;
         pub(crate) use teacher::Teacher;
@@ -147,6 +149,7 @@ fn app(state: Arc<SharedState>) -> Router {
         .route("/health", get(get_health)) // Health check
         .route("/info", get(get_info))
         .route("/people", delete(clear_people_handler))
+        .route("/people", get(get_people_handler))
         .route("/people/teacher", post(add_teacher_handler))
         .route("/people/student", post(add_student_handler))
         .route("/people/teacher/bulk", post(add_teacher_bulk))

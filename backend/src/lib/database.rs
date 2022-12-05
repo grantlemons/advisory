@@ -1,5 +1,5 @@
 use crate::{
-    people::{Grade, Sex, Student, Teacher},
+    people::{Grade, Person, Sex, Student, Teacher},
     UserIDForm, Verify,
 };
 use axum::http::StatusCode;
@@ -37,6 +37,48 @@ pub(crate) async fn clear_people(
         .await
         .unwrap();
     Ok(1)
+}
+
+pub(crate) async fn get_people(
+    graph: &neo4rs::Graph,
+    form: UserIDForm,
+) -> Result<Vec<Person>, StatusCode> {
+    log::info!("Getting people from database");
+    use neo4rs::*;
+
+    // Get the result of a Cypher query to the neo4j database
+    let mut result = match graph
+        .execute(
+            query(
+                "MATCH (p { user_id: $UID }) \
+                RETURN distinct(p) as people",
+            )
+            .param("UID", form.user_id),
+        )
+        .await
+    {
+        Ok(res) => res,
+        Err(_) => return Err(StatusCode::BAD_GATEWAY),
+    };
+
+    // Create and initialize returned vector
+    let mut people: Vec<Person> = Vec::new();
+    while let Ok(Some(row)) = result.next().await {
+        // Get person data from returned row of the database query
+        let teacher: Node = row.get("people").unwrap();
+        let user_id: String = teacher.get("user_id").unwrap();
+        let name: String = teacher.get("name").unwrap();
+        let sex: Sex = Sex::from(teacher.get::<String>("sex").unwrap());
+
+        log::info!("Teacher data is {{name: {}, sex: {:?}}}", name, sex);
+
+        // Add person with all fields to the teachers vector
+        let person = Person { user_id, name, sex };
+        log::info!("Adding {} to people vector", person);
+        people.push(person)
+    }
+    log::info!("Done getting teachers!");
+    Ok(people)
 }
 
 pub(crate) async fn add_student(graph: &neo4rs::Graph, form: Student) -> Result<u8, StatusCode> {
@@ -188,7 +230,7 @@ pub(crate) async fn get_teachers(
 
         log::info!("Teacher data is {{name: {}, sex: {:?}}}", name, sex);
 
-        // Add teacher will all fields to the teachers vector
+        // Add teacher with all fields to the teachers vector
         let teacher = Teacher { user_id, name, sex };
         log::info!("Adding {} to teacher vector", teacher);
         teachers.push(teacher)

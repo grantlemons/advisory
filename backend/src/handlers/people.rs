@@ -1,6 +1,6 @@
 use crate::{
-    database::{add_student, add_teacher, clear_people},
-    people::{Student, Teacher},
+    database::{add_student, add_teacher, clear_people, get_people},
+    people::{Person, Student, Teacher},
     SharedState, UserIDForm, Verify,
 };
 use axum::{extract::Extension, http::StatusCode, Json};
@@ -19,6 +19,22 @@ pub(crate) async fn clear_people_handler(
         clear_people(&state.graph, form.clone())
             .await
             .unwrap_or_else(|_| panic!("Unable to clear people for {}", form.user_id)),
+    ))
+}
+
+/// Handler to get all people for a specific user
+///
+/// Uses [`UserIDForm`] as a form for input
+#[axum_macros::debug_handler]
+pub(crate) async fn get_people_handler(
+    Extension(state): Extension<Arc<SharedState>>,
+    Json(form): Json<UserIDForm>,
+) -> Result<Json<Vec<Person>>, StatusCode> {
+    log::info!("GET made to people");
+    Ok(Json(
+        get_people(&state.graph, form.clone())
+            .await
+            .unwrap_or_else(|_| panic!("Unable to get people for {}", form.user_id)),
     ))
 }
 

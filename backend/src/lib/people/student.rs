@@ -1,4 +1,4 @@
-use crate::people::{grade::Grade, sex::Sex, teacher::Teacher};
+use crate::people::{Grade, Sex, Teacher};
 use serde::{Deserialize, Serialize};
 
 /// Representation of a student
