@@ -1,10 +1,10 @@
 use crate::advisories::builder::build_advisories;
-use crate::advisories::{advisory::Advisory, weights::Weights};
-use crate::forms::AdvisoryForm;
+use crate::advisories::Advisory;
+use crate::{Settings, Weights};
 use reqwest::StatusCode;
 
 #[tokio::main]
-async fn send_request(form: AdvisoryForm) -> Result<Vec<Advisory>, StatusCode> {
+async fn send_request(form: Settings) -> Result<Vec<Advisory>, StatusCode> {
     // Connect to datbase
     let uri = match std::env::var("DOCKER") {
         Ok(_) => "database:7687",
@@ -25,8 +25,8 @@ const DEF_WEIGHTS: Weights = Weights {
 
 #[test]
 fn get_two_advisories() {
-    let form = AdvisoryForm {
-        uid: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
+    let form = Settings {
+        user_id: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
         weights: DEF_WEIGHTS,
         num_advisories: 2,
     };
@@ -41,8 +41,8 @@ fn get_two_advisories() {
 
 #[test]
 fn get_five_advisories() {
-    let form = AdvisoryForm {
-        uid: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
+    let form = Settings {
+        user_id: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
         weights: DEF_WEIGHTS,
         num_advisories: 5,
     };
@@ -57,8 +57,8 @@ fn get_five_advisories() {
 
 #[test]
 fn get_zero_advisories() {
-    let form = AdvisoryForm {
-        uid: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
+    let form = Settings {
+        user_id: String::from("vZcsfNYAaTIA26xMtVDMYC1lAZAPU1amXcwBTWUn4zpsEu03M9"),
         weights: DEF_WEIGHTS,
         num_advisories: 0,
     };

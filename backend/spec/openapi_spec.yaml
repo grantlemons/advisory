@@ -32,7 +32,7 @@ paths:
         - people
       summary: Delete all people under a certain User ID
       requestBody:
-        $ref: "#/components/requestBodies/UID"
+        $ref: "#/components/requestBodies/user_id"
       responses:
         "200":
           description: Success 
@@ -112,11 +112,11 @@ components:
           schema:
             $ref: "#/components/schemas/Student"
       required: true
-    UID:
+    user_id:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/UID"
+            $ref: "#/components/schemas/user_id"
       required: true
     TeacherBulk:
       content:
@@ -134,7 +134,7 @@ components:
     Settings:
       type: object
       properties:
-        uid:
+        user_id:
           type: string
           format: uuid
         weights:
@@ -161,7 +161,7 @@ components:
     Teacher:
       type: object
       properties:
-        uid:
+        user_id:
           type: string
           format: uuid
         name:
@@ -174,7 +174,7 @@ components:
     Student:
       type: object
       properties:
-        uid:
+        user_id:
           type: string
           format: uuid
         name:
@@ -193,10 +193,10 @@ components:
             - Sophomore
             - Junior
             - Senior
-    UID:
+    user_id:
       type: object
       properties:
-        uid:
+        user_id:
           type: string
           format: uuid
     TeacherBulk:

@@ -1,9 +1,8 @@
 use crate::{
     advisories::advisory::Advisory,
     database::{get_students, get_teachers},
-    forms::AdvisoryForm,
-    people::{student::Student, teacher::Teacher},
-    Verify,
+    people::{Student, Teacher},
+    Settings, Verify,
 };
 use axum::http::StatusCode;
 
@@ -12,7 +11,7 @@ use axum::http::StatusCode;
 /// Called by [`crate::advisories::advisory::Advisory`]
 pub(crate) async fn build_advisories(
     graph: &neo4rs::Graph,
-    form: AdvisoryForm,
+    form: Settings,
 ) -> Result<Vec<Advisory>, StatusCode> {
     log::info!("Building advisories");
     if !form.verify() {
@@ -20,14 +19,15 @@ pub(crate) async fn build_advisories(
     }
 
     // create vectors from data from database
-    let students: Vec<Student> = get_students(graph, form.uid.as_str()).await?;
-    let mut teachers: Vec<Teacher> = get_teachers(graph, form.uid.as_str()).await?;
+    let students: Vec<Student> = get_students(graph, form.user_id.as_str()).await?;
+    let mut teachers: Vec<Teacher> = get_teachers(graph, form.user_id.as_str()).await?;
 
     // create vector of advisories to fill
     let s: i16 = students.len() as i16;
     let a: i16 = form.num_advisories;
     log::info!("{} Students, {} Advisories", s, a);
-    let mut advisories: Vec<Advisory> = vec![Advisory::default(s / a); a.try_into().unwrap()];
+    let mut advisories: Vec<Advisory> =
+        vec![Advisory::default(s / a, form.user_id); a.try_into().unwrap()];
 
     // add teachers to advisories
     for i in &mut advisories {

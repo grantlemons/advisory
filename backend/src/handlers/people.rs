@@ -1,34 +1,34 @@
 use crate::{
     database::{add_student, add_teacher, clear_people},
-    forms::{StudentForm, StudentsForm, TeacherForm, TeachersForm, UIDForm},
-    SharedState, Verify,
+    people::{Student, Teacher},
+    SharedState, UserIDForm, Verify,
 };
 use axum::{extract::Extension, http::StatusCode, Json};
 use std::sync::Arc;
 
-/// Handler to add a teacher to the database
+/// Handler to clear all people for a specific user
 ///
-/// Uses [`TeacherForm`] as a form for input
+/// Uses [`UserIDForm`] as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn clear_people_handler(
     Extension(state): Extension<Arc<SharedState>>,
-    Json(form): Json<UIDForm>,
+    Json(form): Json<UserIDForm>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("DELETE made to people");
     Ok(Json(
         clear_people(&state.graph, form.clone())
             .await
-            .unwrap_or_else(|_| panic!("Unable to clear people for {}", form.uid)),
+            .unwrap_or_else(|_| panic!("Unable to clear people for {}", form.user_id)),
     ))
 }
 
 /// Handler to add a teacher to the database
 ///
-/// Uses [`TeacherForm`] as a form for input
+/// Uses [`Teacher`] as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn add_teacher_handler(
     Extension(state): Extension<Arc<SharedState>>,
-    Json(form): Json<TeacherForm>,
+    Json(form): Json<Teacher>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("POST made to people/teacher");
     Ok(Json(
@@ -40,17 +40,17 @@ pub(crate) async fn add_teacher_handler(
 
 /// Handler to add many teachers
 ///
-/// Uses [`TeachersForm`] as a form for input
+/// Uses a vector of [`Teacher`]s as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn add_teacher_bulk(
-    Json(form): Json<TeachersForm>,
+    Json(forms): Json<Vec<Teacher>>,
     Extension(state): Extension<Arc<SharedState>>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("POST made to people/teacher/bulk");
-    if !form.verify() {
+    if !forms.verify() {
         return Err(StatusCode::UNPROCESSABLE_ENTITY);
     }
-    for teacher in form.0 {
+    for teacher in forms {
         add_teacher(&state.graph, teacher).await?;
     }
     Ok(Json(1))
@@ -58,11 +58,11 @@ pub(crate) async fn add_teacher_bulk(
 
 /// Handler to add a student to the database
 ///
-/// Uses [`StudentForm`] as a form for input
+/// Uses [`Student`] as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn add_student_handler(
+    Json(form): Json<Student>,
     Extension(state): Extension<Arc<SharedState>>,
-    Json(form): Json<StudentForm>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("POST made to people/student");
     Ok(Json(
@@ -74,17 +74,17 @@ pub(crate) async fn add_student_handler(
 
 /// Handler to add many students
 ///
-/// Uses [`StudentsForm`] as a form for input
+/// Uses a vector of [`Student`]s as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn add_student_bulk(
-    Json(form): Json<StudentsForm>,
+    Json(forms): Json<Vec<Student>>,
     Extension(state): Extension<Arc<SharedState>>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("POST made to people/student/bulk");
-    if !form.verify() {
+    if !forms.verify() {
         return Err(StatusCode::UNPROCESSABLE_ENTITY);
     }
-    for student in form.0 {
+    for student in forms {
         add_student(&state.graph, student).await?;
     }
     Ok(Json(1))

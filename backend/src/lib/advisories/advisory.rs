@@ -1,9 +1,13 @@
-use crate::people::{grade::Grade, sex::Sex, student::Student, teacher::Teacher};
+use crate::people::{Grade, Sex, Student, Teacher};
 use serde::{Deserialize, Serialize};
 
 /// Representation of an advisory
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub(crate) struct Advisory {
+    /// The ID of the user's account within the database.
+    ///
+    /// Can be based on different things, like auth cred
+    user_id: String,
     /// Vector of [`Teacher`] structs
     advisors: Vec<Teacher>,
     /// Vector of [`Student`] structs
@@ -39,11 +43,9 @@ impl Advisory {
     pub(crate) fn add_student(&mut self, s: Student) {
         log::info!("Adding student {} to advisory {}", s, self);
         // Reduce number of remaining "spots" for the added student's sex
-        if let Some(sex) = &s.sex {
-            match sex {
-                Sex::Male => self.remaining_sex.0 -= 1,
-                Sex::Female => self.remaining_sex.1 -= 1,
-            }
+        match s.sex {
+            Sex::Male => self.remaining_sex.0 -= 1,
+            Sex::Female => self.remaining_sex.1 -= 1,
         }
         log::info!("Sex 'spots' in {}: {:?}", self, self.remaining_sex);
         // Reduce number of remaining "spots" for the added student's grade
@@ -59,20 +61,15 @@ impl Advisory {
     }
 
     /// Gets the remaining number or "spots" left for a given sex in an advisory
-    pub(crate) fn get_remaining_sex(&self, sex: &Option<Sex>) -> i16 {
+    pub(crate) fn get_remaining_sex(&self, sex: &Sex) -> i16 {
         log::info!("Getting remaining 'spots' by sex");
-        if let Some(sex) = sex {
-            log::info!("Getting remaining 'spots' for {} in {}", sex, self);
-            let num = match sex {
-                Sex::Male => self.remaining_sex.0,
-                Sex::Female => self.remaining_sex.1,
-            };
-            log::info!("{} has {} 'spots' left in {}", sex, num, self);
-            num
-        } else {
-            log::info!("Sex inputted was None type");
-            0
-        }
+        log::info!("Getting remaining 'spots' for {} in {}", sex, self);
+        let num = match sex {
+            Sex::Male => self.remaining_sex.0,
+            Sex::Female => self.remaining_sex.1,
+        };
+        log::info!("{} has {} 'spots' left in {}", sex, num, self);
+        num
     }
 
     /// Gets the remaining number of "spots" left for a given grade in an advisory
@@ -112,9 +109,10 @@ impl Advisory {
     }
 
     /// Default advisory values given target number of students for the advisory
-    pub(crate) fn default(n: i16) -> Advisory {
+    pub(crate) fn default(n: i16, user_id: String) -> Advisory {
         log::info!("Initialized new advisory via default");
         Self {
+            user_id,
             advisors: Vec::<Teacher>::new(),
             students: Vec::<Student>::new(),
             // Set number of "spots" based on number of students in advisory
