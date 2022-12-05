@@ -1,4 +1,4 @@
-use crate::people::sex::Sex;
+use crate::people::Sex;
 use serde::{Deserialize, Serialize};
 
 /// Representation of a teacher
