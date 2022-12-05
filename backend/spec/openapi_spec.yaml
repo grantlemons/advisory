@@ -35,6 +35,15 @@ paths:
         $ref: "#/components/requestBodies/user_id"
       responses:
         "200":
+          description: Success
+    get:
+      tags:
+        - people
+      summary: Get all people under a certain User ID
+      requestBody:
+        $ref: "#/components/requestBodies/user_id"
+      responses:
+        "200":
           description: Success 
   /people/teacher:
     post:
