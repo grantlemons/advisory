@@ -73,21 +73,21 @@ mod tests {
 }
 
 /// Verify trait for input validation
-pub trait Verify {
+trait Verify {
     fn verify(&self) -> bool;
 }
 
 /// Shared state for accessing the database
 #[allow(dead_code)]
-pub(crate) struct SharedState {
-    pub(crate) graph: Arc<neo4rs::Graph>,
+struct SharedState {
+    graph: Arc<neo4rs::Graph>,
 }
 
 /// Ports bound to for http and https connections
 #[derive(Clone, Copy)]
 struct Ports {
-    pub(crate) http: u16,
-    pub(crate) https: u16,
+    http: u16,
+    https: u16,
 }
 
 /// Main async function run when executing the crate

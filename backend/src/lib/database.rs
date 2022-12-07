@@ -197,10 +197,7 @@ pub(crate) async fn get_students(
 }
 
 /// Helper function for [`crate::advisories::builder::build_advisories`] to get vector of teachers from neo4j database using [`neo4rs`]
-pub(crate) async fn get_teachers(
-    graph: &neo4rs::Graph,
-    user_id: &str,
-) -> Result<Vec<Teacher>, StatusCode> {
+async fn get_teachers(graph: &neo4rs::Graph, user_id: &str) -> Result<Vec<Teacher>, StatusCode> {
     log::info!("Getting teachers from database");
     use neo4rs::*;
 
