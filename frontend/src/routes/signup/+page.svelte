@@ -14,6 +14,9 @@
     });
 
     function sign_up() {
+        if (email_value == '' || password == '' || password2 == '') {
+            return;
+        }
         if (password !== password2) {
             alert('Password inputs do not match!');
             password = '';
@@ -28,7 +31,7 @@
     <h1 style="margin-top: 0;margin-bottom: 0;">Image Here</h1>
 </div>
 
-<div class="half right vert_center hori_center">
+<form on:submit|preventDefault class="half right vert_center hori_center">
     <div class="content flex vert_center hori_center">
         <div class="logo flex vert_center hori_center">
             <Logo name={true} />
@@ -49,7 +52,7 @@
             </a>
         </div>
     </div>
-</div>
+</form>
 
 <style>
     /* traits */

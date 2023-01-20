@@ -13,10 +13,10 @@
     });
 
     function sign_in() {
-        alert(`email: ${email_value}\npassword: ${password}`);
-        if (false) {
-            password = '';
+        if (email_value == '' || password == '') {
+            return;
         }
+        alert(`email: ${email_value}\npassword: ${password}`);
     }
     function sign_w_google() {
         email.set('');
@@ -28,7 +28,7 @@
     <h1 style="margin-top: 0;margin-bottom: 0;">Image Here</h1>
 </div>
 
-<div class="half right vert_center hori_center">
+<form on:submit|preventDefault class="half right vert_center hori_center">
     <div class="content flex vert_center hori_center">
         <div class="logo flex vert_center hori_center">
             <Logo name={true} />
@@ -48,7 +48,7 @@
             </a>
         </div>
     </div>
-</div>
+</form>
 
 <style>
     /* traits */
