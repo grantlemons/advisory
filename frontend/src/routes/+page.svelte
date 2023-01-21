@@ -4,6 +4,7 @@
     import HRule from '$lib/Horizontal-Rule.svelte';
     import Logo from '$lib/Logo.svelte';
     import { email } from '$lib/auth_store';
+    import { goto } from '$app/navigation';
 
     let email_value = '';
     let password = '';
@@ -12,12 +13,17 @@
         email_value = value;
     });
 
+    function redirect_signup() {
+        goto('/signup');
+    }
+
     function sign_in() {
         if (email_value == '' || password == '') {
             return;
         }
         alert(`email: ${email_value}\npassword: ${password}`);
     }
+
     function sign_w_google() {
         email.set('');
         password = '';
@@ -43,9 +49,7 @@
             <HRule />
             <Button on:click={sign_w_google} label="Sign In With Google" />
             <div style="height: 20%;" />
-            <a href="/signup" style="all: inherit;">
-                <Button label="Sign Up" />
-            </a>
+            <Button on:click={redirect_signup} label="Sign Up" />
         </div>
     </div>
 </form>

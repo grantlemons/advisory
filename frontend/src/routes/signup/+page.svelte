@@ -4,11 +4,13 @@
     import HRule from '$lib/Horizontal-Rule.svelte';
     import Logo from '$lib/Logo.svelte';
     import { email } from '$lib/auth_store';
+    import { goto } from '$app/navigation';
 
     import {
         CognitoUserPool,
         CognitoUserAttribute,
         CognitoUser,
+        type ISignUpResult,
     } from 'amazon-cognito-identity-js';
     let poolData = {
         UserPoolId: 'us-east-1_Ye96rGbqV',
@@ -17,46 +19,67 @@
     let userPool = new CognitoUserPool(poolData);
     let cognitoUser: CognitoUser;
 
-    let email_value = '';
-    let password = '';
-    let password2 = '';
+    let form = {
+        email_value: '',
+        name: '',
+        password: '',
+        pass_verify: '',
+    };
 
     email.subscribe((value) => {
-        email_value = value;
+        form.email_value = value;
     });
 
+    function redirect_login() {
+        goto('/');
+    }
+
     function sign_up() {
-        if (email_value == '' || password == '' || password2 == '') {
+        if (
+            form.email_value == '' ||
+            form.password == '' ||
+            form.pass_verify == ''
+        ) {
             return;
         }
-        if (password !== password2) {
+        if (form.password !== form.pass_verify) {
             alert('Password inputs do not match!');
-            password = '';
-            password2 = '';
+            form.password = '';
+            form.pass_verify = '';
         } else {
             let attributeEmail = new CognitoUserAttribute({
                 Name: 'email',
-                Value: email_value,
+                Value: form.email_value,
+            });
+            let attributeName = new CognitoUserAttribute({
+                Name: 'name',
+                Value: form.name,
             });
 
             userPool.signUp(
-                email_value,
-                password,
-                [attributeEmail],
+                form.email_value,
+                form.password,
+                [attributeEmail, attributeName],
                 [],
-                function (err, result) {
-                    if (err) {
-                        alert(err.message || JSON.stringify(err));
-                        return;
-                    }
-                    if (result !== undefined) {
-                        cognitoUser = result.user;
-                        console.log(
-                            `User name is ${cognitoUser.getUsername()}`
-                        );
-                    }
-                }
+                callback
             );
+        }
+    }
+
+    function callback(
+        err: Error | undefined,
+        result: ISignUpResult | undefined
+    ) {
+        if (err) {
+            alert(err.message || JSON.stringify(err));
+            return;
+        }
+        if (result !== undefined) {
+            cognitoUser = result.user;
+            alert(`User name is ${cognitoUser.getUsername()}`);
+            console.log(`User name is ${cognitoUser.getUsername()}`);
+
+            redirect_login();
         }
     }
 </script>
@@ -72,8 +95,9 @@
         </div>
         <div class="input flex vert_center hori_center">
             <Input bind:value={$email} label="Email" />
-            <Input bind:value={password} label="Password" />
-            <Input bind:value={password2} label="Repeat Password" />
+            <Input bind:value={form.name} label="Name" />
+            <Input bind:value={form.password} label="Password" />
+            <Input bind:value={form.pass_verify} label="Repeat Password" />
         </div>
 
         <div class="buttons flex vert_center hori_center">
@@ -81,9 +105,7 @@
             <HRule />
             <div style="height: 36px;" />
             <div style="height: 20%;" />
-            <a href="/" style="all: inherit;">
-                <Button label="Go Back / Log In" />
-            </a>
+            <Button on:click={redirect_login} label="Go Back / Log In" />
         </div>
     </div>
 </form>
