@@ -5,6 +5,18 @@
     import Logo from '$lib/Logo.svelte';
     import { email } from '$lib/auth_store';
 
+    import {
+        CognitoUserPool,
+        CognitoUserAttribute,
+        CognitoUser,
+    } from 'amazon-cognito-identity-js';
+    let poolData = {
+        UserPoolId: 'us-east-1_Ye96rGbqV',
+        ClientId: '5c6eva8nctpb3aug8l0teak36v',
+    };
+    let userPool = new CognitoUserPool(poolData);
+    let cognitoUser: CognitoUser;
+
     let email_value = '';
     let password = '';
     let password2 = '';
@@ -22,7 +34,29 @@
             password = '';
             password2 = '';
         } else {
-            alert(`email: ${email_value}\npassword: ${password}`);
+            let attributeEmail = new CognitoUserAttribute({
+                Name: 'email',
+                Value: email_value,
+            });
+
+            userPool.signUp(
+                email_value,
+                password,
+                [attributeEmail],
+                [],
+                function (err, result) {
+                    if (err) {
+                        alert(err.message || JSON.stringify(err));
+                        return;
+                    }
+                    if (result !== undefined) {
+                        cognitoUser = result.user;
+                        console.log(
+                            `User name is ${cognitoUser.getUsername()}`
+                        );
+                    }
+                }
+            );
         }
     }
 </script>
