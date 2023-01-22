@@ -84,7 +84,7 @@
 </div>
 
 <form on:submit|preventDefault class="half right vert_center hori_center">
-    <div class="content flex vert_center hori_center">
+    <div class="content flex vert_center">
         <div class="logo flex vert_center hori_center">
             <Logo name={true} />
         </div>
@@ -139,12 +139,12 @@
     }
     .content {
         row-gap: 20px;
-        min-width: 40%;
-        max-width: 85%;
+        min-width: 20%;
+        max-width: 80%;
         max-height: fit-content;
-        min-height: 70vh;
-        position: relative;
-        bottom: 3%;
+        /* min-height: 70vh; */
+        position: absolute;
+        top: 25vh;
     }
     .input {
         row-gap: 10px;
