@@ -33,7 +33,6 @@
     function redirect_login() {
         goto('/');
     }
-
     function redirect_confirm() {
         goto('/confirmation');
     }

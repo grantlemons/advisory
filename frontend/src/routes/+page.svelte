@@ -34,13 +34,14 @@
     function redirect_signup() {
         goto('/signup');
     }
-
     function redirect_reset() {
         goto('/password_reset');
     }
-
     function redirect_dashboard() {
         goto('/dashboard');
+    }
+    function redirect_confirmation() {
+        goto('confirmation');
     }
 
     function sign_in() {
@@ -58,6 +59,7 @@
         cognito_user.authenticateUser(auth_details, {
             onSuccess: success,
             onFailure: failure,
+            newPasswordRequired: redirect_reset,
         });
     }
 
