@@ -5,12 +5,30 @@
     import Logo from '$lib/Logo.svelte';
     import { email } from '$lib/auth_store';
     import { goto } from '$app/navigation';
+    import {
+        CognitoUserPool,
+        CognitoUserAttribute,
+        CognitoUser,
+        AuthenticationDetails,
+        type ISignUpResult,
+        type IAuthenticationCallback,
+        CognitoUserSession,
+    } from 'amazon-cognito-identity-js';
 
-    let email_value = '';
-    let password = '';
+    let pool_data = {
+        UserPoolId: 'us-east-1_Ye96rGbqV',
+        ClientId: '5c6eva8nctpb3aug8l0teak36v',
+    };
+    let user_pool = new CognitoUserPool(pool_data);
+    let cognito_user: CognitoUser;
+
+    let form = {
+        email_value: '',
+        password: '',
+    };
 
     email.subscribe((value) => {
-        email_value = value;
+        form.email_value = value;
     });
 
     function redirect_signup() {
@@ -18,15 +36,34 @@
     }
 
     function sign_in() {
-        if (email_value == '' || password == '') {
+        if (form.email_value == '' || form.password == '') {
             return;
         }
-        alert(`email: ${email_value}\npassword: ${password}`);
+        cognito_user = new CognitoUser({
+            Username: form.email_value,
+            Pool: user_pool,
+        });
+        let auth_details = new AuthenticationDetails({
+            Username: form.email_value,
+            Password: form.password,
+        });
+        cognito_user.authenticateUser(auth_details, {
+            onSuccess: success,
+            onFailure: failure,
+        });
+    }
+
+    function success(session: CognitoUserSession) {
+        alert('success!');
+    }
+
+    function failure(err: Error) {
+        alert(err.message || JSON.stringify(err));
     }
 
     function sign_w_google() {
         email.set('');
-        password = '';
+        form.password = '';
     }
 </script>
 
@@ -41,7 +78,7 @@
         </div>
         <div class="input flex vert_center hori_center">
             <Input bind:value={$email} label="Email" />
-            <Input bind:value={password} label="Password" />
+            <Input bind:value={form.password} label="Password" />
         </div>
 
         <div class="buttons flex vert_center hori_center">

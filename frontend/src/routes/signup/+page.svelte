@@ -5,13 +5,13 @@
     import Logo from '$lib/Logo.svelte';
     import { email } from '$lib/auth_store';
     import { goto } from '$app/navigation';
-
     import {
         CognitoUserPool,
         CognitoUserAttribute,
         CognitoUser,
         type ISignUpResult,
     } from 'amazon-cognito-identity-js';
+
     let poolData = {
         UserPoolId: 'us-east-1_Ye96rGbqV',
         ClientId: '5c6eva8nctpb3aug8l0teak36v',
@@ -42,6 +42,7 @@
         ) {
             return;
         }
+
         if (form.password !== form.pass_verify) {
             alert('Password inputs do not match!');
             form.password = '';
