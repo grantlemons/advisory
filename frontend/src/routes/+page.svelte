@@ -3,15 +3,12 @@
     import Input from '$lib/Input.svelte';
     import HRule from '$lib/Horizontal-Rule.svelte';
     import Logo from '$lib/Logo.svelte';
-    import { email, token } from '$lib/auth_store';
+    import { email, id_token } from '$lib/auth_store';
     import { goto } from '$app/navigation';
     import {
         CognitoUserPool,
-        CognitoUserAttribute,
         CognitoUser,
         AuthenticationDetails,
-        type ISignUpResult,
-        type IAuthenticationCallback,
         CognitoUserSession,
     } from 'amazon-cognito-identity-js';
 
@@ -65,7 +62,8 @@
 
     function success(session: CognitoUserSession) {
         alert('success!');
-        token.set(session.getAccessToken().getJwtToken());
+        id_token.set(session.getAccessToken().getJwtToken());
+        console.log(id_token);
         redirect_dashboard();
     }
 
