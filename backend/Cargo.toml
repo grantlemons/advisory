@@ -14,7 +14,7 @@ axum-macros = "0.2.3"
 axum-server = { version = "0.4.2", features = ["tls-rustls"] }
 chrono = "0.4.22"
 fern = { version = "0.6.1", features = ["chrono", "colored"] }
-jsonwebtoken = "8.1.1"
+jsonwebtokens-cognito = "0.1.1"
 log = "0.4.17"
 neo4rs = { git = "https://github.com/grantlemons/neo4rs" }
 reqwest = { version = "0.11.11", features = ["serde_json", "blocking", "json"] }

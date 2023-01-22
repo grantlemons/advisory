@@ -69,6 +69,7 @@ use handlers::people::*;
 mod tests {
     mod adding_people;
     mod advisory_building;
+    mod auth_test;
     mod info_handlers;
 }
 

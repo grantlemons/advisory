@@ -62,9 +62,10 @@
 
     function success(session: CognitoUserSession) {
         alert('success!');
-        id_token.set(session.getAccessToken().getJwtToken());
-        console.log(id_token);
-        redirect_dashboard();
+        let token_value = session.getIdToken().getJwtToken();
+        id_token.set(token_value);
+        console.log(token_value);
+        // redirect_dashboard();
     }
 
     function failure(err: Error) {
