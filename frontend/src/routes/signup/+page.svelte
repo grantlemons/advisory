@@ -34,6 +34,10 @@
         goto('/');
     }
 
+    function redirect_confirm() {
+        goto('/confirmation');
+    }
+
     function sign_up() {
         if (
             form.email_value == '' ||
@@ -42,46 +46,48 @@
         ) {
             return;
         }
-
         if (form.password !== form.pass_verify) {
             alert('Password inputs do not match!');
             form.password = '';
             form.pass_verify = '';
-        } else {
-            let attributeEmail = new CognitoUserAttribute({
-                Name: 'email',
-                Value: form.email_value,
-            });
-            let attributeName = new CognitoUserAttribute({
-                Name: 'name',
-                Value: form.name,
-            });
-
-            userPool.signUp(
-                form.email_value,
-                form.password,
-                [attributeEmail, attributeName],
-                [],
-                callback
-            );
-        }
-    }
-
-    function callback(
-        err: Error | undefined,
-        result: ISignUpResult | undefined
-    ) {
-        if (err) {
-            alert(err.message || JSON.stringify(err));
             return;
         }
-        if (result !== undefined) {
-            cognitoUser = result.user;
-            alert(`User name is ${cognitoUser.getUsername()}`);
-            console.log(`User name is ${cognitoUser.getUsername()}`);
 
-            redirect_login();
-        }
+        let attributeEmail = new CognitoUserAttribute({
+            Name: 'email',
+            Value: form.email_value,
+        });
+        let attributeName = new CognitoUserAttribute({
+            Name: 'name',
+            Value: form.name,
+        });
+
+        userPool.signUp(
+            form.email_value,
+            form.password,
+            [attributeEmail, attributeName],
+            [],
+            function (err, result) {
+                if (result != undefined) {
+                    success(result);
+                }
+                if (err != undefined) {
+                    failure(err);
+                }
+            }
+        );
+    }
+
+    function success(result: ISignUpResult) {
+        cognitoUser = result.user;
+        alert(`User name is ${cognitoUser.getUsername()}`);
+        console.log(`User name is ${cognitoUser.getUsername()}`);
+
+        redirect_confirm();
+    }
+
+    function failure(err: Error) {
+        alert(err.message || JSON.stringify(err));
     }
 </script>
 
@@ -95,7 +101,7 @@
             <Logo name={true} />
         </div>
         <div class="input flex vert_center hori_center">
-            <Input bind:value={$email} label="Email" />
+            <Input bind:value={$email} label="Email Address" />
             <Input bind:value={form.name} label="Name" />
             <Input bind:value={form.password} label="Password" />
             <Input bind:value={form.pass_verify} label="Repeat Password" />

@@ -3,17 +3,9 @@
     import Input from '$lib/Input.svelte';
     import HRule from '$lib/Horizontal-Rule.svelte';
     import Logo from '$lib/Logo.svelte';
-    import { email, token } from '$lib/auth_store';
+    import { email } from '$lib/auth_store';
     import { goto } from '$app/navigation';
-    import {
-        CognitoUserPool,
-        CognitoUserAttribute,
-        CognitoUser,
-        AuthenticationDetails,
-        type ISignUpResult,
-        type IAuthenticationCallback,
-        CognitoUserSession,
-    } from 'amazon-cognito-identity-js';
+    import { CognitoUserPool, CognitoUser } from 'amazon-cognito-identity-js';
 
     let pool_data = {
         UserPoolId: 'us-east-1_Ye96rGbqV',
@@ -22,58 +14,68 @@
     let user_pool = new CognitoUserPool(pool_data);
     let cognito_user: CognitoUser;
 
+    let sent = false;
     let form = {
         email_value: '',
+        code: '',
         password: '',
+        pass_verify: '',
     };
 
     email.subscribe((value) => {
         form.email_value = value;
     });
 
-    function redirect_signup() {
-        goto('/signup');
+    function redirect_login() {
+        goto('/');
     }
 
-    function redirect_reset() {
-        goto('/password_reset');
-    }
-
-    function redirect_dashboard() {
-        goto('/dashboard');
-    }
-
-    function sign_in() {
-        if (form.email_value == '' || form.password == '') {
+    function start_reset() {
+        if (form.email_value == '') {
             return;
         }
         cognito_user = new CognitoUser({
             Username: form.email_value,
             Pool: user_pool,
         });
-        let auth_details = new AuthenticationDetails({
-            Username: form.email_value,
-            Password: form.password,
-        });
-        cognito_user.authenticateUser(auth_details, {
-            onSuccess: success,
+        cognito_user.forgotPassword({
+            onSuccess: sent_message,
             onFailure: failure,
         });
     }
 
-    function success(session: CognitoUserSession) {
-        alert('success!');
-        token.set(session.getAccessToken().getJwtToken());
-        redirect_dashboard();
+    function change_pass() {
+        if (
+            form.email_value == '' ||
+            form.password == '' ||
+            form.pass_verify == ''
+        ) {
+            return;
+        }
+        if (form.password !== form.pass_verify) {
+            alert('Password inputs do not match!');
+            form.password = '';
+            form.pass_verify = '';
+            return;
+        }
+
+        cognito_user = new CognitoUser({
+            Username: form.email_value,
+            Pool: user_pool,
+        });
+        cognito_user.confirmPassword(form.code, form.password, {
+            onSuccess: redirect_login,
+            onFailure: failure,
+        });
+    }
+
+    function sent_message() {
+        sent = true;
+        alert('Confirmation code sent to inbox');
     }
 
     function failure(err: Error) {
         alert(err.message || JSON.stringify(err));
-    }
-
-    function sign_w_google() {
-        email.set('');
-        form.password = '';
     }
 </script>
 
@@ -88,16 +90,32 @@
         </div>
         <div class="input flex vert_center hori_center">
             <Input bind:value={$email} label="Email Address" />
-            <Input bind:value={form.password} label="Password" />
+            {#if sent}
+                <Input bind:value={form.code} label="Confirmation Code" />
+                <Input bind:value={form.password} label="Password" />
+                <Input bind:value={form.pass_verify} label="Repeat Password" />
+            {/if}
         </div>
 
         <div class="buttons flex vert_center hori_center">
-            <Button on:click={sign_in} label="Sign In" />
+            {#if !sent}
+                <Button on:click={start_reset} label="Send Confirmation Code" />
+            {:else}
+                <Button on:click={change_pass} label="Reset Password" />
+            {/if}
             <HRule />
-            <Button on:click={sign_w_google} label="Sign In With Google" />
+            {#if sent}
+                <Button
+                    on:click={function () {
+                        sent = false;
+                    }}
+                    label="Go Back"
+                />
+            {:else}
+                <div style="height: 36px;" />
+            {/if}
             <div style="height: 20%;" />
-            <Button on:click={redirect_signup} label="Sign Up" />
-            <Button on:click={redirect_reset} label="Forgot Password" />
+            <Button on:click={redirect_login} label="Back to Login Page" />
         </div>
     </div>
 </form>
