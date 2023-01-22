@@ -96,10 +96,9 @@
         <div class="buttons flex vert_center hori_center">
             <Button on:click={sign_in} label="Sign In" />
             <HRule />
-            <Button on:click={sign_w_google} label="Sign In With Google" />
+            <Button on:click={redirect_reset} label="Forgot Password" />
             <div style="height: 20%;" />
             <Button on:click={redirect_signup} label="Sign Up" />
-            <Button on:click={redirect_reset} label="Forgot Password" />
         </div>
     </div>
 </form>
