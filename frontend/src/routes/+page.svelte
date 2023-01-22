@@ -90,7 +90,7 @@
         </div>
         <div class="input flex vert_center hori_center">
             <Input bind:value={$email} label="Email Address" />
-            <Input bind:value={form.password} label="Password" />
+            <Input bind:value={form.password} password label="Password" />
         </div>
 
         <div class="buttons flex vert_center hori_center">

@@ -92,8 +92,12 @@
             <Input bind:value={$email} label="Email Address" />
             {#if sent}
                 <Input bind:value={form.code} label="Confirmation Code" />
-                <Input bind:value={form.password} label="Password" />
-                <Input bind:value={form.pass_verify} label="Repeat Password" />
+                <Input bind:value={form.password} password label="Password" />
+                <Input
+                    bind:value={form.pass_verify}
+                    password
+                    label="Repeat Password"
+                />
             {/if}
         </div>
 

@@ -102,8 +102,12 @@
         <div class="input flex vert_center hori_center">
             <Input bind:value={$email} label="Email Address" />
             <Input bind:value={form.name} label="Name" />
-            <Input bind:value={form.password} label="Password" />
-            <Input bind:value={form.pass_verify} label="Repeat Password" />
+            <Input bind:value={form.password} password label="Password" />
+            <Input
+                bind:value={form.pass_verify}
+                password
+                label="Repeat Password"
+            />
         </div>
 
         <div class="buttons flex vert_center hori_center">
