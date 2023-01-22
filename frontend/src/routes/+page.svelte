@@ -72,11 +72,6 @@
     function failure(err: Error) {
         alert(err.message || JSON.stringify(err));
     }
-
-    function sign_w_google() {
-        email.set('');
-        form.password = '';
-    }
 </script>
 
 <div class="half left vert_center hori_center">
