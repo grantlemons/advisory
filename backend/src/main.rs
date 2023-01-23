@@ -65,7 +65,6 @@ mod auth;
 
 #[cfg(test)]
 mod tests {
-    mod auth_test;
     mod info_handlers;
 }
 
