@@ -1,5 +1,4 @@
 use crate::SharedState;
-use jsonwebtokens_cognito;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -19,38 +18,35 @@ pub struct UserData {
     pub token_use: String,
 }
 
-use axum::{
-    extract::State,
-    http::{Request, StatusCode},
-    middleware::Next,
-    response::Response,
-};
+use axum::{extract::State, http::Request, middleware::Next, response::Response};
 
 pub async fn auth<B>(
     State(state): State<SharedState>,
-    req: Request<B>,
+    mut req: Request<B>,
     next: Next<B>,
-) -> Result<Response, StatusCode> {
+) -> Response {
     let auth_header = req
         .headers()
         .get(axum::http::header::AUTHORIZATION)
         .and_then(|header| header.to_str().ok());
+    let mut user: Option<UserData> = None;
 
-    match auth_header {
-        Some(auth_header) if verify_jwt(auth_header, state).await => Ok(next.run(req).await),
-        _ => Err(StatusCode::UNAUTHORIZED),
+    if let Some(a_header) = auth_header {
+        user = verify_jwt(a_header, state).await;
     }
+    req.extensions_mut().insert(user);
+    next.run(req).await
 }
 
-pub async fn verify_jwt(token: &str, state: SharedState) -> bool {
+pub async fn verify_jwt(token: &str, state: SharedState) -> Option<UserData> {
     match decrypt_jwt(token, &state.keyset, &state.verifier).await {
         Ok(user) => {
             log::info!("Successful JWT Verification for user {}", user.name);
-            true
+            Some(user)
         }
         Err(_) => {
             log::info!("Failed JWT Verification");
-            false
+            None
         }
     }
 }
@@ -60,7 +56,7 @@ pub async fn decrypt_jwt(
     keyset: &jsonwebtokens_cognito::KeySet,
     verifier: &jsonwebtokens::Verifier,
 ) -> Result<UserData, jsonwebtokens_cognito::Error> {
-    match keyset.verify(&token, verifier).await {
+    match keyset.verify(token, verifier).await {
         Ok(res) => Ok(serde_json::from_value(res).unwrap()),
         Err(err) => Err(err),
     }
