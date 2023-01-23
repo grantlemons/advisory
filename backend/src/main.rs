@@ -24,7 +24,6 @@ mod lib {
         pub(crate) use advisory::Advisory;
     }
     mod settings;
-    mod user_id;
     mod weights;
     pub(crate) mod people {
         mod grade;
@@ -42,14 +41,12 @@ mod lib {
     pub(crate) mod database;
 
     pub(crate) use settings::Settings;
-    pub(crate) use user_id::UserIDForm;
     pub(crate) use weights::Weights;
 }
 use lib::advisories;
 use lib::database;
 use lib::people;
 use lib::Settings;
-use lib::UserIDForm;
 use lib::Weights;
 
 /// Handlers for different HTTP requests made to the server
@@ -68,8 +65,6 @@ mod auth;
 
 #[cfg(test)]
 mod tests {
-    mod adding_people;
-    mod advisory_building;
     mod auth_test;
     mod info_handlers;
 }

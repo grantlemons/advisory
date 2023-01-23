@@ -1,7 +1,7 @@
 use crate::SharedState;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct UserData {
     pub aud: String,
     pub auth_time: u32,
