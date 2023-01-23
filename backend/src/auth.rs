@@ -1,4 +1,5 @@
 use crate::SharedState;
+use axum::{extract::State, http::Request, middleware::Next, response::Response};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -17,8 +18,6 @@ pub struct UserData {
     pub sub: String,
     pub token_use: String,
 }
-
-use axum::{extract::State, http::Request, middleware::Next, response::Response};
 
 pub async fn auth<B>(
     State(state): State<SharedState>,
