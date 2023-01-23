@@ -95,8 +95,7 @@
             <Button on:click={confirm} label="Submit Confirmation Code" />
             <HRule />
             <Button on:click={resend} label="Resend Confirmation Code" />
-            <div style="height: 20%;" />
-            <Button on:click={redirect_login} label="Back to Login Page" />
+            <Button on:click={redirect_login} label="Go Back / Log In" />
         </div>
     </div>
 </form>
@@ -136,20 +135,18 @@
         display: flex;
     }
     .content {
-        row-gap: 20px;
-        min-width: 20%;
-        max-width: 80%;
+        row-gap: 10px;
+        min-width: 70%;
+        max-width: 90%;
         max-height: fit-content;
-        /* min-height: 70vh; */
-        position: absolute;
-        top: 25vh;
+        position: relative;
     }
     .input {
-        row-gap: 10px;
+        row-gap: 8px;
         width: 100%;
     }
     .buttons {
-        row-gap: 10px;
+        row-gap: 8px;
         width: 100%;
     }
 </style>

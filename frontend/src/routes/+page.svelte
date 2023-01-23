@@ -91,7 +91,6 @@
             <Button on:click={sign_in} label="Sign In" />
             <HRule />
             <Button on:click={redirect_reset} label="Forgot Password" />
-            <div style="height: 20%;" />
             <Button on:click={redirect_signup} label="Sign Up" />
         </div>
     </div>
@@ -132,20 +131,18 @@
         display: flex;
     }
     .content {
-        row-gap: 20px;
-        min-width: 20%;
-        max-width: 80%;
+        row-gap: 10px;
+        min-width: 70%;
+        max-width: 90%;
         max-height: fit-content;
-        /* min-height: 70vh; */
-        position: absolute;
-        top: 25vh;
+        position: relative;
     }
     .input {
-        row-gap: 10px;
+        row-gap: 8px;
         width: 100%;
     }
     .buttons {
-        row-gap: 10px;
+        row-gap: 8px;
         width: 100%;
     }
 </style>

@@ -5,10 +5,10 @@
 </script>
 
 {#if name}
-    <img src="" alt="Project Logo" />
+    <!-- <img src="" alt="Project Logo" /> -->
     <Name />
 {:else}
-    <img src="" alt="Project Logo" />
+    <!-- <img src="" alt="Project Logo" /> -->
 {/if}
 
 <style>
