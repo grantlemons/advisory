@@ -9,18 +9,19 @@ publish = false
 edition = "2021"
 
 [dependencies]
-axum = { version = "0.5.15", features = ["form"] }
-axum-macros = "0.2.3"
-axum-server = { version = "0.4.2", features = ["tls-rustls"] }
-chrono = "0.4.22"
+axum = { version = "0.6.2", features = ["form"] }
+axum-macros = "0.3.1"
+axum-server = { version = "0.4.4", features = ["tls-rustls"] }
+chrono = "0.4.23"
 fern = { version = "0.6.1", features = ["chrono", "colored"] }
+jsonwebtokens = "1.2.0"
 jsonwebtokens-cognito = "0.1.1"
 log = "0.4.17"
 neo4rs = { git = "https://github.com/grantlemons/neo4rs" }
-reqwest = { version = "0.11.11", features = ["serde_json", "blocking", "json"] }
-serde = { version = "1.0.144", features = ["derive"] }
-serde_json = "1.0.85"
-tokio = { version = "1.20.1", features = ["full"] }
+reqwest = { version = "0.11.14", features = ["serde_json", "blocking", "json"] }
+serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.91"
+tokio = { version = "1.24.2", features = ["full"] }
 
 [[bin]]
 name = "advisory-backend"

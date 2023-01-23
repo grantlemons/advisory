@@ -7,7 +7,7 @@
 //!
 //! A custom fork of neo4rs is used to add functionality for handling vectors as a return type from neo4j
 
-use axum::{routing::*, Extension, Router};
+use axum::{handler::HandlerWithoutStateExt, routing::*, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use std::{
     net::{IpAddr, SocketAddr},
@@ -64,6 +64,7 @@ mod handlers {
 use handlers::advisories::*;
 use handlers::info::*;
 use handlers::people::*;
+mod auth;
 
 #[cfg(test)]
 mod tests {
@@ -80,8 +81,11 @@ trait Verify {
 
 /// Shared state for accessing the database
 #[allow(dead_code)]
-struct SharedState {
-    graph: Arc<neo4rs::Graph>,
+#[derive(Clone)]
+pub struct SharedState {
+    pub graph: Option<Arc<neo4rs::Graph>>,
+    pub keyset: jsonwebtokens_cognito::KeySet,
+    pub verifier: jsonwebtokens::Verifier,
 }
 
 /// Ports bound to for http and https connections
@@ -105,7 +109,16 @@ async fn main() {
     let user = "neo4j";
     let pass = "test";
     let graph = Arc::new(neo4rs::Graph::new(uri, user, pass).await.unwrap());
-    let state = Arc::new(SharedState { graph });
+    let keyset = jsonwebtokens_cognito::KeySet::new("us-east-1", "us-east-1_Ye96rGbqV").unwrap();
+    let verifier = keyset
+        .new_id_token_verifier(&["5c6eva8nctpb3aug8l0teak36v"])
+        .build()
+        .unwrap();
+    let state = SharedState {
+        graph: Some(graph),
+        keyset,
+        verifier,
+    };
 
     // Get SSL certificates from file
     // Refer to `README.md` for instruction on generating these
@@ -143,29 +156,35 @@ async fn main() {
         .unwrap();
 }
 
-fn app(state: Arc<SharedState>) -> Router {
+fn app(state: SharedState) -> Router {
     // Axum setup and configuration
     Router::new()
         // Add routes to specific handler functions
         .route("/health", get(get_health)) // Health check
         .route("/info", get(get_info))
-        .route("/people", delete(clear_people_handler))
-        .route("/people", get(get_people_handler))
+        .route(
+            "/people",
+            delete(clear_people_handler).get(get_people_handler),
+        )
         .route("/people/teacher", post(add_teacher_handler))
         .route("/people/student", post(add_student_handler))
         .route("/people/teacher/bulk", post(add_teacher_bulk))
         .route("/people/student/bulk", post(add_student_bulk))
         .route("/", put(get_advisories))
+        // jsonwebtoken auth layer
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            auth::auth,
+        ))
         // Add shared state to all requests
-        .layer(Extension(state))
+        .with_state(state)
 }
 
 /// Function to redirect http requests to https
 async fn redirect_http_to_https(ports: Ports, ip: IpAddr) {
     use axum::{
         extract::Host,
-        handler::Handler,
-        http::{uri, StatusCode, Uri},
+        http::{StatusCode, Uri},
         response::Redirect,
         BoxError,
     };
@@ -173,7 +192,7 @@ async fn redirect_http_to_https(ports: Ports, ip: IpAddr) {
     fn make_https(host: String, uri: Uri, ports: Ports) -> Result<Uri, BoxError> {
         let mut parts = uri.into_parts();
 
-        parts.scheme = Some(uri::Scheme::HTTPS);
+        parts.scheme = Some(axum::http::uri::Scheme::HTTPS);
 
         if parts.path_and_query.is_none() {
             parts.path_and_query = Some("/".parse().unwrap());
@@ -189,7 +208,7 @@ async fn redirect_http_to_https(ports: Ports, ip: IpAddr) {
         match make_https(host, uri, ports) {
             Ok(uri) => Ok(Redirect::permanent(&uri.to_string())),
             Err(error) => {
-                log::warn!("failed to convert URI to HTTPS: {}", error);
+                log::warn!("{} failed to convert URI to HTTPS", error);
                 Err(StatusCode::BAD_REQUEST)
             }
         }
@@ -198,8 +217,8 @@ async fn redirect_http_to_https(ports: Ports, ip: IpAddr) {
     let addr = SocketAddr::new(ip, ports.http);
     log::info!("http redirect listening on {}", addr);
 
-    axum_server::bind(addr)
-        .serve(Handler::into_make_service(redirect))
+    axum::Server::bind(&addr)
+        .serve(redirect.into_make_service())
         .await
         .unwrap();
 }
