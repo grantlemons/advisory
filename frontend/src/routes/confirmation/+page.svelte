@@ -7,26 +7,33 @@
     import { goto } from '$app/navigation';
     import { CognitoUserPool, CognitoUser } from 'amazon-cognito-identity-js';
 
-    let pool_data = {
+    // variables used for Cognito
+    const pool_data = {
         UserPoolId: 'us-east-1_Ye96rGbqV',
         ClientId: '5c6eva8nctpb3aug8l0teak36v',
     };
-    let user_pool = new CognitoUserPool(pool_data);
+    const user_pool = new CognitoUserPool(pool_data);
     let cognito_user: CognitoUser;
 
+    // variables bound to input boxes
     let form = {
         email_value: '',
         code: '',
     };
 
+    // stores email in state in order to keep between pages
     email.subscribe((value) => {
         form.email_value = value;
     });
 
+    // function to redirect to other internal page
+    // this is a function so it can be used by other code as well as elements on the page
     function redirect_login() {
         goto('/');
     }
 
+    // completes the confirmation process with Cognito
+    // requires the confirmation code from the user's email
     function confirm() {
         if (form.email_value == '' || form.code == '') {
             return;
@@ -50,6 +57,7 @@
         );
     }
 
+    // sends a new confirmation code through Cognito
     function resend() {
         if (form.email_value == '' || form.code == '') {
             return;
@@ -68,10 +76,12 @@
         });
     }
 
+    // general callback called when either confirming or resending succeeds
     function success() {
         alert('success!');
     }
 
+    // general callback called when either confirming or resending fails
     function failure(err: Error) {
         alert(err.message || JSON.stringify(err));
     }

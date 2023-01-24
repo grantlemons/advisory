@@ -7,14 +7,18 @@
     import { goto } from '$app/navigation';
     import { CognitoUserPool, CognitoUser } from 'amazon-cognito-identity-js';
 
-    let pool_data = {
+    // variables used for Cognito
+    const pool_data = {
         UserPoolId: 'us-east-1_Ye96rGbqV',
         ClientId: '5c6eva8nctpb3aug8l0teak36v',
     };
-    let user_pool = new CognitoUserPool(pool_data);
+    const user_pool = new CognitoUserPool(pool_data);
     let cognito_user: CognitoUser;
 
+    // state of page
     let sent = false;
+
+    // variables bound to input boxes
     let form = {
         email_value: '',
         code: '',
@@ -22,14 +26,19 @@
         pass_verify: '',
     };
 
+    // stores email in state in order to keep between pages
     email.subscribe((value) => {
         form.email_value = value;
     });
 
+    // function to redirect to other internal page
+    // this is a function so it can be used by other code as well as elements on the page
     function redirect_login() {
         goto('/');
     }
 
+    // begin password reset process with Cognito
+    // this sends a reset code to the user's email
     function start_reset() {
         if (form.email_value == '') {
             return;
@@ -44,6 +53,8 @@
         });
     }
 
+    // completes the password reset process with Cognito
+    // requires the reset code from the user's email
     function change_pass() {
         if (
             form.email_value == '' ||
@@ -69,11 +80,14 @@
         });
     }
 
+    // callback called when the initiation of the reset process is successful (i.e. email sent)
+    // switches a flag in order to reveal inputs for finishing the process
     function sent_message() {
         sent = true;
         alert('Confirmation code sent to inbox');
     }
 
+    // general callback called when either step of the process fails
     function failure(err: Error) {
         alert(err.message || JSON.stringify(err));
     }

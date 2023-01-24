@@ -12,22 +12,27 @@
         CognitoUserSession,
     } from 'amazon-cognito-identity-js';
 
-    let pool_data = {
+    // variables used for Cognito
+    const pool_data = {
         UserPoolId: 'us-east-1_Ye96rGbqV',
         ClientId: '5c6eva8nctpb3aug8l0teak36v',
     };
-    let user_pool = new CognitoUserPool(pool_data);
+    const user_pool = new CognitoUserPool(pool_data);
     let cognito_user: CognitoUser;
 
+    // variables bound to input boxes
     let form = {
         email_value: '',
         password: '',
     };
 
+    // stores email in state in order to keep between pages
     email.subscribe((value) => {
         form.email_value = value;
     });
 
+    // functions to redirect to other internal pages
+    // these are functions so they can be used by other code as well as elements on the page
     function redirect_signup() {
         goto('/signup');
     }
@@ -37,14 +42,12 @@
     function redirect_dashboard() {
         goto('/dashboard');
     }
-    function redirect_confirmation() {
-        goto('confirmation');
-    }
 
+    // function to authenticate with Cognito
     function sign_in() {
-        if (form.email_value == '' || form.password == '') {
-            return;
-        }
+        // exit if fails input check
+        if (!verify_input()) return;
+
         cognito_user = new CognitoUser({
             Username: form.email_value,
             Pool: user_pool,
@@ -60,6 +63,7 @@
         });
     }
 
+    // callback called if auth is successful
     function success(session: CognitoUserSession) {
         alert('success!');
         let token_value = session.getIdToken().getJwtToken();
@@ -68,8 +72,14 @@
         // redirect_dashboard();
     }
 
+    // callback called if auth fails
     function failure(err: Error) {
         alert(err.message || JSON.stringify(err));
+    }
+
+    // function to verify input meets standards
+    function verify_input(): boolean {
+        return form.email_value != '' && form.password != '';
     }
 </script>
 

@@ -12,13 +12,15 @@
         type ISignUpResult,
     } from 'amazon-cognito-identity-js';
 
-    let poolData = {
+    // variables used for Cognito
+    const poolData = {
         UserPoolId: 'us-east-1_Ye96rGbqV',
         ClientId: '5c6eva8nctpb3aug8l0teak36v',
     };
-    let userPool = new CognitoUserPool(poolData);
+    const userPool = new CognitoUserPool(poolData);
     let cognitoUser: CognitoUser;
 
+    // variables bound to input boxes
     let form = {
         email_value: '',
         name: '',
@@ -26,10 +28,13 @@
         pass_verify: '',
     };
 
+    // stores email in state in order to keep between pages
     email.subscribe((value) => {
         form.email_value = value;
     });
 
+    // functions to redirect to other internal pages
+    // these are functions so they can be used by other code as well as elements on the page
     function redirect_login() {
         goto('/');
     }
@@ -37,20 +42,9 @@
         goto('/confirmation');
     }
 
+    // function to create an account in Cognito user pool
     function sign_up() {
-        if (
-            form.email_value == '' ||
-            form.password == '' ||
-            form.pass_verify == ''
-        ) {
-            return;
-        }
-        if (form.password !== form.pass_verify) {
-            alert('Password inputs do not match!');
-            form.password = '';
-            form.pass_verify = '';
-            return;
-        }
+        if (!verify_input()) return;
 
         let attributeEmail = new CognitoUserAttribute({
             Name: 'email',
@@ -77,6 +71,7 @@
         );
     }
 
+    // callback called if auth is successful
     function success(result: ISignUpResult) {
         cognitoUser = result.user;
         alert(`User name is ${cognitoUser.getUsername()}`);
@@ -85,8 +80,30 @@
         redirect_confirm();
     }
 
+    // callback called if auth fails
     function failure(err: Error) {
         alert(err.message || JSON.stringify(err));
+    }
+
+    // function to verify input meets standards
+    function verify_input(): boolean {
+        // flag
+        let match = true;
+
+        // check if two password inputs match
+        if (form.password !== form.pass_verify) {
+            alert('Password inputs do not match!');
+            form.password = '';
+            form.pass_verify = '';
+
+            match = false;
+        }
+        return (
+            (form.email_value == '' ||
+                form.password == '' ||
+                form.pass_verify == '') &&
+            match
+        );
     }
 </script>
 
