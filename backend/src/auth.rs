@@ -19,6 +19,8 @@ pub struct UserData {
     pub token_use: String,
 }
 
+/// Tower layer that adds an [`Option<UserData>`] as an extension to the request
+/// This can be used by handlers for authentication as well as for the value
 pub async fn auth<B>(
     State(state): State<SharedState>,
     mut req: Request<B>,
@@ -37,6 +39,7 @@ pub async fn auth<B>(
     next.run(req).await
 }
 
+/// Interface for [`decrypt_jwt`]
 pub async fn verify_jwt(token: &str, state: SharedState) -> Option<UserData> {
     match decrypt_jwt(token, &state.keyset, &state.verifier).await {
         Ok(user) => {
@@ -50,7 +53,8 @@ pub async fn verify_jwt(token: &str, state: SharedState) -> Option<UserData> {
     }
 }
 
-pub async fn decrypt_jwt(
+/// Decrypt JWT token from Cognito
+async fn decrypt_jwt(
     token: &str,
     keyset: &jsonwebtokens_cognito::KeySet,
     verifier: &jsonwebtokens::Verifier,
