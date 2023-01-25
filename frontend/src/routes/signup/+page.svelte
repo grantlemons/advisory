@@ -20,6 +20,10 @@
     const userPool = new CognitoUserPool(poolData);
     let cognitoUser: CognitoUser;
 
+    // variable used for feedback & errors
+    // for instance, password needs to fit X requirements
+    let error_text = '';
+
     // variables bound to input boxes
     let form = {
         email_value: '',
@@ -74,7 +78,7 @@
     // callback called if auth is successful
     function success(result: ISignUpResult) {
         cognitoUser = result.user;
-        alert(`User name is ${cognitoUser.getUsername()}`);
+        error_text = `User name is ${cognitoUser.getUsername()}`;
         console.log(`User name is ${cognitoUser.getUsername()}`);
 
         redirect_confirm();
@@ -82,7 +86,7 @@
 
     // callback called if auth fails
     function failure(err: Error) {
-        alert(err.message || JSON.stringify(err));
+        error_text = err.message || JSON.stringify(err);
     }
 
     // function to verify input meets standards
@@ -92,16 +96,15 @@
 
         // check if two password inputs match
         if (form.password !== form.pass_verify) {
-            alert('Password inputs do not match!');
-            form.password = '';
-            form.pass_verify = '';
-
+            error_text = 'Password inputs do not match!';
             match = false;
+        } else {
+            error_text = '';
         }
         return (
-            (form.email_value == '' ||
-                form.password == '' ||
-                form.pass_verify == '') &&
+            form.email_value != '' &&
+            form.password != '' &&
+            form.pass_verify != '' &&
             match
         );
     }
@@ -122,6 +125,7 @@
             <Input bind:value={form.password} password label="Password" />
             <Input
                 bind:value={form.pass_verify}
+                {error_text}
                 password
                 label="Repeat Password"
             />

@@ -18,6 +18,10 @@
     // state of page
     let sent = false;
 
+    // variable used for feedback & errors
+    // for instance, password needs to fit X requirements
+    let error_text = '';
+
     // variables bound to input boxes
     let form = {
         email_value: '',
@@ -56,19 +60,7 @@
     // completes the password reset process with Cognito
     // requires the reset code from the user's email
     function change_pass() {
-        if (
-            form.email_value == '' ||
-            form.password == '' ||
-            form.pass_verify == ''
-        ) {
-            return;
-        }
-        if (form.password !== form.pass_verify) {
-            alert('Password inputs do not match!');
-            form.password = '';
-            form.pass_verify = '';
-            return;
-        }
+        if (!verify_input()) return;
 
         cognito_user = new CognitoUser({
             Username: form.email_value,
@@ -84,12 +76,30 @@
     // switches a flag in order to reveal inputs for finishing the process
     function sent_message() {
         sent = true;
-        alert('Confirmation code sent to inbox');
+        error_text = 'Confirmation code sent to inbox';
     }
 
     // general callback called when either step of the process fails
     function failure(err: Error) {
-        alert(err.message || JSON.stringify(err));
+        error_text = err.message || JSON.stringify(err);
+    }
+
+    // function to verify input meets standards
+    function verify_input(): boolean {
+        let match = true;
+        if (form.password !== form.pass_verify) {
+            error_text = 'Password inputs do not match!';
+            match = false;
+        } else {
+            error_text = '';
+        }
+
+        return (
+            form.email_value != '' &&
+            form.password != '' &&
+            form.pass_verify != '' &&
+            match
+        );
     }
 </script>
 
@@ -109,6 +119,7 @@
                 <Input bind:value={form.password} password label="Password" />
                 <Input
                     bind:value={form.pass_verify}
+                    {error_text}
                     password
                     label="Repeat Password"
                 />

@@ -15,6 +15,10 @@
     const user_pool = new CognitoUserPool(pool_data);
     let cognito_user: CognitoUser;
 
+    // variable used for feedback & errors
+    // for instance, password needs to fit X requirements
+    let error_text = '';
+
     // variables bound to input boxes
     let form = {
         email_value: '',
@@ -47,7 +51,6 @@
             true,
             function (err, result) {
                 if (result != undefined) {
-                    success();
                     redirect_login();
                 }
                 if (err != undefined) {
@@ -67,23 +70,15 @@
             Pool: user_pool,
         });
         cognito_user.resendConfirmationCode(function (err, result) {
-            if (result != undefined) {
-                success();
-            }
             if (err != undefined) {
                 failure(err);
             }
         });
     }
 
-    // general callback called when either confirming or resending succeeds
-    function success() {
-        alert('success!');
-    }
-
     // general callback called when either confirming or resending fails
     function failure(err: Error) {
-        alert(err.message || JSON.stringify(err));
+        error_text = err.message || JSON.stringify(err);
     }
 </script>
 
@@ -98,7 +93,11 @@
         </div>
         <div class="input flex vert_center hori_center">
             <Input bind:value={$email} label="Email Address" />
-            <Input bind:value={form.code} label="Confirmation Code" />
+            <Input
+                bind:value={form.code}
+                {error_text}
+                label="Confirmation Code"
+            />
         </div>
 
         <div class="buttons flex vert_center hori_center">
