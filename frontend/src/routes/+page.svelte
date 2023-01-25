@@ -63,7 +63,6 @@
         cognito_user.authenticateUser(auth_details, {
             onSuccess: success,
             onFailure: failure,
-            newPasswordRequired: redirect_reset,
         });
     }
 

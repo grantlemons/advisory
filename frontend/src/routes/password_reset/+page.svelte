@@ -76,7 +76,6 @@
     // switches a flag in order to reveal inputs for finishing the process
     function sent_message() {
         sent = true;
-        error_text = 'Confirmation code sent to inbox';
     }
 
     // general callback called when either step of the process fails
