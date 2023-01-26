@@ -43,6 +43,7 @@
     },
     "type": "module",
     "dependencies": {
-        "amazon-cognito-identity-js": "^6.1.2"
+        "amazon-cognito-identity-js": "^6.1.2",
+        "axios": "^1.2.5"
     }
 }
