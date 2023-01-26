@@ -41,5 +41,8 @@
         "typescript": "^4.7.4",
         "vite": "^3.1.0"
     },
-    "type": "module"
+    "type": "module",
+    "dependencies": {
+        "amazon-cognito-identity-js": "^6.1.2"
+    }
 }

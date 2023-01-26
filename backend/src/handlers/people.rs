@@ -1,25 +1,37 @@
 use crate::{
+    auth::UserData,
     database::{add_student, add_teacher, clear_people, get_people},
     people::{Person, Student, Teacher},
-    SharedState, UserIDForm, Verify,
+    SharedState, Verify,
 };
-use axum::{extract::Extension, http::StatusCode, Json};
-use std::sync::Arc;
+use axum::{
+    extract::{Extension, Json, State},
+    http::StatusCode,
+};
 
 /// Handler to clear all people for a specific user
 ///
 /// Uses [`UserIDForm`] as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn clear_people_handler(
-    Extension(state): Extension<Arc<SharedState>>,
-    Json(form): Json<UserIDForm>,
+    State(state): State<SharedState>,
+    Extension(user_option): Extension<Option<UserData>>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("DELETE made to people");
-    Ok(Json(
-        clear_people(&state.graph, form.clone())
-            .await
-            .unwrap_or_else(|_| panic!("Unable to clear people for {}", form.user_id)),
-    ))
+
+    if let Some(user) = user_option {
+        match &state.graph {
+            Some(graph) => Ok(Json(
+                clear_people(user.clone(), graph).await.unwrap_or_else(|_| {
+                    panic!("Unable to clear people for {} ({})", user.sub, user.name)
+                }),
+            )),
+            None => Err(StatusCode::BAD_GATEWAY),
+        }
+    } else {
+        log::info!("Unauthorized access to clear_people_handler prevented");
+        Err(StatusCode::UNAUTHORIZED)
+    }
 }
 
 /// Handler to get all people for a specific user
@@ -27,15 +39,22 @@ pub(crate) async fn clear_people_handler(
 /// Uses [`UserIDForm`] as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn get_people_handler(
-    Extension(state): Extension<Arc<SharedState>>,
-    Json(form): Json<UserIDForm>,
+    State(state): State<SharedState>,
+    Extension(user_option): Extension<Option<UserData>>,
 ) -> Result<Json<Vec<Person>>, StatusCode> {
     log::info!("GET made to people");
-    Ok(Json(
-        get_people(&state.graph, form.clone())
-            .await
-            .unwrap_or_else(|_| panic!("Unable to get people for {}", form.user_id)),
-    ))
+
+    if let Some(user) = user_option {
+        match &state.graph {
+            Some(graph) => Ok(Json(get_people(user.clone(), graph).await.unwrap_or_else(
+                |_| panic!("Unable to get people for {} ({})", user.sub, user.name),
+            ))),
+            None => Err(StatusCode::BAD_GATEWAY),
+        }
+    } else {
+        log::info!("Unauthorized access to get_people_handler prevented");
+        Err(StatusCode::UNAUTHORIZED)
+    }
 }
 
 /// Handler to add a teacher to the database
@@ -43,15 +62,25 @@ pub(crate) async fn get_people_handler(
 /// Uses [`Teacher`] as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn add_teacher_handler(
-    Extension(state): Extension<Arc<SharedState>>,
+    State(state): State<SharedState>,
+    Extension(user_option): Extension<Option<UserData>>,
     Json(form): Json<Teacher>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("POST made to people/teacher");
-    Ok(Json(
-        add_teacher(&state.graph, form)
-            .await
-            .expect("Unable to add teacher"),
-    ))
+
+    if let Some(user) = user_option {
+        match &state.graph {
+            Some(graph) => Ok(Json(
+                add_teacher(user, graph, form)
+                    .await
+                    .expect("Unable to add teacher"),
+            )),
+            None => Err(StatusCode::BAD_GATEWAY),
+        }
+    } else {
+        log::info!("Unauthorized access to add_teacher_handler prevented");
+        Err(StatusCode::UNAUTHORIZED)
+    }
 }
 
 /// Handler to add many teachers
@@ -59,17 +88,29 @@ pub(crate) async fn add_teacher_handler(
 /// Uses a vector of [`Teacher`]s as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn add_teacher_bulk(
+    State(state): State<SharedState>,
+    Extension(user_option): Extension<Option<UserData>>,
     Json(forms): Json<Vec<Teacher>>,
-    Extension(state): Extension<Arc<SharedState>>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("POST made to people/teacher/bulk");
-    if !forms.verify() {
-        return Err(StatusCode::UNPROCESSABLE_ENTITY);
+
+    if let Some(user) = user_option {
+        if !forms.verify() {
+            return Err(StatusCode::UNPROCESSABLE_ENTITY);
+        }
+        match &state.graph {
+            Some(graph) => {
+                for teacher in forms {
+                    add_teacher(user.clone(), graph, teacher).await?;
+                }
+                Ok(Json(1))
+            }
+            None => Err(StatusCode::BAD_GATEWAY),
+        }
+    } else {
+        log::info!("Unauthorized access to add_teacher_bulk prevented");
+        Err(StatusCode::UNAUTHORIZED)
     }
-    for teacher in forms {
-        add_teacher(&state.graph, teacher).await?;
-    }
-    Ok(Json(1))
 }
 
 /// Handler to add a student to the database
@@ -77,15 +118,25 @@ pub(crate) async fn add_teacher_bulk(
 /// Uses [`Student`] as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn add_student_handler(
+    State(state): State<SharedState>,
+    Extension(user_option): Extension<Option<UserData>>,
     Json(form): Json<Student>,
-    Extension(state): Extension<Arc<SharedState>>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("POST made to people/student");
-    Ok(Json(
-        add_student(&state.graph, form)
-            .await
-            .expect("Unable to add student"),
-    ))
+
+    if let Some(user) = user_option {
+        match &state.graph {
+            Some(graph) => Ok(Json(
+                add_student(user, graph, form)
+                    .await
+                    .expect("Unable to add student"),
+            )),
+            None => Err(StatusCode::BAD_GATEWAY),
+        }
+    } else {
+        log::info!("Unauthorized access to add_student_handler prevented");
+        Err(StatusCode::UNAUTHORIZED)
+    }
 }
 
 /// Handler to add many students
@@ -93,15 +144,27 @@ pub(crate) async fn add_student_handler(
 /// Uses a vector of [`Student`]s as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn add_student_bulk(
+    State(state): State<SharedState>,
+    Extension(user_option): Extension<Option<UserData>>,
     Json(forms): Json<Vec<Student>>,
-    Extension(state): Extension<Arc<SharedState>>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("POST made to people/student/bulk");
-    if !forms.verify() {
-        return Err(StatusCode::UNPROCESSABLE_ENTITY);
+
+    if let Some(user) = user_option {
+        if !forms.verify() {
+            return Err(StatusCode::UNPROCESSABLE_ENTITY);
+        }
+        match &state.graph {
+            Some(graph) => {
+                for student in forms {
+                    add_student(user.clone(), graph, student).await?;
+                }
+                Ok(Json(1))
+            }
+            None => Err(StatusCode::BAD_GATEWAY),
+        }
+    } else {
+        log::info!("Unauthorized access to add_student_bulk prevented");
+        Err(StatusCode::UNAUTHORIZED)
     }
-    for student in forms {
-        add_student(&state.graph, student).await?;
-    }
-    Ok(Json(1))
 }

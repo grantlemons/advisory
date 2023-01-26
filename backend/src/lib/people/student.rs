@@ -4,10 +4,6 @@ use serde::{Deserialize, Serialize};
 /// Representation of a student
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub(crate) struct Student {
-    /// The ID of the user's account within the database.
-    ///
-    /// Can be based on different things, like auth cred
-    pub(crate) user_id: String,
     /// Student's name - should be in `First Last` format, but can be anything that distinguishes them from other students
     pub(crate) name: String,
     /// Vector list of the student's teacher for the current academic school year
@@ -31,7 +27,7 @@ impl crate::Verify for Student {
         for i in &self.teachers {
             teachers_valid = teachers_valid && i.verify()
         }
-        !self.name.is_empty() && teachers_valid && !self.user_id.is_empty()
+        !self.name.is_empty() && teachers_valid
     }
 }
 
@@ -50,7 +46,6 @@ impl crate::Verify for Vec<Student> {
 impl Default for Student {
     fn default() -> Student {
         Self {
-            user_id: String::from("USER_ID"),
             name: String::from("Default Name"),
             teachers: Vec::<Teacher>::new(),
             grade: Grade::Freshman,

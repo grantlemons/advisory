@@ -3,14 +3,9 @@
     import Input from '$lib/Input.svelte';
     import HRule from '$lib/Horizontal-Rule.svelte';
     import Logo from '$lib/Logo.svelte';
-    import { email, id_token } from '$lib/auth_store';
+    import { email } from '$lib/auth_store';
     import { goto } from '$app/navigation';
-    import {
-        CognitoUserPool,
-        CognitoUser,
-        AuthenticationDetails,
-        CognitoUserSession,
-    } from 'amazon-cognito-identity-js';
+    import { CognitoUserPool, CognitoUser } from 'amazon-cognito-identity-js';
 
     // variables used for Cognito
     const pool_data = {
@@ -27,7 +22,7 @@
     // variables bound to input boxes
     let form = {
         email_value: '',
-        password: '',
+        code: '',
     };
 
     // stores email in state in order to keep between pages
@@ -35,53 +30,55 @@
         form.email_value = value;
     });
 
-    // functions to redirect to other internal pages
-    // these are functions so they can be used by other code as well as elements on the page
-    function redirect_signup() {
-        goto('/signup');
-    }
-    function redirect_reset() {
-        goto('/password_reset');
-    }
-    function redirect_dashboard() {
-        goto('/dashboard');
+    // function to redirect to other internal page
+    // this is a function so it can be used by other code as well as elements on the page
+    function redirect_login() {
+        goto('/');
     }
 
-    // function to authenticate with Cognito
-    function sign_in() {
-        // exit if fails input check
-        if (!verify_input()) return;
-
+    // completes the confirmation process with Cognito
+    // requires the confirmation code from the user's email
+    function confirm() {
+        if (form.email_value == '' || form.code == '') {
+            return;
+        }
         cognito_user = new CognitoUser({
             Username: form.email_value,
             Pool: user_pool,
         });
-        let auth_details = new AuthenticationDetails({
+        cognito_user.confirmRegistration(
+            form.code,
+            true,
+            function (err, result) {
+                if (result != undefined) {
+                    redirect_login();
+                }
+                if (err != undefined) {
+                    failure(err);
+                }
+            }
+        );
+    }
+
+    // sends a new confirmation code through Cognito
+    function resend() {
+        if (form.email_value == '' || form.code == '') {
+            return;
+        }
+        cognito_user = new CognitoUser({
             Username: form.email_value,
-            Password: form.password,
+            Pool: user_pool,
         });
-        cognito_user.authenticateUser(auth_details, {
-            onSuccess: success,
-            onFailure: failure,
+        cognito_user.resendConfirmationCode(function (err, result) {
+            if (err != undefined) {
+                failure(err);
+            }
         });
     }
 
-    // callback called if auth is successful
-    function success(session: CognitoUserSession) {
-        let token_value = session.getIdToken().getJwtToken();
-        id_token.set(token_value);
-        console.log(token_value);
-        // redirect_dashboard();
-    }
-
-    // callback called if auth fails
+    // general callback called when either confirming or resending fails
     function failure(err: Error) {
         error_text = err.message || JSON.stringify(err);
-    }
-
-    // function to verify input meets standards
-    function verify_input(): boolean {
-        return form.email_value != '' && form.password != '';
     }
 </script>
 
@@ -97,18 +94,17 @@
         <div class="input flex vert_center hori_center">
             <Input bind:value={$email} label="Email Address" />
             <Input
-                bind:value={form.password}
+                bind:value={form.code}
                 {error_text}
-                password
-                label="Password"
+                label="Confirmation Code"
             />
         </div>
 
         <div class="buttons flex vert_center hori_center">
-            <Button on:click={sign_in} label="Sign In" />
+            <Button on:click={confirm} label="Submit Confirmation Code" />
             <HRule />
-            <Button on:click={redirect_reset} label="Forgot Password" />
-            <Button on:click={redirect_signup} label="Sign Up" />
+            <Button on:click={resend} label="Resend Confirmation Code" />
+            <Button on:click={redirect_login} label="Go Back / Log In" />
         </div>
     </div>
 </form>

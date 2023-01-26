@@ -10,6 +10,7 @@ use axum::http::StatusCode;
 ///
 /// Called by [`crate::advisories::advisory::Advisory`]
 pub(crate) async fn build_advisories(
+    user: crate::auth::UserData,
     graph: &neo4rs::Graph,
     form: Settings,
 ) -> Result<Vec<Advisory>, StatusCode> {
@@ -19,15 +20,15 @@ pub(crate) async fn build_advisories(
     }
 
     // create vectors from data from database
-    let students: Vec<Student> = get_students(graph, form.user_id.as_str()).await?;
-    let mut teachers: Vec<Teacher> = get_teachers(graph, form.user_id.as_str()).await?;
+    let students: Vec<Student> = get_students(user.clone(), graph).await?;
+    let mut teachers: Vec<Teacher> = get_teachers(user.clone(), graph).await?;
 
     // create vector of advisories to fill
     let s: i16 = students.len() as i16;
     let a: i16 = form.num_advisories;
     log::info!("{} Students, {} Advisories", s, a);
     let mut advisories: Vec<Advisory> =
-        vec![Advisory::default(s / a, form.user_id); a.try_into().unwrap()];
+        vec![Advisory::default(s / a, user.sub); a.try_into().unwrap()];
 
     // add teachers to advisories
     for i in &mut advisories {
