@@ -96,7 +96,7 @@
         width: 90%;
         display: flex;
         flex-direction: column;
-        row-gap: 5px;
+        row-gap: 7px;
         margin-bottom: 30px;
 
         /* Center left-right */
