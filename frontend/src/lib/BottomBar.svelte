@@ -7,7 +7,6 @@
         background-color: #d9d9d9;
         flex-direction: row;
         width: 100vw;
-        height: 8vh;
-        min-height: 76px;
+        height: 80px;
     }
 </style>
