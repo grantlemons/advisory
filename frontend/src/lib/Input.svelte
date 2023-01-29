@@ -1,7 +1,7 @@
 <script lang="ts">
     import TextField from '@smui/textfield';
 
-    export let value: string = '';
+    export let value: string | number = '';
     export let label: string = 'Default Label';
     export let password: boolean = false;
     export let error_text: string = '';
