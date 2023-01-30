@@ -1,6 +1,5 @@
 <script lang="ts">
-    import type { Writable } from 'svelte/store';
-    import Input from '$lib/Input.svelte';
+    import LabeledNumberField from '$lib/LabeledNumberField.svelte';
     import {
         advisory_count,
         teacher_weight,
@@ -54,14 +53,27 @@
     <div class="input-container">
         <div class="input">
             <h1 style="margin-bottom: 6px">Settings</h1>
-            <Input bind:value={$advisory_count} label="Number of Advisories" />
+            <LabeledNumberField
+                bind:value={$advisory_count}
+                label="Number of Advisories"
+                max={100}
+            />
         </div>
         <HorizontalRule />
         <div class="input">
             <h3 style="margin-bottom: 6px">Weights</h3>
-            <Input bind:value={$teacher_weight} label="Student has Teacher" />
-            <Input bind:value={$grade_weight} label="Grade Diversity" />
-            <Input bind:value={$gender_weight} label="Gender Diversity" />
+            <LabeledNumberField
+                bind:value={$teacher_weight}
+                label="Student has Teacher"
+            />
+            <LabeledNumberField
+                bind:value={$grade_weight}
+                label="Grade Diversity"
+            />
+            <LabeledNumberField
+                bind:value={$gender_weight}
+                label="Gender Diversity"
+            />
         </div>
     </div>
 </div>
@@ -69,12 +81,14 @@
 <style>
     .side-bar {
         font-family: Roboto;
+        color: #424242;
+
         position: absolute;
         left: 0;
         background-color: #d2d2d2;
 
         width: 15vw;
-        min-width: 210px;
+        min-width: 308px;
         height: 100%;
         display: grid;
     }
