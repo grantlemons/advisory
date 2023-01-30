@@ -2,7 +2,7 @@
 
 <style>
     .advisory-window {
-        flex: 1 1 auto;
         background-color: aliceblue;
+        height: 100%;
     }
 </style>

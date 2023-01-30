@@ -10,17 +10,42 @@
 </script>
 
 <div class="page">
-    <TopBar />
-    <AdvisoryWindow />
-    <BottomBar />
-    <SideBar />
+    <div class="top-bar">
+        <TopBar />
+    </div>
+    <div class="content">
+        <div class="left-content">
+            <SideBar />
+        </div>
+        <div class="right-content">
+            <AdvisoryWindow />
+        </div>
+    </div>
 </div>
 
 <style>
     .page {
+        background-color: brown;
         display: flex;
         flex-flow: column;
+
         height: 100vh;
         width: 100vw;
+    }
+    .top-bar {
+        flex: top;
+    }
+    .content {
+        flex: bottom;
+
+        display: flex;
+        flex-flow: row;
+        justify-content: space-between;
+    }
+    .left-content {
+        flex: left;
+    }
+    .right-content {
+        flex: right;
     }
 </style>
