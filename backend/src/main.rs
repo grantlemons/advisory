@@ -7,13 +7,9 @@
 //!
 //! A custom fork of neo4rs is used to add functionality for handling vectors as a return type from neo4j
 
-use axum::{handler::HandlerWithoutStateExt, routing::*, Router};
+use axum::{routing::*, Router};
 use axum_server::tls_rustls::RustlsConfig;
-use std::{
-    net::{IpAddr, SocketAddr},
-    path::PathBuf,
-    sync::Arc,
-};
+use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
 /// Various functions and structs used elsewhere in the code
 mod lib {
