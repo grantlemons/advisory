@@ -14,7 +14,8 @@ services:
     volumes:
       - ./logs/:/logs/:rw
     environment:
-      - DOCKER=true
+      - ENV="DOCKER"
+      - DB_PASS="test"
     build:
       context: backend
       dockerfile: Dockerfile

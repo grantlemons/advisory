@@ -89,13 +89,20 @@ async fn main() {
     setup_logger().expect("Unable to setup logger with fern");
 
     // Connect to database
-    let uri = match std::env::var("DOCKER") {
-        Ok(_) => "database:7687",
+    let uri = match std::env::var("ENV") {
+        Ok(val) => match val.as_str() {
+            "DOCKER" => "database:7687",
+            "ECS" => "database.advisory:7687",
+            _ => "localhost:7687",
+        },
         Err(_) => "localhost:7687",
     };
     let user = "neo4j";
-    let pass = "test";
-    let graph = Arc::new(neo4rs::Graph::new(uri, user, pass).await.unwrap());
+    let pass = match std::env::var("DB_PASS") {
+        Ok(val) => val,
+        Err(_) => "test".to_string(),
+    };
+    let graph = Arc::new(neo4rs::Graph::new(uri, user, pass.as_str()).await.unwrap());
     let keyset = jsonwebtokens_cognito::KeySet::new("us-east-1", "us-east-1_Ye96rGbqV").unwrap();
     let verifier = keyset
         .new_id_token_verifier(&["5c6eva8nctpb3aug8l0teak36v"])
