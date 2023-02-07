@@ -6,7 +6,7 @@
 
     let data: object | null;
 
-    const BASE_URL = 'https://localhost:81';
+    const BASE_URL = '/api';
     let auth: string;
     id_token.subscribe((value) => {
         auth = value;
