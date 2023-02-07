@@ -16,6 +16,7 @@ services:
     environment:
       - ENV="DOCKER"
       - DB_PASS="test"
+      - DB_ADDRESS="database"
     build:
       context: backend
       dockerfile: Dockerfile

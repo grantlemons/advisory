@@ -79,8 +79,8 @@ pub struct SharedState {
 }
 
 enum HTTP {
-    HTTP,
-    HTTPS,
+    Http,
+    Https,
 }
 
 /// Main async function run when executing the crate
@@ -90,17 +90,16 @@ async fn main() {
     setup_logger().expect("Unable to setup logger with fern");
 
     // Connect to database
-    let uri = match std::env::var("ENV") {
-        Ok(val) => match val.as_str() {
-            "DOCKER" => "database:7687",
-            "ECS" => "database.advisory:7687",
-            _ => "localhost:7687",
-        },
-        Err(_) => "localhost:7687",
-    };
     let user = "neo4j";
-    let pass = "test";
-    let graph = Arc::new(neo4rs::Graph::new(uri, user, pass).await.unwrap());
+    let uri = match std::env::var("DB_ADDRESS") {
+        Ok(val) => format!("{}:7687", val),
+        Err(_) => "localhost:7687".to_string(),
+    };
+    let pass = match std::env::var("DB_PASS") {
+        Ok(val) => val,
+        Err(_) => "test".to_string(),
+    };
+    let graph = Arc::new(neo4rs::Graph::new(&uri, user, &pass).await.unwrap());
     let keyset = jsonwebtokens_cognito::KeySet::new("us-east-1", "us-east-1_Ye96rGbqV").unwrap();
     let verifier = keyset
         .new_id_token_verifier(&["5c6eva8nctpb3aug8l0teak36v"])
@@ -127,11 +126,11 @@ async fn main() {
 
     let mode: HTTP = match std::env::var("ENV") {
         Ok(val) => match val.as_str() {
-            "DOCKER" => HTTP::HTTPS,
-            "ECS" => HTTP::HTTP,
-            _ => HTTP::HTTP,
+            "DOCKER" => HTTP::Https,
+            "ECS" => HTTP::Http,
+            _ => HTTP::Http,
         },
-        Err(_) => HTTP::HTTP,
+        Err(_) => HTTP::Http,
     };
 
     // IP and Port to bind to
@@ -140,13 +139,13 @@ async fn main() {
 
     // Bind axum app to configured IP and Port
     match mode {
-        HTTP::HTTP => {
+        HTTP::Http => {
             axum::Server::bind(&addr)
                 .serve(app(state).into_make_service())
                 .await
                 .unwrap();
-        },
-        HTTP::HTTPS => {
+        }
+        HTTP::Https => {
             axum_server::bind_rustls(addr, config)
                 .serve(app(state).into_make_service())
                 .await
