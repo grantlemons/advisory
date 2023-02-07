@@ -78,6 +78,11 @@ pub struct SharedState {
     pub verifier: jsonwebtokens::Verifier,
 }
 
+enum HTTP {
+    HTTP,
+    HTTPS,
+}
+
 /// Main async function run when executing the crate
 #[tokio::main]
 async fn main() {
@@ -94,11 +99,8 @@ async fn main() {
         Err(_) => "localhost:7687",
     };
     let user = "neo4j";
-    let pass = match std::env::var("DB_PASS") {
-        Ok(val) => val,
-        Err(_) => "test".to_string(),
-    };
-    let graph = Arc::new(neo4rs::Graph::new(uri, user, pass.as_str()).await.unwrap());
+    let pass = "test";
+    let graph = Arc::new(neo4rs::Graph::new(uri, user, pass).await.unwrap());
     let keyset = jsonwebtokens_cognito::KeySet::new("us-east-1", "us-east-1_Ye96rGbqV").unwrap();
     let verifier = keyset
         .new_id_token_verifier(&["5c6eva8nctpb3aug8l0teak36v"])
@@ -123,26 +125,39 @@ async fn main() {
     .await
     .unwrap();
 
-    // Ports for http & https redirect
-    let https_port = 3000;
+    let mode: HTTP = match std::env::var("ENV") {
+        Ok(val) => match val.as_str() {
+            "DOCKER" => HTTP::HTTPS,
+            "ECS" => HTTP::HTTP,
+            _ => HTTP::HTTP,
+        },
+        Err(_) => HTTP::HTTP,
+    };
 
     // IP and Port to bind to
-    let addr = match std::env::var("DOCKER") {
-        Ok(_) => SocketAddr::from(([0, 0, 0, 0], https_port)),
-        Err(_) => SocketAddr::from(([127, 0, 0, 1], https_port)),
-    };
+    let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     log::info!("listening on {}", addr);
 
     // Bind axum app to configured IP and Port
-    axum_server::bind_rustls(addr, config)
-        .serve(app(state).into_make_service())
-        .await
-        .unwrap();
+    match mode {
+        HTTP::HTTP => {
+            axum::Server::bind(&addr)
+                .serve(app(state).into_make_service())
+                .await
+                .unwrap();
+        },
+        HTTP::HTTPS => {
+            axum_server::bind_rustls(addr, config)
+                .serve(app(state).into_make_service())
+                .await
+                .unwrap();
+        }
+    }
 }
 
 fn app(state: SharedState) -> Router {
     // Axum setup and configuration
-    Router::new()
+    let api_router = Router::new()
         // Add routes to specific handler functions
         .route("/health", get(get_health)) // Health check
         .route("/info", get(get_info))
@@ -154,7 +169,10 @@ fn app(state: SharedState) -> Router {
         .route("/people/student", post(add_student_handler))
         .route("/people/teacher/bulk", post(add_teacher_bulk))
         .route("/people/student/bulk", post(add_student_bulk))
-        .route("/", put(get_advisories))
+        .route("/", put(get_advisories));
+    Router::new()
+        .merge(api_router.clone())
+        .nest("/api", api_router)
         // jsonwebtoken auth layer
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
