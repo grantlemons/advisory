@@ -14,15 +14,16 @@ services:
     volumes:
       - ./logs/:/logs/:rw
     environment:
-      - DOCKER=true
+      - ENV=DOCKER
+      - DB_PASS=test
+      - DB_ADDRESS=database
     build:
       context: backend
       dockerfile: Dockerfile
     ports:
-      - 0.0.0.0:8000:7878
-      - 0.0.0.0:81:3000
+      - 0.0.0.0:81:80
     healthcheck:
-      test: curl -X GET --fail https://0.0.0.0:3000/health -Is --insecure
+      test: curl -X GET --fail https://0.0.0.0:80/health -Is --insecure
       interval: 20s
       timeout: 5s
       retries: 10

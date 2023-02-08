@@ -44,7 +44,7 @@
         goto('/password_reset');
     }
     function redirect_dashboard() {
-        goto('/dashboard');
+        goto('/conn_test');
     }
 
     // function to authenticate with Cognito
@@ -71,7 +71,7 @@
         let token_value = session.getIdToken().getJwtToken();
         id_token.set(token_value);
         console.log(token_value);
-        // redirect_dashboard();
+        redirect_dashboard();
     }
 
     // callback called if auth fails

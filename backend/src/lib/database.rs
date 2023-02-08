@@ -18,7 +18,7 @@ pub(crate) async fn add_teacher(
     log::info!("New teacher {:?} added", form.name);
     graph
         .run(
-            query("CREATE (t:Teacher { name: $name, sex: $sex, user_id: $user_id })")
+            query("MERGE (t:Teacher { name: $name, sex: $sex, user_id: $user_id })")
                 .param("name", form.name)
                 .param("sex", form.sex.to_string())
                 .param("user_id", user.sub),
@@ -94,13 +94,11 @@ pub(crate) async fn add_student(
     let teacher_names: Vec<String> = form.teachers.iter().map(|t| t.name.clone()).collect();
     graph
         .run(
-            query(
-                "CREATE (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $user_id })",
-            )
-            .param("name", String::from(&form.name))
-            .param("sex", form.sex.to_string())
-            .param("grade", i64::from(form.clone().grade))
-            .param("user_id", String::from(&user.sub)),
+            query("MERGE (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $user_id })")
+                .param("name", String::from(&form.name))
+                .param("sex", form.sex.to_string())
+                .param("grade", i64::from(form.clone().grade))
+                .param("user_id", String::from(&user.sub)),
         )
         .await
         .expect("Unable to send query to database");
@@ -109,7 +107,7 @@ pub(crate) async fn add_student(
             query(
                 "MATCH (t:Teacher {user_id: $user_id}), (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $user_id }) \
                 WHERE t.name in $t_arr \
-                CREATE (t)-[:TEACHES]->(s) \
+                MERGE (t)-[:TEACHES]->(s) \
                 RETURN t, s",
             )
             .param("t_arr", teacher_names)
