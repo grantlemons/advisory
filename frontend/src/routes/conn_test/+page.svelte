@@ -1,37 +1,18 @@
 <script lang="ts">
     /* cspell: disable */
+    import { type Student, type Teacher, Sex, Grade } from '$lib/DBTypes';
     import { id_token } from '$lib/auth_store';
     import Button from '$lib/Button.svelte';
     import axios from 'axios';
+    import StudentCard from '$lib/StudentCard.svelte';
 
-    let data: object[] | null;
+    let data: Student[] | null;
 
     const BASE_URL = '/api';
     let auth: string;
     id_token.subscribe((value) => {
         auth = value;
     });
-
-    enum Sex {
-        Male = 'Male',
-        Female = 'Female',
-    }
-    enum Grade {
-        Freshman = 'Freshman',
-        Sophomore = 'Sophomore',
-        Junior = 'Junior',
-        Senior = 'Senior',
-    }
-    interface Teacher {
-        name: string;
-        sex: Sex;
-    }
-    interface Student {
-        name: string;
-        sex: Sex;
-        teachers: Teacher[];
-        grade: Grade;
-    }
 
     const WESSELS: Teacher = {
         name: 'Mark Wessels',
@@ -132,7 +113,9 @@
     <Button on:click={list_people} label="List People" />
 
     {#if data}
-        {JSON.stringify(data)}
+        {#each data as student}
+            <StudentCard data={student} />
+        {/each}
     {/if}
 </div>
 
