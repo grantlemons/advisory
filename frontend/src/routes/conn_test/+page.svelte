@@ -106,10 +106,6 @@
             },
         }).then((res) => (data = res.data));
     }
-
-    function test_add_hesseltine() {
-        add_teacher(HESSELTINE);
-    }
     function test_add_grant() {
         let teachers: Teacher[] = [
             WESSELS,
@@ -133,7 +129,6 @@
 <div>
     <Button on:click={clean_database} label="Clean Database" />
     <Button on:click={test_add_grant} label="Create Grant" />
-    <Button on:click={test_add_hesseltine} label="Create Hesseltine" />
     <Button on:click={list_people} label="List People" />
 
     {#if data}
