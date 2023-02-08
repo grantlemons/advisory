@@ -78,7 +78,7 @@ pub struct SharedState {
     pub verifier: jsonwebtokens::Verifier,
 }
 
-enum HTTP {
+enum Http {
     Http,
     Https,
 }
@@ -124,13 +124,13 @@ async fn main() {
     .await
     .unwrap();
 
-    let mode: HTTP = match std::env::var("ENV") {
+    let mode: Http = match std::env::var("ENV") {
         Ok(val) => match val.as_str() {
-            "DOCKER" => HTTP::Https,
-            "ECS" => HTTP::Http,
-            _ => HTTP::Http,
+            "DOCKER" => Http::Https,
+            "ECS" => Http::Http,
+            _ => Http::Http,
         },
-        Err(_) => HTTP::Https,
+        Err(_) => Http::Https,
     };
 
     // IP and Port to bind to
@@ -139,13 +139,13 @@ async fn main() {
 
     // Bind axum app to configured IP and Port
     match mode {
-        HTTP::Http => {
+        Http::Http => {
             axum::Server::bind(&addr)
                 .serve(app(state).into_make_service())
                 .await
                 .unwrap();
         }
-        HTTP::Https => {
+        Http::Https => {
             axum_server::bind_rustls(addr, config)
                 .serve(app(state).into_make_service())
                 .await
