@@ -4,7 +4,7 @@
     import Button from '$lib/Button.svelte';
     import axios from 'axios';
 
-    let data: object | null;
+    let data: object[] | null;
 
     const BASE_URL = '/api';
     let auth: string;
@@ -13,14 +13,14 @@
     });
 
     enum Sex {
-        Male = 'male',
-        Female = 'female',
+        Male = 'Male',
+        Female = 'Female',
     }
     enum Grade {
-        Freshman = 'freshman',
-        Sophomore = 'sophomore',
-        Junior = 'junior',
-        Senior = 'senior',
+        Freshman = 'Freshman',
+        Sophomore = 'Sophomore',
+        Junior = 'Junior',
+        Senior = 'Senior',
     }
     interface Teacher {
         name: string;
@@ -104,7 +104,7 @@
             headers: {
                 Authorization: auth,
             },
-        }).then((res) => (data = res));
+        }).then((res) => (data = res.data));
     }
 
     function test_add_hesseltine() {
@@ -137,7 +137,7 @@
     <Button on:click={list_people} label="List People" />
 
     {#if data}
-        data
+        {JSON.stringify(data)}
     {/if}
 </div>
 
