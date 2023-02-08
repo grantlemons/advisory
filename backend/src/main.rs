@@ -130,7 +130,7 @@ async fn main() {
             "ECS" => HTTP::Http,
             _ => HTTP::Http,
         },
-        Err(_) => HTTP::Http,
+        Err(_) => HTTP::Https,
     };
 
     // IP and Port to bind to
