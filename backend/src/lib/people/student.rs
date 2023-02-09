@@ -11,7 +11,8 @@ pub(crate) struct Student {
     /// Student's grade represented with the [`Grade`] enum
     pub(crate) grade: Grade,
     /// Student's biological sex, represented by the [`Sex`] enum
-    pub(crate) sex: Sex,
+    /// Optional
+    pub(crate) sex: Option<Sex>,
 }
 
 impl std::fmt::Display for Student {
@@ -49,7 +50,7 @@ impl Default for Student {
             name: String::from("Default Name"),
             teachers: Vec::<Teacher>::new(),
             grade: Grade::Freshman,
-            sex: Sex::Male,
+            sex: None,
         }
     }
 }
