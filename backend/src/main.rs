@@ -99,12 +99,20 @@ async fn main() {
         Ok(val) => val,
         Err(_) => "test".to_string(),
     };
-    let graph = Arc::new(neo4rs::Graph::new(&uri, user, &pass).await.unwrap());
+    let graph = Arc::new(
+        neo4rs::Graph::new(&uri, user, &pass)
+            .await
+            .expect("Unable to connect to database"),
+    );
+
+    // JSON webtoken setup
     let keyset = jsonwebtokens_cognito::KeySet::new("us-east-1", "us-east-1_Ye96rGbqV").unwrap();
     let verifier = keyset
         .new_id_token_verifier(&["5c6eva8nctpb3aug8l0teak36v"])
         .build()
         .unwrap();
+
+    // State to be accessed by handlers
     let state = SharedState {
         graph: Some(graph),
         keyset,
@@ -124,6 +132,7 @@ async fn main() {
     .await
     .unwrap();
 
+    // Use HTTP or HTTPS depending on ENV environment variable
     let mode: Http = match std::env::var("ENV") {
         Ok(val) => match val.as_str() {
             "DOCKER" => Http::Https,
@@ -138,6 +147,7 @@ async fn main() {
     log::info!("listening on {}", addr);
 
     // Bind axum app to configured IP and Port
+    // TLS if mode is [`Http::Https`]
     match mode {
         Http::Http => {
             axum::Server::bind(&addr)
@@ -170,8 +180,10 @@ fn app(state: SharedState) -> Router {
         .route("/people/student/bulk", post(add_student_bulk))
         .route("/", put(get_advisories));
     Router::new()
-        .merge(api_router.clone())
-        .nest("/api", api_router)
+        // add /api before all routes
+        .nest("/api", api_router.clone())
+        // also accept without /api
+        .merge(api_router)
         // jsonwebtoken auth layer
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),

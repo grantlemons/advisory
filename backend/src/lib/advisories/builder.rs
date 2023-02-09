@@ -1,5 +1,5 @@
 use crate::{
-    advisories::advisory::Advisory,
+    advisories::Advisory,
     database::{get_students, get_teachers},
     people::{Student, Teacher},
     Settings, Verify,
@@ -8,7 +8,7 @@ use axum::http::StatusCode;
 
 /// Places students into advisories and returns a vector of them
 ///
-/// Called by [`crate::advisories::advisory::Advisory`]
+/// Called by [`crate::advisories::Advisory`]
 pub(crate) async fn build_advisories(
     user: crate::auth::UserData,
     graph: &neo4rs::Graph,

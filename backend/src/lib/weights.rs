@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Weights from 0-10 used to assign importance to each possible parameter in the 'score calculation'
-/// Used by [`crate::Advisory`]
+/// Used by [`crate::advisories::Advisory`]
 #[derive(Deserialize, Serialize, Debug)]
 pub(crate) struct Weights {
     /// The importance that each student an an advisory has one of the advisors as a teacher

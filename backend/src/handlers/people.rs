@@ -10,8 +10,6 @@ use axum::{
 };
 
 /// Handler to clear all people for a specific user
-///
-/// Uses [`UserIDForm`] as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn clear_people_handler(
     State(state): State<SharedState>,
@@ -35,8 +33,6 @@ pub(crate) async fn clear_people_handler(
 }
 
 /// Handler to get all people for a specific user
-///
-/// Uses [`UserIDForm`] as a form for input
 #[axum_macros::debug_handler]
 pub(crate) async fn get_people_handler(
     State(state): State<SharedState>,
