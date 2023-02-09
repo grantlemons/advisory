@@ -67,14 +67,14 @@ pub(crate) async fn get_people(
         let teacher: Node = row.get("people").unwrap();
         let name: String = teacher.get("name").unwrap();
 
-        log::info!("Teacher data is {{name: {}}}", name);
+        log::info!("Person data is {{name: {}}}", name);
 
         // Add person with all fields to the teachers vector
         let person = Person { name };
         log::info!("Adding {} to people vector", person);
         people.push(person)
     }
-    log::info!("Done getting teachers!");
+    log::info!("Done getting people!");
     Ok(people)
 }
 
