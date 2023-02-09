@@ -10,7 +10,6 @@ export enum Grade {
 }
 export interface Teacher {
     name: string;
-    sex: Sex;
 }
 export interface Student {
     name: string;

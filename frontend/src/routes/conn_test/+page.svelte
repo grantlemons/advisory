@@ -16,27 +16,21 @@
 
     const WESSELS: Teacher = {
         name: 'Mark Wessels',
-        sex: Sex.Male,
     };
     const DOWNES: Teacher = {
         name: 'Edward Downes',
-        sex: Sex.Male,
     };
     const LUNDBERG: Teacher = {
         name: 'Matthew Lundberg',
-        sex: Sex.Male,
     };
     const FLEISHER: Teacher = {
         name: 'Gregg Fleisher',
-        sex: Sex.Male,
     };
     const HESSELTINE: Teacher = {
         name: 'Ashley Hesseltine',
-        sex: Sex.Female,
     };
     const SIMS: Teacher = {
         name: 'Holly Sims',
-        sex: Sex.Female,
     };
 
     function clean_database() {

@@ -1,4 +1,3 @@
-use crate::people::Sex;
 use serde::{Deserialize, Serialize};
 
 /// Representation of a teacher
@@ -6,8 +5,6 @@ use serde::{Deserialize, Serialize};
 pub(crate) struct Teacher {
     /// Teacher's name - should be in `First Last` format, but can be anything that distinguishes them from other teachers
     pub(crate) name: String,
-    /// Student's biological sex, represented by the [`Sex`] enum
-    pub(crate) sex: Sex,
 }
 
 impl crate::Verify for Teacher {
