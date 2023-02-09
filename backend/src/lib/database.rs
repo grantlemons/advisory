@@ -18,9 +18,8 @@ pub(crate) async fn add_teacher(
     log::info!("New teacher {:?} added", form.name);
     graph
         .run(
-            query("MERGE (t:Teacher { name: $name, sex: $sex, user_id: $user_id })")
+            query("MERGE (t:Teacher { name: $name, user_id: $user_id })")
                 .param("name", form.name)
-                .param("sex", form.sex.to_string())
                 .param("user_id", user.sub),
         )
         .await
@@ -67,12 +66,11 @@ pub(crate) async fn get_people(
         // Get person data from returned row of the database query
         let teacher: Node = row.get("people").unwrap();
         let name: String = teacher.get("name").unwrap();
-        let sex: Sex = Sex::from(teacher.get::<String>("sex").unwrap());
 
-        log::info!("Teacher data is {{name: {}, sex: {:?}}}", name, sex);
+        log::info!("Teacher data is {{name: {}}}", name);
 
         // Add person with all fields to the teachers vector
-        let person = Person { name, sex };
+        let person = Person { name };
         log::info!("Adding {} to people vector", person);
         people.push(person)
     }
@@ -171,7 +169,6 @@ pub(crate) async fn get_students(
                     .into_iter()
                     .map(|t| Teacher {
                         name: t.get("name").unwrap(),
-                        sex: Sex::from(t.get::<String>("sex").unwrap()),
                     })
                     .collect();
             }
@@ -223,12 +220,11 @@ pub(crate) async fn get_teachers(
         // Get teacher data from returned row of the database query
         let teacher: Node = row.get("teachers").unwrap();
         let name: String = teacher.get("name").unwrap();
-        let sex: Sex = Sex::from(teacher.get::<String>("sex").unwrap());
 
-        log::info!("Teacher data is {{name: {}, sex: {:?}}}", name, sex);
+        log::info!("Teacher data is {{name: {}}}", name);
 
         // Add teacher with all fields to the teachers vector
-        let teacher = Teacher { name, sex };
+        let teacher = Teacher { name };
         log::info!("Adding {} to teacher vector", teacher);
         teachers.push(teacher)
     }
