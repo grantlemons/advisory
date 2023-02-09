@@ -44,8 +44,9 @@ impl Advisory {
         log::info!("Adding student {} to advisory {}", s, self);
         // Reduce number of remaining "spots" for the added student's sex
         match s.sex {
-            Sex::Male => self.remaining_sex.0 -= 1,
-            Sex::Female => self.remaining_sex.1 -= 1,
+            Some(Sex::Male) => self.remaining_sex.0 -= 1,
+            Some(Sex::Female) => self.remaining_sex.1 -= 1,
+            None => {}
         }
         log::info!("Sex 'spots' in {}: {:?}", self, self.remaining_sex);
         // Reduce number of remaining "spots" for the added student's grade
@@ -61,14 +62,15 @@ impl Advisory {
     }
 
     /// Gets the remaining number or "spots" left for a given sex in an advisory
-    pub(crate) fn get_remaining_sex(&self, sex: &Sex) -> i16 {
-        log::info!("Getting remaining 'spots' by sex");
-        log::info!("Getting remaining 'spots' for {} in {}", sex, self);
+    pub(crate) fn get_remaining_sex(&self, sex: &Option<Sex>) -> i16 {
         let num = match sex {
-            Sex::Male => self.remaining_sex.0,
-            Sex::Female => self.remaining_sex.1,
+            Some(Sex::Male) => self.remaining_sex.0,
+            Some(Sex::Female) => self.remaining_sex.1,
+            None => 0,
         };
-        log::info!("{} has {} 'spots' left in {}", sex, num, self);
+        if let Some(sex) = sex {
+            log::info!("{} has {} 'spots' left in {}", sex, num, self);
+        }
         num
     }
 

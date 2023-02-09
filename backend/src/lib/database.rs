@@ -94,7 +94,13 @@ pub(crate) async fn add_student(
         .run(
             query("MERGE (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $user_id })")
                 .param("name", String::from(&form.name))
-                .param("sex", form.sex.to_string())
+                .param(
+                    "sex",
+                    match form.sex {
+                        Some(ref val) => val.to_string(),
+                        None => "".to_string(),
+                    },
+                )
                 .param("grade", i64::from(form.clone().grade))
                 .param("user_id", String::from(&user.sub)),
         )
@@ -110,7 +116,10 @@ pub(crate) async fn add_student(
             )
             .param("t_arr", teacher_names)
             .param("name", String::from(&form.name))
-            .param("sex", form.sex.to_string())
+            .param("sex", match form.sex {
+                Some(val) => val.to_string(),
+                None => "".to_string(),
+            })
             .param("grade", i64::from(form.grade))
             .param("user_id", String::from(&user.sub)),
         )
@@ -151,7 +160,7 @@ pub(crate) async fn get_students(
         let student: Node = row.get("students").unwrap();
         let name: String = student.get("name").unwrap();
         let grade: Grade = Grade::from(student.get::<i64>("grade").unwrap());
-        let sex: Sex = Sex::from(student.get::<String>("sex").unwrap());
+        let sex: Option<Sex> = student.get::<String>("sex").map(Sex::from);
 
         log::info!(
             "Student data is {{name: {}, grade: {}, sex: {:?}}}",
