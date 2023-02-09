@@ -122,18 +122,11 @@ pub(crate) async fn add_student_handler(
 
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => {
-                for teacher in form.teachers.clone() {
-                    add_teacher(user.clone(), graph, teacher)
-                        .await
-                        .expect("Unable to add student's teachers");
-                }
-                Ok(Json(
-                    add_student(user, graph, form)
-                        .await
-                        .expect("Unable to add student"),
-                ))
-            }
+            Some(graph) => Ok(Json(
+                add_student(user, graph, form)
+                    .await
+                    .expect("Unable to add student"),
+            )),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -160,11 +153,6 @@ pub(crate) async fn add_student_bulk(
         match &state.graph {
             Some(graph) => {
                 for student in forms {
-                    for teacher in student.teachers.clone() {
-                        add_teacher(user.clone(), graph, teacher)
-                            .await
-                            .expect("Unable to add student's teachers");
-                    }
                     add_student(user.clone(), graph, student).await?;
                 }
                 Ok(Json(1))
