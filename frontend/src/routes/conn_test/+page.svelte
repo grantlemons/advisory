@@ -5,8 +5,9 @@
     import Button from '$lib/Button.svelte';
     import axios from 'axios';
     import StudentCard from '$lib/StudentCard.svelte';
+    import { sets_from_table } from '$lib/TableParsing';
 
-    let data: Student[] | null;
+    let data: string;
 
     const BASE_URL = '/api';
     let auth: string;
@@ -40,7 +41,7 @@
                     Authorization: auth,
                 },
             })
-            .then((_) => (data = null));
+            .then((_) => (data = ''));
     }
     function add_teacher(teacher: Teacher) {
         axios({
@@ -99,17 +100,20 @@
             grade: Grade.Senior,
         });
     }
+    function test_add_xlsx() {
+        let sets: [Set<Teacher>, Set<Student>] = sets_from_table();
+        data = JSON.stringify(sets[0]) + JSON.stringify(sets[1]);
+    }
 </script>
 
 <div>
     <Button on:click={clean_database} label="Clean Database" />
     <Button on:click={test_add_grant} label="Create Grant" />
     <Button on:click={list_people} label="List People" />
+    <Button on:click={test_add_xlsx} label="Add from XLSX" />
 
     {#if data}
-        {#each data as student}
-            <StudentCard data={student} />
-        {/each}
+        {data}
     {/if}
 </div>
 

@@ -1,4 +1,5 @@
 import { type Teacher, type Student, Sex, Grade } from '$lib/DBTypes';
+import { readFile, utils, type WorkSheet } from 'xlsx';
 
 type Table = string[][];
 
@@ -65,4 +66,31 @@ function parse_grade_string(grade: string): Grade {
         }
     }
     return value;
+}
+
+export function import_table(): Table {
+    const workbook = readFile('');
+
+    const table: Table = [];
+    for (const sheet_name in workbook.SheetNames) {
+        table.concat(sheet_to_aoa(workbook.Sheets[sheet_name]));
+    }
+    return table;
+}
+
+function sheet_to_aoa(sheet: WorkSheet): Table {
+    const FS = '\t';
+    return utils
+        .sheet_to_csv(sheet, { FS })
+        .split('\n')
+        .map((row) => row.split(FS));
+}
+
+export function sets_from_table(): [Set<Teacher>, Set<Student>] {
+    const table = import_table();
+
+    const teachers: Set<Teacher> = get_teachers(table);
+    const students: Set<Student> = get_students(table);
+
+    return [teachers, students];
 }
