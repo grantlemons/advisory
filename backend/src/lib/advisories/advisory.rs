@@ -4,10 +4,6 @@ use serde::{Deserialize, Serialize};
 /// Representation of an advisory
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub(crate) struct Advisory {
-    /// The ID of the user's account within the database.
-    ///
-    /// Can be based on different things, like auth cred
-    user_id: String,
     /// Vector of [`Teacher`] structs
     advisors: Vec<Teacher>,
     /// Vector of [`Student`] structs
@@ -111,10 +107,9 @@ impl Advisory {
     }
 
     /// Default advisory values given target number of students for the advisory
-    pub(crate) fn default(n: i16, user_id: String) -> Advisory {
+    pub(crate) fn default(n: i16) -> Advisory {
         log::info!("Initialized new advisory via default");
         Self {
-            user_id,
             advisors: Vec::<Teacher>::new(),
             students: Vec::<Student>::new(),
             // Set number of "spots" based on number of students in advisory

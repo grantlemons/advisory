@@ -24,11 +24,12 @@ pub(crate) async fn build_advisories(
     let mut teachers: Vec<Teacher> = get_teachers(user.clone(), graph).await?;
 
     // create vector of advisories to fill
-    let s: i16 = students.len() as i16;
-    let a: i16 = form.num_advisories;
-    log::info!("{} Students, {} Advisories", s, a);
+    let num_students: i16 = students.len() as i16;
+    let num_advisories: i16 = form.num_advisories;
+    let students_per_advisory: i16 = num_students / num_advisories;
+    log::info!("{} Students, {} Advisories", num_students, num_advisories);
     let mut advisories: Vec<Advisory> =
-        vec![Advisory::default(s / a, user.sub); a.try_into().unwrap()];
+        vec![Advisory::default(students_per_advisory); num_advisories.try_into().unwrap()];
 
     // add teachers to advisories
     for i in &mut advisories {
@@ -45,11 +46,11 @@ pub(crate) async fn build_advisories(
             .map(|x| {
                 log::info!("Calculating weight for {} & {}", i, x);
                 let weight = (form.weights.has_teacher as i32
-                    * x.has_teacher(&i) as i32
-                    * (s / a) as i32)
+                    * students_per_advisory as i32
+                    * x.has_teacher(&i) as i32)
                     + (form.weights.sex_diverse as i32 * x.get_remaining_sex(&i.sex) as i32)
                     + (form.weights.grade_diverse as i32 * x.get_remaining_grade(&i.grade) as i32);
-                log::info!("Weight for {} & ({}) is {}", i, x, weight);
+                log::info!("Weight for {} and {} is {}", i, x, weight);
                 weight
             })
             .enumerate()
