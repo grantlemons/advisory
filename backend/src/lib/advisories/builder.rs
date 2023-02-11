@@ -39,6 +39,10 @@ pub(crate) async fn build_advisories(
         i.add_teacher(t1);
         i.add_teacher(t2);
     }
+
+    let number_of_sexes = 2;
+    let number_of_grades = 4;
+
     // add students to advisories
     for i in students {
         let max: Option<usize> = advisories
@@ -48,8 +52,11 @@ pub(crate) async fn build_advisories(
                 let weight = (form.weights.has_teacher as i32
                     * students_per_advisory as i32
                     * x.has_teacher(&i) as i32)
-                    + (form.weights.sex_diverse as i32 * x.get_remaining_sex(&i.sex) as i32)
-                    + (form.weights.grade_diverse as i32 * x.get_remaining_grade(&i.grade) as i32);
+                    + number_of_sexes
+                        * (form.weights.sex_diverse as i32 * x.get_remaining_sex(&i.sex) as i32)
+                    + number_of_grades
+                        * (form.weights.grade_diverse as i32
+                            * x.get_remaining_grade(&i.grade) as i32);
                 log::info!("Weight for {} and {} is {}", i, x, weight);
                 weight
             })
