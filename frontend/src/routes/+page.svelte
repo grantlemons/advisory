@@ -68,7 +68,7 @@
 
     // callback called if auth is successful
     function success(session: CognitoUserSession) {
-        let token_value = session.getIdToken().getJwtToken();
+        let token_value = session.getAccessToken().getJwtToken();
         id_token.set(token_value);
         console.log(token_value);
         redirect_dashboard();

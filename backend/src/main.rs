@@ -107,8 +107,9 @@ async fn main() {
 
     // JSON webtoken setup
     let keyset = jsonwebtokens_cognito::KeySet::new("us-east-1", "us-east-1_Ye96rGbqV").unwrap();
+    keyset.prefetch_jwks().await.unwrap();
     let verifier = keyset
-        .new_id_token_verifier(&["5c6eva8nctpb3aug8l0teak36v"])
+        .new_access_token_verifier(&["5c6eva8nctpb3aug8l0teak36v"])
         .build()
         .unwrap();
 

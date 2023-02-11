@@ -17,14 +17,13 @@
     let data: string;
     let files: FileList | undefined;
 
-    let num_advisories: string = '10';
-    const settings: Settings = {
+    const settings = {
         weights: {
-            has_teacher: 8,
-            sex_diverse: 5,
-            grade_diverse: 5,
+            has_teacher: '8',
+            sex_diverse: '5',
+            grade_diverse: '5',
         },
-        num_advisories: 8,
+        num_advisories: '8',
     };
 
     const BASE_URL = '/api';
@@ -144,11 +143,18 @@
         test_add_xlsx();
     }
     function get_advisories() {
-        settings.num_advisories = parseInt(num_advisories);
+        let data: Settings = {
+            weights: {
+                has_teacher: parseInt(settings.weights.has_teacher),
+                sex_diverse: parseInt(settings.weights.sex_diverse),
+                grade_diverse: parseInt(settings.weights.grade_diverse),
+            },
+            num_advisories: parseInt(settings.num_advisories),
+        };
         axios({
             method: 'put',
             url: `${BASE_URL}/`,
-            data: settings,
+            data,
             headers: {
                 Authorization: auth,
             },
@@ -165,9 +171,20 @@
         accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
         type="file"
     />
+    <Input bind:value={settings.num_advisories} label="Number of Advisories" />
+    <Input
+        bind:value={settings.weights.has_teacher}
+        label="Has-Teacher Weight"
+    />
+    <Input
+        bind:value={settings.weights.sex_diverse}
+        label="Sex Diversity Weight"
+    />
+    <Input
+        bind:value={settings.weights.grade_diverse}
+        label="Grade Diversity Weight"
+    />
     <Button on:click={get_advisories} label="Get Advisories" />
-
-    <form><Input bind:value={num_advisories} /></form>
 
     {#if data}
         {JSON.stringify(data)}
@@ -176,7 +193,13 @@
 
 <style>
     div {
+        display: flex;
+        flex-direction: column;
+        row-gap: 8px;
+    }
+    div {
         width: 50%;
+        max-width: 800px;
         margin: auto;
     }
 </style>
