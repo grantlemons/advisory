@@ -24,42 +24,65 @@ pub(crate) async fn build_advisories(
     let mut teachers: Vec<Teacher> = get_teachers(user.clone(), graph).await?;
 
     // create vector of advisories to fill
-    let s: i16 = students.len() as i16;
-    let a: i16 = form.num_advisories;
-    log::info!("{} Students, {} Advisories", s, a);
+    let num_students: i16 = students.len() as i16;
+    let num_advisories: i16 = form.num_advisories;
+    let students_per_advisory: i16 = num_students / num_advisories;
+    log::info!("{} Students, {} Advisories", num_students, num_advisories);
     let mut advisories: Vec<Advisory> =
-        vec![Advisory::default(s / a, user.sub); a.try_into().unwrap()];
+        vec![Advisory::default(students_per_advisory); num_advisories.try_into().unwrap()];
 
-    // add teachers to advisories
-    for i in &mut advisories {
-        let t1 = teachers.pop();
-        let t2 = teachers.pop();
-        log::info!("Adding {:?} to {}", vec![&t1, &t2], i);
-        i.add_teacher(t1);
-        i.add_teacher(t2);
-    }
+    construct_advisory_teachers(&mut teachers, &mut advisories);
+
+    let number_of_sexes = 2;
+    let number_of_grades = 4;
+
     // add students to advisories
-    for i in students {
+    for student in students {
         let max: Option<usize> = advisories
             .iter()
-            .map(|x| {
-                log::info!("Calculating weight for {} & {}", i, x);
-                let weight = (form.weights.has_teacher as i32
-                    * x.has_teacher(&i) as i32
-                    * (s / a) as i32)
-                    + (form.weights.sex_diverse as i32 * x.get_remaining_sex(&i.sex) as i32)
-                    + (form.weights.grade_diverse as i32 * x.get_remaining_grade(&i.grade) as i32);
-                log::info!("Weight for {} & ({}) is {}", i, x, weight);
-                weight
+            .map(|target_advisory| {
+                log::info!("Calculating weight for {} & {}", student, target_advisory);
+                let teacher_weighted_value = form.weights.has_teacher as i32
+                    * students_per_advisory as i32
+                    * target_advisory.has_teacher(&student) as i32;
+                let sexes_weighted_value = number_of_sexes
+                    * (form.weights.sex_diverse as i32
+                        * target_advisory.get_remaining_sex(&student.sex) as i32);
+                let grade_weighted_value = number_of_grades
+                    * (form.weights.grade_diverse as i32
+                        * target_advisory.get_remaining_grade(&student.grade) as i32);
+                let weighted_value =
+                    teacher_weighted_value + sexes_weighted_value + grade_weighted_value;
+                log::info!(
+                    "Weights for {} and {} is {} ({}, {}, {})",
+                    student,
+                    target_advisory,
+                    weighted_value,
+                    teacher_weighted_value,
+                    sexes_weighted_value,
+                    grade_weighted_value
+                );
+                weighted_value
             })
             .enumerate()
             .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .map(|(index, _)| index);
         if let Some(max) = max {
-            log::info!("Adding {} to {}", i, advisories[max]);
-            advisories[max].add_student(i);
+            log::info!("Adding {} to {}", student, advisories[max]);
+            advisories[max].add_student(student);
         }
     }
     log::info!("build_advisories complete");
     Ok(advisories)
+}
+
+fn construct_advisory_teachers(teachers: &mut Vec<Teacher>, advisories: &mut Vec<Advisory>) {
+    // add teachers to advisories
+    for target_advisory in advisories {
+        let t1 = teachers.pop();
+        let t2 = teachers.pop();
+        log::info!("Adding {:?} to {}", vec![&t1, &t2], target_advisory);
+        target_advisory.add_teacher(t1);
+        target_advisory.add_teacher(t2);
+    }
 }

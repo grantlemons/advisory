@@ -44,6 +44,7 @@
     "type": "module",
     "dependencies": {
         "amazon-cognito-identity-js": "^6.1.2",
-        "axios": "^1.3.2"
+        "axios": "^1.3.2",
+        "xlsx": "^0.18.5"
     }
 }

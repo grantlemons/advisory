@@ -21,7 +21,7 @@ pub(crate) async fn clear_people_handler(
         match &state.graph {
             Some(graph) => Ok(Json(
                 clear_people(user.clone(), graph).await.unwrap_or_else(|_| {
-                    panic!("Unable to clear people for {} ({})", user.sub, user.name)
+                    panic!("Unable to clear people for {} ({})", user.sub, user.sub)
                 }),
             )),
             None => Err(StatusCode::BAD_GATEWAY),
@@ -43,7 +43,7 @@ pub(crate) async fn get_people_handler(
     if let Some(user) = user_option {
         match &state.graph {
             Some(graph) => Ok(Json(get_people(user.clone(), graph).await.unwrap_or_else(
-                |_| panic!("Unable to get people for {} ({})", user.sub, user.name),
+                |_| panic!("Unable to get people for {} ({})", user.sub, user.sub),
             ))),
             None => Err(StatusCode::BAD_GATEWAY),
         }

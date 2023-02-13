@@ -2,21 +2,42 @@ use crate::SharedState;
 use axum::{extract::State, http::Request, middleware::Next, response::Response};
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+// #[derive(Deserialize, Serialize, Debug, Clone, Default)]
+// pub struct UserData {
+//     pub aud: String,
+//     pub auth_time: u32,
+//     pub email: String,
+//     pub email_verified: bool,
+//     pub event_id: String,
+//     pub exp: u32,
+//     pub iat: u32,
+//     pub iss: String,
+//     pub jti: String,
+//     /// Username
+//     /// User generated on sign-up
+//     pub name: String,
+//     pub origin_jti: String,
+//     /// Random User ID
+//     pub sub: String,
+//     pub token_use: String,
+// }
+
+#[derive(Deserialize, Serialize, Debug, Clone, Default)]
 pub struct UserData {
-    pub aud: String,
-    pub auth_time: u32,
-    pub email: String,
-    pub email_verified: bool,
+    pub auth_time: u64,
+    pub client_id: String,
+    #[serde(rename = "cognito:groups")]
+    pub groups: std::collections::HashSet<String>,
     pub event_id: String,
-    pub exp: u32,
-    pub iat: u32,
+    pub exp: u64,
+    pub iat: u64,
     pub iss: String,
     pub jti: String,
-    pub name: String,
     pub origin_jti: String,
+    pub scope: String,
     pub sub: String,
     pub token_use: String,
+    pub username: String,
 }
 
 /// Tower layer that adds an [`Option<UserData>`] as an extension to the request
@@ -43,7 +64,7 @@ pub async fn auth<B>(
 pub async fn verify_jwt(token: &str, state: SharedState) -> Option<UserData> {
     match decrypt_jwt(token, &state.keyset, &state.verifier).await {
         Ok(user) => {
-            log::info!("Successful JWT Verification for user {}", user.name);
+            log::info!("Successful JWT Verification for user {}", user.sub);
             Some(user)
         }
         Err(_) => {

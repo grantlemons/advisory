@@ -1,12 +1,30 @@
 <script lang="ts">
     /* cspell: disable */
-    import { type Student, type Teacher, Sex, Grade } from '$lib/DBTypes';
+    import {
+        type Student,
+        type Teacher,
+        type Weights,
+        type Settings,
+        Sex,
+        Grade,
+    } from '$lib/DBTypes';
     import { id_token } from '$lib/auth_store';
     import Button from '$lib/Button.svelte';
     import axios from 'axios';
-    import StudentCard from '$lib/StudentCard.svelte';
+    import { sets_from_table } from '$lib/TableParsing';
+    import Input from '$lib/Input.svelte';
 
-    let data: Student[] | null;
+    let data: string;
+    let files: FileList | undefined;
+
+    const settings = {
+        weights: {
+            has_teacher: '8',
+            sex_diverse: '5',
+            grade_diverse: '5',
+        },
+        num_advisories: '8',
+    };
 
     const BASE_URL = '/api';
     let auth: string;
@@ -40,7 +58,7 @@
                     Authorization: auth,
                 },
             })
-            .then((_) => (data = null));
+            .then((_) => (data = ''));
     }
     function add_teacher(teacher: Teacher) {
         axios({
@@ -67,6 +85,16 @@
             method: 'post',
             url: `${BASE_URL}/people/student`,
             data: student,
+            headers: {
+                Authorization: auth,
+            },
+        });
+    }
+    function add_students_bulk(students: Student[]) {
+        axios({
+            method: 'post',
+            url: `${BASE_URL}/people/student/bulk`,
+            data: students,
             headers: {
                 Authorization: auth,
             },
@@ -99,23 +127,79 @@
             grade: Grade.Senior,
         });
     }
+    async function test_add_xlsx() {
+        if (files != undefined) {
+            for (let index = 0; index < files.length; index += 1) {
+                const file = files.item(index) as File;
+                const buffer = await file.arrayBuffer();
+                const sets: [Set<Teacher>, Set<Student>] =
+                    sets_from_table(buffer);
+                add_teachers_bulk(Array.from(sets[0]));
+                add_students_bulk(Array.from(sets[1]));
+            }
+        }
+    }
+    $: if (files) {
+        test_add_xlsx();
+    }
+    function get_advisories() {
+        let data: Settings = {
+            weights: {
+                has_teacher: parseInt(settings.weights.has_teacher),
+                sex_diverse: parseInt(settings.weights.sex_diverse),
+                grade_diverse: parseInt(settings.weights.grade_diverse),
+            },
+            num_advisories: parseInt(settings.num_advisories),
+        };
+        axios({
+            method: 'put',
+            url: `${BASE_URL}/`,
+            data,
+            headers: {
+                Authorization: auth,
+            },
+        }).then((res) => (data = res.data));
+    }
 </script>
 
 <div>
     <Button on:click={clean_database} label="Clean Database" />
     <Button on:click={test_add_grant} label="Create Grant" />
     <Button on:click={list_people} label="List People" />
+    <input
+        bind:files
+        accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+        type="file"
+    />
+    <Input bind:value={settings.num_advisories} label="Number of Advisories" />
+    <Input
+        bind:value={settings.weights.has_teacher}
+        label="Has-Teacher Weight"
+    />
+    <Input
+        bind:value={settings.weights.sex_diverse}
+        label="Sex Diversity Weight"
+    />
+    <Input
+        bind:value={settings.weights.grade_diverse}
+        label="Grade Diversity Weight"
+    />
+    <Button on:click={get_advisories} label="Get Advisories" />
 
     {#if data}
-        {#each data as student}
-            <StudentCard data={student} />
-        {/each}
+        {JSON.stringify(data)}
     {/if}
 </div>
 
 <style>
     div {
+        display: flex;
+        flex-direction: column;
+        row-gap: 8px;
+    }
+    div {
         width: 50%;
+        max-width: 800px;
         margin: auto;
     }
 </style>

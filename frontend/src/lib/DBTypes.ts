@@ -17,3 +17,22 @@ export interface Student {
     teachers: Teacher[];
     grade: Grade;
 }
+
+export interface Advisories {
+    user_id: string;
+    advisors: Teacher[];
+    students: Student[];
+    remaining_sex: [number, number];
+    remaining_grade: [number, number, number, number];
+}
+
+export interface Weights {
+    has_teacher: number;
+    sex_diverse: number;
+    grade_diverse: number;
+}
+
+export interface Settings {
+    weights: Weights;
+    num_advisories: number;
+}

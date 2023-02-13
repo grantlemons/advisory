@@ -1,4 +1,6 @@
-use axum::Json;
+use crate::auth::UserData;
+use axum::{Extension, Json};
+use reqwest::StatusCode;
 use serde::Serialize;
 
 /// Healthcheck handler
@@ -11,15 +13,30 @@ pub(crate) async fn get_health() -> &'static str {
 /// Crate information handler used to get information on the server
 ///
 /// Uses [`CrateInfo`] struct
-pub(crate) async fn get_info() -> Json<CrateInfo> {
-    Json(CrateInfo {
-        name: env!("CARGO_PKG_NAME"),
-        authors: env!("CARGO_PKG_AUTHORS").split(',').collect(),
-        version: env!("CARGO_PKG_VERSION"),
-        description: env!("CARGO_PKG_DESCRIPTION"),
-        license: env!("CARGO_PKG_LICENSE"),
-        repository: env!("CARGO_PKG_REPOSITORY"),
-    })
+pub(crate) async fn get_info(
+    Extension(user_option): Extension<Option<UserData>>,
+) -> Result<Json<CrateInfo>, StatusCode> {
+    log::info!("GET made to get_info");
+    if let Some(user) = user_option {
+        log::info!("Checking user {}'s authorization for get_info", user.sub);
+        if user.groups.contains("Administrator") {
+            log::info!("get_info authorization check successful for {}", user.sub);
+            Ok(Json(CrateInfo {
+                name: env!("CARGO_PKG_NAME"),
+                authors: env!("CARGO_PKG_AUTHORS").split(',').collect(),
+                version: env!("CARGO_PKG_VERSION"),
+                description: env!("CARGO_PKG_DESCRIPTION"),
+                license: env!("CARGO_PKG_LICENSE"),
+                repository: env!("CARGO_PKG_REPOSITORY"),
+            }))
+        } else {
+            log::info!("Insufficient permissions to access get_info {}", user.sub);
+            Err(StatusCode::UNAUTHORIZED)
+        }
+    } else {
+        log::info!("Unauthorized access to get_info prevented");
+        Err(StatusCode::UNAUTHORIZED)
+    }
 }
 
 /// Information on version and other fields set in the cargo manifest
