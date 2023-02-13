@@ -26,7 +26,7 @@ use serde::{Deserialize, Serialize};
 pub struct UserData {
     pub auth_time: u64,
     pub client_id: String,
-    #[serde(rename = "cognito:groups")]
+    #[serde(rename = "cognito:groups", default)]
     pub groups: std::collections::HashSet<String>,
     pub event_id: String,
     pub exp: u64,
