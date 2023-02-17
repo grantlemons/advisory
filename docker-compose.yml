@@ -23,11 +23,11 @@ services:
     ports:
       - 0.0.0.0:81:80
     healthcheck:
-      test: curl -X GET --fail https://0.0.0.0:80/health -Is --insecure
-      interval: 20s
-      timeout: 5s
-      retries: 10
-      start_period: 5s
+      test: curl -X GET --fail https://0.0.0.0:80/api/health -Is --insecure || exit 1
+      interval: 10s
+      timeout: 1s
+      retries: 5
+      start_period: 2s
   frontend:
     container_name: frontend
     depends_on:
