@@ -15,9 +15,11 @@ use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 mod lib {
     pub(crate) mod advisories {
         mod advisory;
+        mod advisory_group;
         pub(crate) mod builder;
 
         pub(crate) use advisory::Advisory;
+        pub(crate) use advisory_group::AdvisoryGroup;
     }
     mod settings;
     mod weights;

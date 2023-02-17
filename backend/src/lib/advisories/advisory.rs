@@ -11,11 +11,11 @@ pub(crate) struct Advisory {
     /// Remaining "spots" for each [`Sex`]
     ///
     /// Represents (Male, Female)
-    remaining_sex: (i16, i16),
+    remaining_sex: [i16; 2],
     /// Remaining "spots" for each [`Grade`]
     ///
     /// Represents (Freshman, Sophomore, Junior, Senior)
-    remaining_grade: (i16, i16, i16, i16),
+    remaining_grade: [i16; 4],
 }
 
 impl std::fmt::Display for Advisory {
@@ -40,17 +40,17 @@ impl Advisory {
         log::info!("Adding student {} to advisory {}", s, self);
         // Reduce number of remaining "spots" for the added student's sex
         match s.sex {
-            Some(Sex::Male) => self.remaining_sex.0 -= 1,
-            Some(Sex::Female) => self.remaining_sex.1 -= 1,
+            Some(Sex::Male) => self.remaining_sex[0] -= 1,
+            Some(Sex::Female) => self.remaining_sex[1] -= 1,
             None => {}
         }
         log::info!("Sex 'spots' in {}: {:?}", self, self.remaining_sex);
         // Reduce number of remaining "spots" for the added student's grade
         match s.grade {
-            Grade::Freshman => self.remaining_grade.0 -= 1,
-            Grade::Sophomore => self.remaining_grade.1 -= 1,
-            Grade::Junior => self.remaining_grade.2 -= 1,
-            Grade::Senior => self.remaining_grade.3 -= 1,
+            Grade::Freshman => self.remaining_grade[0] -= 1,
+            Grade::Sophomore => self.remaining_grade[1] -= 1,
+            Grade::Junior => self.remaining_grade[2] -= 1,
+            Grade::Senior => self.remaining_grade[3] -= 1,
         }
         log::info!("Grade 'spots' in {}: {:?}", self, self.remaining_grade);
 
@@ -60,8 +60,8 @@ impl Advisory {
     /// Gets the remaining number or "spots" left for a given sex in an advisory
     pub(crate) fn get_remaining_sex(&self, sex: &Option<Sex>) -> i16 {
         let num = match sex {
-            Some(Sex::Male) => self.remaining_sex.0,
-            Some(Sex::Female) => self.remaining_sex.1,
+            Some(Sex::Male) => self.remaining_sex[0],
+            Some(Sex::Female) => self.remaining_sex[1],
             None => 0,
         };
         if let Some(sex) = sex {
@@ -74,10 +74,10 @@ impl Advisory {
     pub(crate) fn get_remaining_grade(&self, grade: &Grade) -> i16 {
         log::info!("Getting remaining 'spots' for {} in {}", grade, self);
         let num = match grade {
-            Grade::Freshman => self.remaining_grade.0,
-            Grade::Sophomore => self.remaining_grade.1,
-            Grade::Junior => self.remaining_grade.2,
-            Grade::Senior => self.remaining_grade.3,
+            Grade::Freshman => self.remaining_grade[0],
+            Grade::Sophomore => self.remaining_grade[1],
+            Grade::Junior => self.remaining_grade[2],
+            Grade::Senior => self.remaining_grade[3],
         };
         log::info!("{} has {} 'spots' left in {}", grade, num, self);
         num
@@ -113,8 +113,38 @@ impl Advisory {
             advisors: Vec::<Teacher>::new(),
             students: Vec::<Student>::new(),
             // Set number of "spots" based on number of students in advisory
-            remaining_sex: (n / 2, n / 2),
-            remaining_grade: (n / 4, n / 4, n / 4, n / 4),
+            remaining_sex: [n / 2, n / 2],
+            remaining_grade: [n / 4, n / 4, n / 4, n / 4],
         }
+    }
+
+    pub(crate) fn calculate_weight(
+        &self,
+        student: &Student,
+        weights: &crate::Weights,
+        students_per_advisory: i16,
+    ) -> i32 {
+        let number_of_sexes: i32 = self.remaining_sex.len() as i32;
+        let number_of_grades: i32 = self.remaining_grade.len() as i32;
+
+        log::info!("Calculating weight for {} & {}", student, self);
+        let teacher_weighted_value = weights.has_teacher as i32
+            * students_per_advisory as i32
+            * self.has_teacher(&student) as i32;
+        let sexes_weighted_value = number_of_sexes
+            * (weights.sex_diverse as i32 * self.get_remaining_sex(&student.sex) as i32);
+        let grade_weighted_value = number_of_grades
+            * (weights.grade_diverse as i32 * self.get_remaining_grade(&student.grade) as i32);
+        let weighted_value = teacher_weighted_value + sexes_weighted_value + grade_weighted_value;
+        log::info!(
+            "Weights for {} and {} is {} ({}, {}, {})",
+            student,
+            self,
+            weighted_value,
+            teacher_weighted_value,
+            sexes_weighted_value,
+            grade_weighted_value
+        );
+        weighted_value
     }
 }
