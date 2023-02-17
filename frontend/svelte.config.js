@@ -9,7 +9,7 @@ const config = {
     trailingSlash: 'always',
 
     kit: {
-        adapter: staticAdapter({ out: 'build' }),
+        adapter: staticAdapter(),
     },
 };
 
