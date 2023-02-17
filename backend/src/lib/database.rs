@@ -114,8 +114,7 @@ pub(crate) async fn add_student(
             query(
                 "MATCH (t:Teacher {user_id: $user_id}), (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $user_id }) \
                 WHERE t.name in $t_arr \
-                MERGE (t)-[:TEACHES]->(s) \
-                RETURN t, s",
+                MERGE (t)-[:TEACHES]->(s)",
             )
             .param("t_arr", teacher_names)
             .param("name", String::from(&form.name))
