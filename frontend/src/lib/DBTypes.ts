@@ -35,4 +35,5 @@ export interface Weights {
 export interface Settings {
     weights: Weights;
     num_advisories: number;
+    teacher_pairs: [Teacher, Teacher][];
 }

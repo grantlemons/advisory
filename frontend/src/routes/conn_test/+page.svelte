@@ -3,7 +3,6 @@
     import {
         type Student,
         type Teacher,
-        type Weights,
         type Settings,
         Sex,
         Grade,
@@ -142,7 +141,18 @@
     $: if (files) {
         test_add_xlsx();
     }
+
     function get_advisories() {
+        let teacher_pairs: [Teacher, Teacher][] = [
+            [{ name: 'Wessels' }, { name: 'Downes' }],
+            [{ name: 'McGarvey' }, { name: 'Curiel' }],
+            [{ name: 'Sim' }, { name: 'Sims' }],
+            [{ name: 'Minks' }, { name: 'Doongaji' }],
+            [{ name: 'Hesseltine' }, { name: 'Briggs' }],
+            [{ name: 'Lundberg' }, { name: 'Li' }],
+            [{ name: 'Murillo' }, { name: 'Mir' }],
+            [{ name: 'Gross' }, { name: 'Fleisher' }],
+        ];
         let data: Settings = {
             weights: {
                 has_teacher: parseInt(settings.weights.has_teacher),
@@ -150,6 +160,7 @@
                 grade_diverse: parseInt(settings.weights.grade_diverse),
             },
             num_advisories: parseInt(settings.num_advisories),
+            teacher_pairs,
         };
         axios({
             method: 'put',

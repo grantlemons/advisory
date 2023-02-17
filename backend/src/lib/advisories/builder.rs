@@ -1,6 +1,6 @@
 use crate::{
     advisories::Advisory,
-    database::{get_students, get_teachers},
+    database::get_students,
     people::{Student, Teacher},
     Settings, Verify,
 };
@@ -21,7 +21,6 @@ pub(crate) async fn build_advisories(
 
     // create vectors from data from database
     let students: Vec<Student> = get_students(user.clone(), graph).await?;
-    let mut teachers: Vec<Teacher> = get_teachers(user.clone(), graph).await?;
 
     // create vector of advisories to fill
     let num_students: i16 = students.len() as i16;
@@ -31,7 +30,7 @@ pub(crate) async fn build_advisories(
     let mut advisories: Vec<Advisory> =
         vec![Advisory::default(students_per_advisory); num_advisories.try_into().unwrap()];
 
-    construct_advisory_teachers(&mut teachers, &mut advisories);
+    construct_advisory_teachers(form.teacher_pairs, &mut advisories);
 
     let number_of_sexes = 2;
     let number_of_grades = 4;
@@ -76,11 +75,14 @@ pub(crate) async fn build_advisories(
     Ok(advisories)
 }
 
-fn construct_advisory_teachers(teachers: &mut Vec<Teacher>, advisories: &mut Vec<Advisory>) {
+fn construct_advisory_teachers(
+    teacher_pairs: Vec<[Option<Teacher>; 2]>,
+    advisories: &mut [Advisory],
+) {
     // add teachers to advisories
-    for target_advisory in advisories {
-        let t1 = teachers.pop();
-        let t2 = teachers.pop();
+    for (index, target_advisory) in advisories.iter_mut().enumerate() {
+        let [t1, t2] = teacher_pairs[index].clone();
+
         log::info!("Adding {:?} to {}", vec![&t1, &t2], target_advisory);
         target_advisory.add_teacher(t1);
         target_advisory.add_teacher(t2);
