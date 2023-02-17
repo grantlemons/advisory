@@ -1,9 +1,4 @@
-use crate::{
-    advisories::Advisory,
-    database::get_students,
-    people::{Student, Teacher},
-    Settings, Verify,
-};
+use crate::{advisories::Advisory, database::get_students, people::Student, Settings, Verify};
 use axum::http::StatusCode;
 
 /// Places students into advisories and returns a vector of them
@@ -30,7 +25,7 @@ pub(crate) async fn build_advisories(
     let mut advisories: Vec<Advisory> =
         vec![Advisory::default(students_per_advisory); num_advisories.try_into().unwrap()];
 
-    construct_advisory_teachers(form.teacher_pairs, &mut advisories);
+    form.populate_advisories(&mut advisories);
 
     let number_of_sexes = 2;
     let number_of_grades = 4;
@@ -73,18 +68,4 @@ pub(crate) async fn build_advisories(
     }
     log::info!("build_advisories complete");
     Ok(advisories)
-}
-
-fn construct_advisory_teachers(
-    teacher_pairs: Vec<[Option<Teacher>; 2]>,
-    advisories: &mut [Advisory],
-) {
-    // add teachers to advisories
-    for (index, target_advisory) in advisories.iter_mut().enumerate() {
-        let [t1, t2] = teacher_pairs[index].clone();
-
-        log::info!("Adding {:?} to {}", vec![&t1, &t2], target_advisory);
-        target_advisory.add_teacher(t1);
-        target_advisory.add_teacher(t2);
-    }
 }
