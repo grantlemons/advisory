@@ -21,6 +21,7 @@ mod lib {
         pub(crate) use advisory::Advisory;
         pub(crate) use advisory_group::AdvisoryGroup;
     }
+    mod query;
     mod settings;
     mod weights;
     pub(crate) mod people {
@@ -38,6 +39,7 @@ mod lib {
     }
     pub(crate) mod database;
 
+    pub(crate) use query::{Query, QueryGroup};
     pub(crate) use settings::Settings;
     pub(crate) use weights::Weights;
 }
