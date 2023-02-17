@@ -74,10 +74,10 @@ trait Verify {
 /// Shared state for accessing the database
 #[allow(dead_code)]
 #[derive(Clone)]
-pub struct SharedState {
-    pub graph: Option<Arc<neo4rs::Graph>>,
-    pub keyset: jsonwebtokens_cognito::KeySet,
-    pub verifier: jsonwebtokens::Verifier,
+pub(crate) struct SharedState {
+    pub(crate) graph: Option<Arc<neo4rs::Graph>>,
+    pub(crate) keyset: jsonwebtokens_cognito::KeySet,
+    pub(crate) verifier: jsonwebtokens::Verifier,
 }
 
 enum Http {

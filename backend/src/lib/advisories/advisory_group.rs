@@ -1,7 +1,7 @@
 use crate::advisories::Advisory;
 use crate::people::Teacher;
 
-pub struct AdvisoryGroup(pub(crate) Vec<Advisory>);
+pub(crate) struct AdvisoryGroup(pub(crate) Vec<Advisory>);
 
 impl AdvisoryGroup {
     pub(crate) fn default(student_count: i16, advisory_count: i16) -> Self {
