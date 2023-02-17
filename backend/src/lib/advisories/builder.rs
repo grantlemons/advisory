@@ -18,7 +18,7 @@ pub(crate) async fn build_advisories(
     }
 
     // fetch student data from database
-    let students: Vec<Student> = get_students(user.clone(), graph).await?;
+    let students: Vec<Student> = get_students(&user, graph).await?;
 
     // define constants for later use
     let student_count: i16 = students.len() as i16;

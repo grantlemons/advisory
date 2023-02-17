@@ -130,7 +130,7 @@ impl Advisory {
         log::info!("Calculating weight for {} & {}", student, self);
         let teacher_weighted_value = weights.has_teacher as i32
             * students_per_advisory as i32
-            * self.has_teacher(&student) as i32;
+            * self.has_teacher(student) as i32;
         let sexes_weighted_value = number_of_sexes
             * (weights.sex_diverse as i32 * self.get_remaining_sex(&student.sex) as i32);
         let grade_weighted_value = number_of_grades

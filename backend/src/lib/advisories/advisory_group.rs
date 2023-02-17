@@ -13,7 +13,7 @@ impl AdvisoryGroup {
         ])
     }
 
-    pub(crate) fn populate_teachers(&mut self, teacher_pairs: &Vec<[Option<Teacher>; 2]>) {
+    pub(crate) fn populate_teachers(&mut self, teacher_pairs: &[[Option<Teacher>; 2]]) {
         for (index, target_advisory) in self.0.iter_mut().enumerate() {
             let [t1, t2] = teacher_pairs[index].clone();
 

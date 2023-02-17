@@ -184,9 +184,7 @@ fn app(state: SharedState) -> Router {
         .route("/", put(get_advisories));
     Router::new()
         // add /api before all routes
-        .nest("/api", api_router.clone())
-        // also accept without /api
-        .merge(api_router)
+        .nest("/api", api_router)
         // jsonwebtoken auth layer
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),

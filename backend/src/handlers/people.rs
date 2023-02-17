@@ -19,11 +19,9 @@ pub(crate) async fn clear_people_handler(
 
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(
-                clear_people(user.clone(), graph).await.unwrap_or_else(|_| {
-                    panic!("Unable to clear people for {} ({})", user.sub, user.sub)
-                }),
-            )),
+            Some(graph) => Ok(Json(clear_people(&user, graph).await.unwrap_or_else(
+                |_| panic!("Unable to clear people for {} ({})", user.sub, user.sub),
+            ))),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -42,9 +40,9 @@ pub(crate) async fn get_people_handler(
 
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(get_people(user.clone(), graph).await.unwrap_or_else(
-                |_| panic!("Unable to get people for {} ({})", user.sub, user.sub),
-            ))),
+            Some(graph) => Ok(Json(get_people(&user, graph).await.unwrap_or_else(|_| {
+                panic!("Unable to get people for {} ({})", user.sub, user.sub)
+            }))),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -67,7 +65,7 @@ pub(crate) async fn add_teacher_handler(
     if let Some(user) = user_option {
         match &state.graph {
             Some(graph) => Ok(Json(
-                add_teacher(user, graph, form)
+                add_teacher(&user, graph, form)
                     .await
                     .expect("Unable to add teacher"),
             )),
@@ -97,7 +95,7 @@ pub(crate) async fn add_teacher_bulk(
         match &state.graph {
             Some(graph) => {
                 for teacher in forms {
-                    add_teacher(user.clone(), graph, teacher).await?;
+                    add_teacher(&user, graph, teacher).await?;
                 }
                 Ok(Json(1))
             }
@@ -123,7 +121,7 @@ pub(crate) async fn add_student_handler(
     if let Some(user) = user_option {
         match &state.graph {
             Some(graph) => Ok(Json(
-                add_student(user, graph, form)
+                add_student(&user, graph, form)
                     .await
                     .expect("Unable to add student"),
             )),
@@ -153,7 +151,7 @@ pub(crate) async fn add_student_bulk(
         match &state.graph {
             Some(graph) => {
                 for student in forms {
-                    add_student(user.clone(), graph, student).await?;
+                    add_student(&user, graph, student).await?;
                 }
                 Ok(Json(1))
             }
