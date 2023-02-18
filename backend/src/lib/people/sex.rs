@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
 /// complexities and ambiguity by representing biological sex. I know that there are some exceptions, but there is no pressing need to accommodate that edge case currently.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub enum Sex {
+    /// Represented in database as string value `"Male"`
     Male,
+    /// Represented in database as string value `"Female"`
     Female,
 }
 

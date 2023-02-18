@@ -6,20 +6,25 @@ use crate::{
 use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
 
+/// Multiple advisories
+/// Generating this struct is the goal of the program
 #[derive(Deserialize, Serialize)]
 pub struct AdvisoryGroup(pub Vec<Advisory>);
 
 impl AdvisoryGroup {
-    pub fn default(student_count: i16, advisory_count: i16) -> Self {
+    /// Initialize [`AdvisoryGroup`] to the number of desired advisories
+    /// Initialize each advisory with quotas
+    fn new(student_count: i16, advisory_count: i16) -> Self {
         let students_per_advisory = student_count / advisory_count;
 
         Self(vec![
-            Advisory::default(students_per_advisory);
+            Advisory::new(students_per_advisory);
             advisory_count as usize
         ])
     }
 
-    pub fn populate_teachers(&mut self, teacher_pairs: &[[Option<Teacher>; 2]]) {
+    /// Assign teachers to advisories in accordance with the pairs passed in
+    fn assign_teachers(&mut self, teacher_pairs: &[[Option<Teacher>; 2]]) {
         for (index, target_advisory) in self.0.iter_mut().enumerate() {
             let [t1, t2] = teacher_pairs[index].clone();
 
@@ -47,9 +52,9 @@ impl AdvisoryGroup {
         let advisory_count: i16 = form.num_advisories;
 
         // create vector of advisories to fill
-        let mut advisories: AdvisoryGroup = AdvisoryGroup::default(student_count, advisory_count);
+        let mut advisories: AdvisoryGroup = AdvisoryGroup::new(student_count, advisory_count);
 
-        advisories.populate_teachers(&form.teacher_pairs);
+        advisories.assign_teachers(&form.teacher_pairs);
 
         // add students to advisories
         for student in students {

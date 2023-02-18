@@ -1,10 +1,14 @@
+#![warn(missing_docs, clippy::missing_docs_in_private_items)]
+//! Functions and data types used by [`advisory_backend_bin`]
+
 /// Verify trait for input validation
 pub trait Verify {
+    /// Verify whether the data in a struct fits certain defined restraints
     fn verify(&self) -> Result<(), axum::http::StatusCode>;
 }
 
-#[async_trait::async_trait]
 /// Indicates that the struct can be represented as a node in the [`neo4rs`] database
+#[async_trait::async_trait]
 pub trait DatabaseNode {
     /// Add the struct to the database as a node
     async fn add_node<T: Into<String> + Send>(
@@ -53,19 +57,30 @@ pub mod advisories {
     /// Struct controlling the relative importance of each criteria for a student and advisory
     mod weights;
 
+    // Re-exports of data types defined in modules
     pub use advisory::Advisory;
     pub use advisory_group::AdvisoryGroup;
     pub use settings::Settings;
     pub use weights::Weights;
 }
 
+/// Data types and implementations for representations of Students, Teachers, and People in general
 pub mod people {
+    /// Enum representing each grade level
     mod grade;
+    /// Struct and implementations for the abstraction of a Person in general
+    /// Almost identical to [`Teacher`], but with slightly different [`DatabaseNode`] implementations
     mod person;
+    /// Enum representing Male & Female
     mod sex;
+    /// Struct and implementations for the abstraction of a Student
+    /// Implementations of [`DatabaseNode`] include creating relationships with teacher nodes
     mod student;
+    /// Struct and implementations for the abstraction of a Teacher
+    /// Almost identical to [`Person`], but with slightly different [`DatabaseNode`] implementations
     mod teacher;
 
+    // Re-exports of data types defined in modules
     pub use grade::Grade;
     pub use person::Person;
     pub use sex::Sex;

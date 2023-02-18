@@ -11,11 +11,11 @@ pub struct Advisory {
     advisors: Vec<Teacher>,
     /// Vector of [`Student`] structs
     students: Vec<Student>,
-    /// Remaining "spots" for each [`Sex`]
+    /// Remaining quota for each [`Sex`]
     ///
     /// Represents (Male, Female)
     remaining_sex: [i16; 2],
-    /// Remaining "spots" for each [`Grade`]
+    /// Remaining quota for each [`Grade`]
     ///
     /// Represents (Freshman, Sophomore, Junior, Senior)
     remaining_grade: [i16; 4],
@@ -97,8 +97,8 @@ impl Advisory {
     }
 
     /// Default advisory values given target number of students for the advisory
-    pub fn default(n: i16) -> Advisory {
-        log::info!("Initialized new advisory via default");
+    pub fn new(n: i16) -> Advisory {
+        log::info!("Initialized new advisory via new");
         Self {
             advisors: Vec::<Teacher>::new(),
             students: Vec::<Student>::new(),
@@ -108,6 +108,8 @@ impl Advisory {
         }
     }
 
+    /// Calculate a weight between the advisory and a student
+    /// This value compensates for what the user deems important with weights assigned to the different parameters
     pub fn calculate_weight(
         &self,
         student: &Student,
