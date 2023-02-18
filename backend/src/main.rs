@@ -48,13 +48,14 @@ mod lib {
     pub(crate) mod advisories {
         mod advisory;
         mod advisory_group;
-        pub(crate) mod builder;
+        mod settings;
+        mod weights;
 
         pub(crate) use advisory::Advisory;
         pub(crate) use advisory_group::AdvisoryGroup;
+        pub(crate) use settings::Settings;
+        pub(crate) use weights::Weights;
     }
-    mod settings;
-    mod weights;
     pub(crate) mod people {
         mod grade;
         mod person;
@@ -68,14 +69,9 @@ mod lib {
         pub(crate) use student::Student;
         pub(crate) use teacher::Teacher;
     }
-
-    pub(crate) use settings::Settings;
-    pub(crate) use weights::Weights;
 }
 use lib::advisories;
 use lib::people;
-use lib::Settings;
-use lib::Weights;
 
 /// Handlers for different HTTP requests made to the server
 mod handlers {

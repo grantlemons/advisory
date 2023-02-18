@@ -1,4 +1,7 @@
-use crate::people::{Grade, Sex, Student, Teacher};
+use crate::{
+    advisories::Weights,
+    people::{Grade, Sex, Student, Teacher},
+};
 use serde::{Deserialize, Serialize};
 
 /// Representation of an advisory
@@ -56,23 +59,21 @@ impl Advisory {
 
     /// Gets the remaining number or "spots" left for a given sex in an advisory
     pub(crate) fn get_remaining_sex(&self, sex: &Option<Sex>) -> i16 {
-        let num = match sex {
+        match sex {
             Some(Sex::Male) => self.remaining_sex[0],
             Some(Sex::Female) => self.remaining_sex[1],
             None => 0,
-        };
-        num
+        }
     }
 
     /// Gets the remaining number of "spots" left for a given grade in an advisory
     pub(crate) fn get_remaining_grade(&self, grade: &Grade) -> i16 {
-        let num = match grade {
+        match grade {
             Grade::Freshman => self.remaining_grade[0],
             Grade::Sophomore => self.remaining_grade[1],
             Grade::Junior => self.remaining_grade[2],
             Grade::Senior => self.remaining_grade[3],
-        };
-        num
+        }
     }
 
     /// Adds a [`Teacher`] struct to the advisors vector if Some
@@ -110,7 +111,7 @@ impl Advisory {
     pub(crate) fn calculate_weight(
         &self,
         student: &Student,
-        weights: &crate::Weights,
+        weights: &Weights,
         students_per_advisory: i16,
     ) -> i32 {
         let number_of_sexes: i32 = self.remaining_sex.len() as i32;
@@ -123,7 +124,6 @@ impl Advisory {
             * (weights.sex_diverse as i32 * self.get_remaining_sex(&student.sex) as i32);
         let grade_weighted_value = number_of_grades
             * (weights.grade_diverse as i32 * self.get_remaining_grade(&student.grade) as i32);
-        let weighted_value = teacher_weighted_value + sexes_weighted_value + grade_weighted_value;
-        weighted_value
+        teacher_weighted_value + sexes_weighted_value + grade_weighted_value
     }
 }

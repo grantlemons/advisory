@@ -1,4 +1,4 @@
-use crate::{people::Teacher, Weights};
+use crate::{advisories::Weights, people::Teacher};
 use serde::{Deserialize, Serialize};
 
 /// Form for [`crate::advisories::Advisory`]'s input
