@@ -15,15 +15,16 @@ use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 /// Handlers for different HTTP requests made to the server
 mod handlers {
     /// Handlers that generate advisories when requested
-    pub(crate) mod advisories;
+    mod advisories;
     /// Handlers for server info and health check
-    pub(crate) mod info;
+    mod info;
     /// Handlers that handle adding and managing students and advisors
-    pub(crate) mod people;
+    mod people;
+
+    pub(crate) use advisories::*;
+    pub(crate) use info::*;
+    pub(crate) use people::*;
 }
-use handlers::advisories::*;
-use handlers::info::*;
-use handlers::people::*;
 
 /// Functions for verifying the JWT of HTTP(S) requests
 mod auth;
@@ -125,17 +126,17 @@ fn app(state: SharedState) -> Router {
     // Axum setup and configuration
     let api_router = Router::new()
         // Add routes to specific handler functions
-        .route("/health", get(get_health)) // Health check
-        .route("/info", get(get_info))
+        .route("/health", get(handlers::get_health)) // Health check
+        .route("/info", get(handlers::get_info))
         .route(
             "/people",
-            delete(clear_people_handler).get(get_people_handler),
+            delete(handlers::clear_people_handler).get(handlers::get_people_handler),
         )
-        .route("/people/teacher", post(add_teacher_handler))
-        .route("/people/student", post(add_student_handler))
-        .route("/people/teacher/bulk", post(add_teacher_bulk))
-        .route("/people/student/bulk", post(add_student_bulk))
-        .route("/", put(get_advisories));
+        .route("/people/teacher", post(handlers::add_teacher_handler))
+        .route("/people/student", post(handlers::add_student_handler))
+        .route("/people/teacher/bulk", post(handlers::add_teacher_bulk))
+        .route("/people/student/bulk", post(handlers::add_student_bulk))
+        .route("/", put(handlers::get_advisories));
     Router::new()
         // add /api before all routes
         .nest("/api", api_router)
