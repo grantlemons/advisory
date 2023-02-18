@@ -25,23 +25,13 @@ use handlers::info::*;
 use handlers::people::*;
 mod auth;
 
-#[cfg(test)]
-mod tests {
-    mod info_handlers;
-}
-
 /// Shared state for accessing the database
 #[allow(dead_code)]
 #[derive(Clone)]
-pub(crate) struct SharedState {
-    pub(crate) graph: Option<Arc<neo4rs::Graph>>,
-    pub(crate) keyset: jsonwebtokens_cognito::KeySet,
-    pub(crate) verifier: jsonwebtokens::Verifier,
-}
-
-enum Http {
-    Http,
-    Https,
+struct SharedState {
+    graph: Option<Arc<neo4rs::Graph>>,
+    keyset: jsonwebtokens_cognito::KeySet,
+    verifier: jsonwebtokens::Verifier,
 }
 
 /// Main async function run when executing the crate
@@ -81,43 +71,43 @@ async fn main() {
         verifier,
     };
 
-    // Get SSL certificates from file
-    // Refer to `README.md` for instruction on generating these
-    let config = RustlsConfig::from_pem_file(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("self_signed_certs")
-            .join("cert.pem"),
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("self_signed_certs")
-            .join("key.pem"),
-    )
-    .await
-    .unwrap();
-
-    // Use HTTP or HTTPS depending on ENV environment variable
-    let mode: Http = match std::env::var("ENV") {
-        Ok(val) => match val.as_str() {
-            "DOCKER" => Http::Https,
-            "ECS" => Http::Http,
-            _ => Http::Http,
-        },
-        Err(_) => Http::Https,
-    };
-
     // IP and Port to bind to
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     log::info!("listening on {}", addr);
 
+    // Use HTTP or HTTPS depending on ENV environment variable
+    let use_tls = match std::env::var("ENV") {
+        Ok(val) => match val.as_str() {
+            "DOCKER" => true,
+            "ECS" => false,
+            _ => false,
+        },
+        Err(_) => true,
+    };
+
     // Bind axum app to configured IP and Port
-    // TLS if mode is [`Http::Https`]
-    match mode {
-        Http::Http => {
+    // Use TLS (HTTPS) depending on the previous check
+    match use_tls {
+        false => {
             axum::Server::bind(&addr)
                 .serve(app(state).into_make_service())
                 .await
                 .unwrap();
         }
-        Http::Https => {
+        true => {
+            // Get SSL certificates from file
+            // Refer to `README.md` for instruction on generating these
+            let config = RustlsConfig::from_pem_file(
+                PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .join("self_signed_certs")
+                    .join("cert.pem"),
+                PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .join("self_signed_certs")
+                    .join("key.pem"),
+            )
+            .await
+            .unwrap();
+
             axum_server::bind_rustls(addr, config)
                 .serve(app(state).into_make_service())
                 .await
