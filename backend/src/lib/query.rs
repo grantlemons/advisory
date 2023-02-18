@@ -1,12 +1,20 @@
 use std::collections::HashMap;
 
+#[derive(Default)]
 pub(crate) struct Query {
     pub(crate) query: String,
-    pub(crate) params: HashMap<String, &'static str>,
+    pub(crate) params: HashMap<String, String>,
 }
 
 impl Query {
-    pub(crate) fn param<T: std::convert::Into<&'static str>>(
+    pub(crate) fn new(query: &'static str) -> Self {
+        Self {
+            query: query.into(),
+            ..Default::default()
+        }
+    }
+
+    pub(crate) fn param<T: std::convert::Into<String>>(
         mut self,
         key: &'static str,
         value: T,
