@@ -2,25 +2,28 @@ use serde::{Deserialize, Serialize};
 
 /// Representation of a teacher
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Teacher {
+pub struct Teacher {
     /// Teacher's name - should be in `First Last` format, but can be anything that distinguishes them from other teachers
-    pub(crate) name: String,
+    pub name: String,
 }
 
 impl crate::Verify for Teacher {
-    fn verify(&self) -> bool {
-        !self.name.is_empty()
+    fn verify(&self) -> Result<(), axum::http::StatusCode> {
+        if self.name.is_empty() {
+            Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
+        } else {
+            Ok(())
+        }
     }
 }
 
 impl crate::Verify for Vec<Teacher> {
-    fn verify(&self) -> bool {
+    fn verify(&self) -> Result<(), axum::http::StatusCode> {
         // Check if each teacher is valid
-        let mut teachers_valid = true;
         for i in self {
-            teachers_valid = teachers_valid && i.verify();
+            i.verify()?;
         }
-        teachers_valid
+        Ok(())
     }
 }
 
@@ -31,7 +34,7 @@ impl std::fmt::Display for Teacher {
 }
 
 #[async_trait::async_trait]
-impl crate::lib::DatabaseNode for Teacher {
+impl crate::DatabaseNode for Teacher {
     async fn add_node<T: Into<String> + Send>(
         &self,
         graph: &neo4rs::Graph,

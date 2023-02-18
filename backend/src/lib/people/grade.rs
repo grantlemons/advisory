@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Adding more options requires changing the grade "spots" tuple in [`crate::advisories::Advisory`] as well as adding the mapping to the implementations
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) enum Grade {
+pub enum Grade {
     Freshman,
     Sophomore,
     Junior,

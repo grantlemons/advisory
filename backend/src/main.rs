@@ -1,3 +1,4 @@
+#![warn(missing_docs, clippy::missing_docs_in_private_items)]
 //! A crate for running the backend of an application used to sort students into advisories based on
 //! specific criteria with weighted values that can be configured via an endpoint.
 //!
@@ -9,69 +10,6 @@
 use axum::{routing::*, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
-
-/// Various functions and structs used elsewhere in the code
-mod lib {
-    #[async_trait::async_trait]
-    pub(crate) trait DatabaseNode {
-        async fn add_node<T: Into<String> + Send>(
-            &self,
-            graph: &neo4rs::Graph,
-            user_id: T,
-            no_duplicates: bool,
-        ) -> Result<u8, axum::http::StatusCode>;
-        async fn add_multiple_nodes<T: Into<String> + Send>(
-            nodes: Vec<Self>,
-            graph: &neo4rs::Graph,
-            user_id: T,
-            no_duplicates: bool,
-        ) -> Result<u8, axum::http::StatusCode>
-        where
-            Self: Sized;
-        async fn remove_node<T: Into<String> + Send>(
-            &self,
-            graph: &neo4rs::Graph,
-            user_id: T,
-        ) -> Result<u8, axum::http::StatusCode>;
-        async fn clear_nodes<T: Into<String> + Send>(
-            graph: &neo4rs::Graph,
-            user_id: T,
-        ) -> Result<u8, axum::http::StatusCode>;
-        async fn get_nodes<T: Into<String> + Send>(
-            graph: &neo4rs::Graph,
-            user_id: T,
-        ) -> Result<Vec<Self>, axum::http::StatusCode>
-        where
-            Self: Sized;
-    }
-
-    pub(crate) mod advisories {
-        mod advisory;
-        mod advisory_group;
-        mod settings;
-        mod weights;
-
-        pub(crate) use advisory::Advisory;
-        pub(crate) use advisory_group::AdvisoryGroup;
-        pub(crate) use settings::Settings;
-        pub(crate) use weights::Weights;
-    }
-    pub(crate) mod people {
-        mod grade;
-        mod person;
-        mod sex;
-        mod student;
-        mod teacher;
-
-        pub(crate) use grade::Grade;
-        pub(crate) use person::Person;
-        pub(crate) use sex::Sex;
-        pub(crate) use student::Student;
-        pub(crate) use teacher::Teacher;
-    }
-}
-use lib::advisories;
-use lib::people;
 
 /// Handlers for different HTTP requests made to the server
 mod handlers {
@@ -90,11 +28,6 @@ mod auth;
 #[cfg(test)]
 mod tests {
     mod info_handlers;
-}
-
-/// Verify trait for input validation
-trait Verify {
-    fn verify(&self) -> bool;
 }
 
 /// Shared state for accessing the database

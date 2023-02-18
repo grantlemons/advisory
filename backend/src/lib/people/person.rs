@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 
 /// Representation of a person
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Person {
+pub struct Person {
     /// Student's name - should be in `First Last` format, but can be anything that distinguishes them from other students
-    pub(crate) name: String,
+    pub name: String,
 }
 
 impl std::fmt::Display for Person {
@@ -27,7 +27,7 @@ impl From<Teacher> for Person {
 }
 
 #[async_trait::async_trait]
-impl crate::lib::DatabaseNode for Person {
+impl crate::DatabaseNode for Person {
     async fn add_node<T: Into<String> + Send>(
         &self,
         graph: &neo4rs::Graph,

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 /// Representation of an advisory
 #[derive(Deserialize, Serialize, Clone, Debug)]
-pub(crate) struct Advisory {
+pub struct Advisory {
     /// Vector of [`Teacher`] structs
     advisors: Vec<Teacher>,
     /// Vector of [`Student`] structs
@@ -39,7 +39,7 @@ impl std::fmt::Display for Advisory {
 
 impl Advisory {
     /// Adds a [`Student`] struct to the students vector
-    pub(crate) fn add_student(&mut self, s: Student) {
+    pub fn add_student(&mut self, s: Student) {
         // Reduce number of remaining "spots" for the added student's sex
         match s.sex {
             Some(Sex::Male) => self.remaining_sex[0] -= 1,
@@ -58,7 +58,7 @@ impl Advisory {
     }
 
     /// Gets the remaining number or "spots" left for a given sex in an advisory
-    pub(crate) fn get_remaining_sex(&self, sex: &Option<Sex>) -> i16 {
+    pub fn get_remaining_sex(&self, sex: &Option<Sex>) -> i16 {
         match sex {
             Some(Sex::Male) => self.remaining_sex[0],
             Some(Sex::Female) => self.remaining_sex[1],
@@ -67,7 +67,7 @@ impl Advisory {
     }
 
     /// Gets the remaining number of "spots" left for a given grade in an advisory
-    pub(crate) fn get_remaining_grade(&self, grade: &Grade) -> i16 {
+    pub fn get_remaining_grade(&self, grade: &Grade) -> i16 {
         match grade {
             Grade::Freshman => self.remaining_grade[0],
             Grade::Sophomore => self.remaining_grade[1],
@@ -77,7 +77,7 @@ impl Advisory {
     }
 
     /// Adds a [`Teacher`] struct to the advisors vector if Some
-    pub(crate) fn add_teacher(&mut self, t: Option<Teacher>) {
+    pub fn add_teacher(&mut self, t: Option<Teacher>) {
         if let Some(t) = t {
             self.advisors.push(t);
         } else {
@@ -86,7 +86,7 @@ impl Advisory {
     }
 
     /// Checks whether one of the advisors teaches the given student
-    pub(crate) fn has_teacher(&self, s: &Student) -> bool {
+    pub fn has_teacher(&self, s: &Student) -> bool {
         let mut has = false;
         for i in &s.teachers {
             if self.advisors.contains(i) {
@@ -97,7 +97,7 @@ impl Advisory {
     }
 
     /// Default advisory values given target number of students for the advisory
-    pub(crate) fn default(n: i16) -> Advisory {
+    pub fn default(n: i16) -> Advisory {
         log::info!("Initialized new advisory via default");
         Self {
             advisors: Vec::<Teacher>::new(),
@@ -108,7 +108,7 @@ impl Advisory {
         }
     }
 
-    pub(crate) fn calculate_weight(
+    pub fn calculate_weight(
         &self,
         student: &Student,
         weights: &Weights,

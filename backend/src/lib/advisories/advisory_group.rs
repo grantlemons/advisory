@@ -1,14 +1,16 @@
-use crate::advisories::Advisory;
-use crate::people::Teacher;
-use crate::{advisories::Settings, lib::DatabaseNode, people::Student, Verify};
+use crate::{
+    advisories::{Advisory, Settings},
+    people::{Student, Teacher},
+    DatabaseNode, Verify,
+};
 use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
-pub(crate) struct AdvisoryGroup(pub(crate) Vec<Advisory>);
+pub struct AdvisoryGroup(pub Vec<Advisory>);
 
 impl AdvisoryGroup {
-    pub(crate) fn default(student_count: i16, advisory_count: i16) -> Self {
+    pub fn default(student_count: i16, advisory_count: i16) -> Self {
         let students_per_advisory = student_count / advisory_count;
 
         Self(vec![
@@ -17,7 +19,7 @@ impl AdvisoryGroup {
         ])
     }
 
-    pub(crate) fn populate_teachers(&mut self, teacher_pairs: &[[Option<Teacher>; 2]]) {
+    pub fn populate_teachers(&mut self, teacher_pairs: &[[Option<Teacher>; 2]]) {
         for (index, target_advisory) in self.0.iter_mut().enumerate() {
             let [t1, t2] = teacher_pairs[index].clone();
 
@@ -29,15 +31,13 @@ impl AdvisoryGroup {
     /// Places students into advisories and returns a vector of them
     ///
     /// Called by [`crate::advisories::Advisory`]
-    pub(crate) async fn generate<T: Into<String> + Send>(
+    pub async fn generate<T: Into<String> + Send>(
         form: Settings,
         graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<Self, StatusCode> {
         log::info!("Building advisories");
-        if !form.verify() {
-            return Err(StatusCode::UNPROCESSABLE_ENTITY);
-        }
+        form.verify()?;
 
         // fetch student data from database
         let students: Vec<Student> = Student::get_nodes(graph, user_id).await?;

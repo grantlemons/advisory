@@ -1,7 +1,7 @@
-use crate::{
+use crate::{auth::UserData, SharedState};
+use advisory_backend_lib::{
     advisories::{AdvisoryGroup, Settings},
-    auth::UserData,
-    SharedState,
+    Verify,
 };
 use axum::{
     extract::{Extension, Json, State},
@@ -16,6 +16,7 @@ pub(crate) async fn get_advisories(
     Json(form): Json<Settings>,
 ) -> Result<Json<AdvisoryGroup>, StatusCode> {
     if let Some(user) = user_option {
+        form.verify()?;
         match &state.graph {
             Some(graph) => Ok(Json(AdvisoryGroup::generate(form, graph, user.sub).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
