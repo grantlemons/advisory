@@ -4,6 +4,7 @@ services:
     image: "neo4j:4.4.14"
     environment:
       - NEO4J_AUTH=neo4j/test
+      - NEO4J_cypher_lenient__create__relationship=true
     ports:
       - 7687:7687
       - 7474:7474

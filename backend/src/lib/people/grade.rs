@@ -35,6 +35,17 @@ impl From<Grade> for i64 {
     }
 }
 
+impl From<&Grade> for i64 {
+    fn from(g: &Grade) -> Self {
+        match g {
+            Grade::Freshman => 9,
+            Grade::Sophomore => 10,
+            Grade::Junior => 11,
+            Grade::Senior => 12,
+        }
+    }
+}
+
 impl std::fmt::Display for Grade {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let string = match self {

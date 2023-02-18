@@ -1,6 +1,6 @@
 use crate::{
     auth::UserData,
-    database::{add_student, add_teacher, clear_people, get_people},
+    lib::DatabaseNode,
     people::{Person, Student, Teacher},
     SharedState, Verify,
 };
@@ -15,15 +15,9 @@ pub(crate) async fn clear_people_handler(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::info!("DELETE made to people");
-
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(
-                clear_people(user.clone(), graph).await.unwrap_or_else(|_| {
-                    panic!("Unable to clear people for {} ({})", user.sub, user.sub)
-                }),
-            )),
+            Some(graph) => Ok(Json(Person::clear_nodes(graph, user.sub).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -38,13 +32,9 @@ pub(crate) async fn get_people_handler(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
 ) -> Result<Json<Vec<Person>>, StatusCode> {
-    log::info!("GET made to people");
-
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(get_people(user.clone(), graph).await.unwrap_or_else(
-                |_| panic!("Unable to get people for {} ({})", user.sub, user.sub),
-            ))),
+            Some(graph) => Ok(Json(Person::get_nodes(graph, user.sub).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -62,15 +52,9 @@ pub(crate) async fn add_teacher_handler(
     Extension(user_option): Extension<Option<UserData>>,
     Json(form): Json<Teacher>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::info!("POST made to people/teacher");
-
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(
-                add_teacher(user, graph, form)
-                    .await
-                    .expect("Unable to add teacher"),
-            )),
+            Some(graph) => Ok(Json(form.add_node(graph, user.sub, true).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -86,21 +70,16 @@ pub(crate) async fn add_teacher_handler(
 pub(crate) async fn add_teacher_bulk(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
-    Json(forms): Json<Vec<Teacher>>,
+    Json(form): Json<Vec<Teacher>>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::info!("POST made to people/teacher/bulk");
-
     if let Some(user) = user_option {
-        if !forms.verify() {
+        if !form.verify() {
             return Err(StatusCode::UNPROCESSABLE_ENTITY);
         }
         match &state.graph {
-            Some(graph) => {
-                for teacher in forms {
-                    add_teacher(user.clone(), graph, teacher).await?;
-                }
-                Ok(Json(1))
-            }
+            Some(graph) => Ok(Json(
+                Teacher::add_multiple_nodes(form, graph, user.sub, true).await?,
+            )),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -118,15 +97,9 @@ pub(crate) async fn add_student_handler(
     Extension(user_option): Extension<Option<UserData>>,
     Json(form): Json<Student>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::info!("POST made to people/student");
-
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(
-                add_student(user, graph, form)
-                    .await
-                    .expect("Unable to add student"),
-            )),
+            Some(graph) => Ok(Json(form.add_node(graph, user.sub, true).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -142,21 +115,16 @@ pub(crate) async fn add_student_handler(
 pub(crate) async fn add_student_bulk(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
-    Json(forms): Json<Vec<Student>>,
+    Json(form): Json<Vec<Student>>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::info!("POST made to people/student/bulk");
-
     if let Some(user) = user_option {
-        if !forms.verify() {
+        if !form.verify() {
             return Err(StatusCode::UNPROCESSABLE_ENTITY);
         }
         match &state.graph {
-            Some(graph) => {
-                for student in forms {
-                    add_student(user.clone(), graph, student).await?;
-                }
-                Ok(Json(1))
-            }
+            Some(graph) => Ok(Json(
+                Student::add_multiple_nodes(form, graph, user.sub, true).await?,
+            )),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {

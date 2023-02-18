@@ -6,21 +6,56 @@
 //! **Notes**
 //!
 //! A custom fork of neo4rs is used to add functionality for handling vectors as a return type from neo4j
-
 use axum::{routing::*, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
 /// Various functions and structs used elsewhere in the code
 mod lib {
+    #[async_trait::async_trait]
+    pub(crate) trait DatabaseNode {
+        async fn add_node<T: Into<String> + Send>(
+            &self,
+            graph: &neo4rs::Graph,
+            user_id: T,
+            no_duplicates: bool,
+        ) -> Result<u8, axum::http::StatusCode>;
+        async fn add_multiple_nodes<T: Into<String> + Send>(
+            nodes: Vec<Self>,
+            graph: &neo4rs::Graph,
+            user_id: T,
+            no_duplicates: bool,
+        ) -> Result<u8, axum::http::StatusCode>
+        where
+            Self: Sized;
+        async fn remove_node<T: Into<String> + Send>(
+            &self,
+            graph: &neo4rs::Graph,
+            user_id: T,
+        ) -> Result<u8, axum::http::StatusCode>;
+        async fn clear_nodes<T: Into<String> + Send>(
+            graph: &neo4rs::Graph,
+            user_id: T,
+        ) -> Result<u8, axum::http::StatusCode>;
+        async fn get_nodes<T: Into<String> + Send>(
+            graph: &neo4rs::Graph,
+            user_id: T,
+        ) -> Result<Vec<Self>, axum::http::StatusCode>
+        where
+            Self: Sized;
+    }
+
     pub(crate) mod advisories {
         mod advisory;
-        pub(crate) mod builder;
+        mod advisory_group;
+        mod settings;
+        mod weights;
 
         pub(crate) use advisory::Advisory;
+        pub(crate) use advisory_group::AdvisoryGroup;
+        pub(crate) use settings::Settings;
+        pub(crate) use weights::Weights;
     }
-    mod settings;
-    mod weights;
     pub(crate) mod people {
         mod grade;
         mod person;
@@ -34,16 +69,9 @@ mod lib {
         pub(crate) use student::Student;
         pub(crate) use teacher::Teacher;
     }
-    pub(crate) mod database;
-
-    pub(crate) use settings::Settings;
-    pub(crate) use weights::Weights;
 }
 use lib::advisories;
-use lib::database;
 use lib::people;
-use lib::Settings;
-use lib::Weights;
 
 /// Handlers for different HTTP requests made to the server
 mod handlers {
@@ -72,10 +100,10 @@ trait Verify {
 /// Shared state for accessing the database
 #[allow(dead_code)]
 #[derive(Clone)]
-pub struct SharedState {
-    pub graph: Option<Arc<neo4rs::Graph>>,
-    pub keyset: jsonwebtokens_cognito::KeySet,
-    pub verifier: jsonwebtokens::Verifier,
+pub(crate) struct SharedState {
+    pub(crate) graph: Option<Arc<neo4rs::Graph>>,
+    pub(crate) keyset: jsonwebtokens_cognito::KeySet,
+    pub(crate) verifier: jsonwebtokens::Verifier,
 }
 
 enum Http {
@@ -182,9 +210,7 @@ fn app(state: SharedState) -> Router {
         .route("/", put(get_advisories));
     Router::new()
         // add /api before all routes
-        .nest("/api", api_router.clone())
-        // also accept without /api
-        .merge(api_router)
+        .nest("/api", api_router)
         // jsonwebtoken auth layer
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),

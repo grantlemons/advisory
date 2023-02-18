@@ -2,47 +2,27 @@ use crate::SharedState;
 use axum::{extract::State, http::Request, middleware::Next, response::Response};
 use serde::{Deserialize, Serialize};
 
-// #[derive(Deserialize, Serialize, Debug, Clone, Default)]
-// pub struct UserData {
-//     pub aud: String,
-//     pub auth_time: u32,
-//     pub email: String,
-//     pub email_verified: bool,
-//     pub event_id: String,
-//     pub exp: u32,
-//     pub iat: u32,
-//     pub iss: String,
-//     pub jti: String,
-//     /// Username
-//     /// User generated on sign-up
-//     pub name: String,
-//     pub origin_jti: String,
-//     /// Random User ID
-//     pub sub: String,
-//     pub token_use: String,
-// }
-
 #[derive(Deserialize, Serialize, Debug, Clone, Default)]
-pub struct UserData {
-    pub auth_time: u64,
-    pub client_id: String,
+pub(crate) struct UserData {
+    pub(crate) auth_time: u64,
+    pub(crate) client_id: String,
     #[serde(rename = "cognito:groups", default)]
-    pub groups: std::collections::HashSet<String>,
-    pub event_id: String,
-    pub exp: u64,
-    pub iat: u64,
-    pub iss: String,
-    pub jti: String,
-    pub origin_jti: String,
-    pub scope: String,
-    pub sub: String,
-    pub token_use: String,
-    pub username: String,
+    pub(crate) groups: std::collections::HashSet<String>,
+    pub(crate) event_id: String,
+    pub(crate) exp: u64,
+    pub(crate) iat: u64,
+    pub(crate) iss: String,
+    pub(crate) jti: String,
+    pub(crate) origin_jti: String,
+    pub(crate) scope: String,
+    pub(crate) sub: String,
+    pub(crate) token_use: String,
+    pub(crate) username: String,
 }
 
 /// Tower layer that adds an [`Option<UserData>`] as an extension to the request
 /// This can be used by handlers for authentication as well as for the value
-pub async fn auth<B>(
+pub(crate) async fn auth<B>(
     State(state): State<SharedState>,
     mut req: Request<B>,
     next: Next<B>,
@@ -61,12 +41,9 @@ pub async fn auth<B>(
 }
 
 /// Interface for [`decrypt_jwt`]
-pub async fn verify_jwt(token: &str, state: SharedState) -> Option<UserData> {
+pub(crate) async fn verify_jwt(token: &str, state: SharedState) -> Option<UserData> {
     match decrypt_jwt(token, &state.keyset, &state.verifier).await {
-        Ok(user) => {
-            log::info!("Successful JWT Verification for user {}", user.sub);
-            Some(user)
-        }
+        Ok(user) => Some(user),
         Err(_) => {
             log::info!("Failed JWT Verification");
             None

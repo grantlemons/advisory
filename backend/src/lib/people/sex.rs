@@ -13,12 +13,12 @@ pub(crate) enum Sex {
 }
 
 /// Mapping for string to [`Sex`] enum used for parsing info from database
-impl From<String> for Sex {
-    fn from(s: String) -> Self {
-        match s.as_str() {
+impl<T: Into<String>> From<T> for Sex {
+    fn from(s: T) -> Self {
+        match s.into().as_str() {
             "Male" => Self::Male,
             "Female" => Self::Female,
-            _ => panic!("{} not in list of sexes", s),
+            other_value => panic!("{} not in list of sexes", other_value),
         }
     }
 }

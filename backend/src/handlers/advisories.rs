@@ -1,7 +1,7 @@
 use crate::{
-    advisories::{builder::build_advisories, Advisory},
+    advisories::{AdvisoryGroup, Settings},
     auth::UserData,
-    Settings, SharedState,
+    SharedState,
 };
 use axum::{
     extract::{Extension, Json, State},
@@ -14,16 +14,10 @@ pub(crate) async fn get_advisories(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
     Json(form): Json<Settings>,
-) -> Result<Json<Vec<Advisory>>, StatusCode> {
-    log::info!("GET made to get_advisories");
-
+) -> Result<Json<AdvisoryGroup>, StatusCode> {
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(
-                build_advisories(user, graph, form)
-                    .await
-                    .expect("Unable to build advisories"),
-            )),
+            Some(graph) => Ok(Json(AdvisoryGroup::generate(form, graph, user.sub).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
