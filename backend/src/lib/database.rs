@@ -35,15 +35,14 @@ pub(crate) async fn add_teacher_bulk(
     if !form.verify() {
         return Err(StatusCode::UNPROCESSABLE_ENTITY);
     }
-    let mut query_vec: Vec<crate::lib::Query> = Vec::default();
+    let mut query_group: crate::lib::QueryGroup = crate::lib::QueryGroup::default();
     for teacher in form {
-        query_vec.push(
+        query_group.append(
             crate::lib::Query::new("MERGE (t:Teacher { name: $name, user_id: $user_id })")
                 .param("name", teacher.name.clone())
                 .param("user_id", user.sub.clone()),
         )
     }
-    let query_group: crate::lib::QueryGroup = query_vec.into();
     graph.run(query_group.into()).await.unwrap();
 
     Ok(1)
@@ -160,9 +159,9 @@ pub(crate) async fn add_student_bulk(
     if !form.verify() {
         return Err(StatusCode::UNPROCESSABLE_ENTITY);
     }
-    let mut query_vec: Vec<crate::lib::Query> = Vec::default();
+    let mut query_group: crate::lib::QueryGroup = crate::lib::QueryGroup::default();
     for student in form {
-        query_vec.push(
+        query_group.append(
             crate::lib::Query::new(
                 "MERGE (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $user_id })",
             )
@@ -178,7 +177,7 @@ pub(crate) async fn add_student_bulk(
             .param("user_id", &user.sub),
         );
         let teacher_names: Vec<String> = student.teachers.iter().map(|t| t.name.clone()).collect();
-        query_vec.push(
+        query_group.append(
             crate::lib::Query::new(
                 "MATCH (t:Teacher {user_id: $user_id}), (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $user_id }) \
                 WHERE t.name in $t_arr \
@@ -194,7 +193,6 @@ pub(crate) async fn add_student_bulk(
             .param("user_id", String::from(&user.sub)),
         )
     }
-    let query_group: crate::lib::QueryGroup = query_vec.into();
     graph.run(query_group.into()).await.unwrap();
 
     Ok(1)
