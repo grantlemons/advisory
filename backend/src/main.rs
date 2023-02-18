@@ -20,6 +20,14 @@ mod lib {
             user_id: T,
             no_duplicates: bool,
         ) -> Result<u8, axum::http::StatusCode>;
+        async fn add_multiple_nodes<T: Into<String> + Send>(
+            nodes: Vec<Self>,
+            graph: neo4rs::Graph,
+            user_id: T,
+            no_duplicates: bool,
+        ) -> Result<u8, axum::http::StatusCode>
+        where
+            Self: Sized;
         async fn remove_node<T: Into<String> + Send>(
             &self,
             graph: neo4rs::Graph,
