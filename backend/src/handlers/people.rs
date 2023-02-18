@@ -84,19 +84,17 @@ pub(crate) async fn add_teacher_handler(
 pub(crate) async fn add_teacher_bulk(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
-    Json(forms): Json<Vec<Teacher>>,
+    Json(form): Json<Vec<Teacher>>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("POST made to people/teacher/bulk");
 
     if let Some(user) = user_option {
-        if !forms.verify() {
+        if !form.verify() {
             return Err(StatusCode::UNPROCESSABLE_ENTITY);
         }
         match &state.graph {
             Some(graph) => {
-                for teacher in forms {
-                    add_teacher(&user, graph, teacher).await?;
-                }
+                crate::database::add_teacher_bulk(&user, graph, form).await?;
                 Ok(Json(1))
             }
             None => Err(StatusCode::BAD_GATEWAY),
@@ -140,19 +138,17 @@ pub(crate) async fn add_student_handler(
 pub(crate) async fn add_student_bulk(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
-    Json(forms): Json<Vec<Student>>,
+    Json(form): Json<Vec<Student>>,
 ) -> Result<Json<u8>, StatusCode> {
     log::info!("POST made to people/student/bulk");
 
     if let Some(user) = user_option {
-        if !forms.verify() {
+        if !form.verify() {
             return Err(StatusCode::UNPROCESSABLE_ENTITY);
         }
         match &state.graph {
             Some(graph) => {
-                for student in forms {
-                    add_student(&user, graph, student).await?;
-                }
+                crate::database::add_student_bulk(&user, graph, form).await?;
                 Ok(Json(1))
             }
             None => Err(StatusCode::BAD_GATEWAY),
