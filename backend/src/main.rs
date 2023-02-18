@@ -24,6 +24,8 @@ mod handlers {
 use handlers::advisories::*;
 use handlers::info::*;
 use handlers::people::*;
+
+/// Functions for verifying the JWT of HTTP(S) requests
 mod auth;
 
 /// Shared state for accessing the database
@@ -118,6 +120,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
+/// Configure routes for axum server
 fn app(state: SharedState) -> Router {
     // Axum setup and configuration
     let api_router = Router::new()

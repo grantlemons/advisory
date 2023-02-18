@@ -23,10 +23,12 @@ pub(crate) struct UserData {
 }
 
 impl UserData {
+    /// Gets the user_id from [`UserData`]'s sub value
     pub(crate) fn user_id(&self) -> &str {
         &self.sub
     }
 
+    /// Checks if the user is a member of the given group
     pub(crate) fn is_member(&self, group: &str) -> bool {
         self.groups.contains(group)
     }

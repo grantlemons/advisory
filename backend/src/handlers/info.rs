@@ -3,6 +3,18 @@ use axum::{Extension, Json};
 use reqwest::StatusCode;
 use serde::Serialize;
 
+#[allow(clippy::missing_docs_in_private_items)]
+#[derive(Debug, Serialize, PartialEq, Eq)]
+/// Information on version and other fields set in the cargo manifest
+pub(crate) struct CrateInfo {
+    name: &'static str,
+    authors: Vec<&'static str>,
+    version: &'static str,
+    description: &'static str,
+    license: &'static str,
+    repository: &'static str,
+}
+
 /// Healthcheck handler
 ///
 /// Returns `Healthy!` if healthy
@@ -45,15 +57,4 @@ pub(crate) async fn get_info(
         log::info!("Unauthorized access to get_info prevented");
         Err(StatusCode::UNAUTHORIZED)
     }
-}
-
-/// Information on version and other fields set in the cargo manifest
-#[derive(Debug, Serialize, PartialEq, Eq)]
-pub(crate) struct CrateInfo {
-    pub(crate) name: &'static str,
-    pub(crate) authors: Vec<&'static str>,
-    pub(crate) version: &'static str,
-    pub(crate) description: &'static str,
-    pub(crate) license: &'static str,
-    pub(crate) repository: &'static str,
 }
