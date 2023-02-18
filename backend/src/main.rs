@@ -16,13 +16,13 @@ mod lib {
     pub(crate) trait DatabaseNode {
         async fn add_node<T: Into<String> + Send>(
             &self,
-            graph: neo4rs::Graph,
+            graph: &neo4rs::Graph,
             user_id: T,
             no_duplicates: bool,
         ) -> Result<u8, axum::http::StatusCode>;
         async fn add_multiple_nodes<T: Into<String> + Send>(
             nodes: Vec<Self>,
-            graph: neo4rs::Graph,
+            graph: &neo4rs::Graph,
             user_id: T,
             no_duplicates: bool,
         ) -> Result<u8, axum::http::StatusCode>
@@ -30,11 +30,11 @@ mod lib {
             Self: Sized;
         async fn remove_node<T: Into<String> + Send>(
             &self,
-            graph: neo4rs::Graph,
+            graph: &neo4rs::Graph,
             user_id: T,
         ) -> Result<u8, axum::http::StatusCode>;
         async fn get_nodes<T: Into<String> + Send>(
-            graph: neo4rs::Graph,
+            graph: &neo4rs::Graph,
             user_id: T,
         ) -> Result<Vec<Self>, axum::http::StatusCode>
         where
@@ -49,7 +49,6 @@ mod lib {
         pub(crate) use advisory::Advisory;
         pub(crate) use advisory_group::AdvisoryGroup;
     }
-    mod query;
     mod settings;
     mod weights;
     pub(crate) mod people {
@@ -65,14 +64,11 @@ mod lib {
         pub(crate) use student::Student;
         pub(crate) use teacher::Teacher;
     }
-    pub(crate) mod database;
 
-    pub(crate) use query::{Query, QueryGroup};
     pub(crate) use settings::Settings;
     pub(crate) use weights::Weights;
 }
 use lib::advisories;
-use lib::database;
 use lib::people;
 use lib::Settings;
 use lib::Weights;

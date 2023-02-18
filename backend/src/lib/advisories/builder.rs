@@ -1,5 +1,7 @@
 use crate::{
-    advisories::Advisory, database::get_students, lib::advisories::AdvisoryGroup, people::Student,
+    advisories::Advisory,
+    lib::{advisories::AdvisoryGroup, DatabaseNode},
+    people::Student,
     Settings, Verify,
 };
 use axum::http::StatusCode;
@@ -18,7 +20,7 @@ pub(crate) async fn build_advisories(
     }
 
     // fetch student data from database
-    let students: Vec<Student> = get_students(&user, graph).await?;
+    let students: Vec<Student> = Student::get_nodes(graph, &user.sub).await.unwrap();
 
     // define constants for later use
     let student_count: i16 = students.len() as i16;

@@ -30,7 +30,7 @@ impl From<Teacher> for Person {
 impl crate::lib::DatabaseNode for Person {
     async fn add_node<T: Into<String> + Send>(
         &self,
-        graph: neo4rs::Graph,
+        graph: &neo4rs::Graph,
         user_id: T,
         no_duplicates: bool,
     ) -> Result<u8, axum::http::StatusCode> {
@@ -49,7 +49,7 @@ impl crate::lib::DatabaseNode for Person {
 
     async fn add_multiple_nodes<T: Into<String> + Send>(
         nodes: Vec<Self>,
-        graph: neo4rs::Graph,
+        graph: &neo4rs::Graph,
         user_id: T,
         no_duplicates: bool,
     ) -> Result<u8, axum::http::StatusCode> {
@@ -91,7 +91,7 @@ impl crate::lib::DatabaseNode for Person {
 
     async fn remove_node<T: Into<String> + Send>(
         &self,
-        graph: neo4rs::Graph,
+        graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<u8, axum::http::StatusCode> {
         let query = neo4rs::query("MATCH (p { name: $name, user_id: $user_id }) DETACH DELETE p")
@@ -105,7 +105,7 @@ impl crate::lib::DatabaseNode for Person {
     }
 
     async fn get_nodes<T: Into<String> + Send>(
-        graph: neo4rs::Graph,
+        graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<Vec<Self>, axum::http::StatusCode> {
         let query = neo4rs::query("MATCH (p { user_id: $user_id }) RETURN distinct(p) as people")
@@ -121,6 +121,21 @@ impl crate::lib::DatabaseNode for Person {
                 }
                 Ok(people)
             }
+            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+        }
+    }
+}
+
+impl Person {
+    pub(crate) async fn clear_nodes<T: Into<String> + Send>(
+        graph: &neo4rs::Graph,
+        user_id: T,
+    ) -> Result<u8, axum::http::StatusCode> {
+        let query = neo4rs::query("MATCH (p { user_id: $user_id }) DETACH DELETE (p)")
+            .param("user_id", user_id.into());
+
+        match graph.run(query).await {
+            Ok(_) => Ok(1),
             Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
         }
     }

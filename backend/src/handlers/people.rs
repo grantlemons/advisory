@@ -1,6 +1,6 @@
 use crate::{
     auth::UserData,
-    database::{add_student, add_teacher, clear_people, get_people},
+    lib::DatabaseNode,
     people::{Person, Student, Teacher},
     SharedState, Verify,
 };
@@ -19,9 +19,7 @@ pub(crate) async fn clear_people_handler(
 
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(clear_people(&user, graph).await.unwrap_or_else(
-                |_| panic!("Unable to clear people for {} ({})", user.sub, user.sub),
-            ))),
+            Some(graph) => Ok(Json(Person::clear_nodes(graph, user.sub).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -40,9 +38,7 @@ pub(crate) async fn get_people_handler(
 
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(get_people(&user, graph).await.unwrap_or_else(|_| {
-                panic!("Unable to get people for {} ({})", user.sub, user.sub)
-            }))),
+            Some(graph) => Ok(Json(Person::get_nodes(graph, user.sub).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -64,11 +60,7 @@ pub(crate) async fn add_teacher_handler(
 
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(
-                add_teacher(&user, graph, form)
-                    .await
-                    .expect("Unable to add teacher"),
-            )),
+            Some(graph) => Ok(Json(form.add_node(graph, user.sub, true).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -93,10 +85,9 @@ pub(crate) async fn add_teacher_bulk(
             return Err(StatusCode::UNPROCESSABLE_ENTITY);
         }
         match &state.graph {
-            Some(graph) => {
-                crate::database::add_teacher_bulk(&user, graph, form).await?;
-                Ok(Json(1))
-            }
+            Some(graph) => Ok(Json(
+                Teacher::add_multiple_nodes(form, graph, user.sub, true).await?,
+            )),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -118,11 +109,7 @@ pub(crate) async fn add_student_handler(
 
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(
-                add_student(&user, graph, form)
-                    .await
-                    .expect("Unable to add student"),
-            )),
+            Some(graph) => Ok(Json(form.add_node(graph, user.sub, true).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -147,10 +134,9 @@ pub(crate) async fn add_student_bulk(
             return Err(StatusCode::UNPROCESSABLE_ENTITY);
         }
         match &state.graph {
-            Some(graph) => {
-                crate::database::add_student_bulk(&user, graph, form).await?;
-                Ok(Json(1))
-            }
+            Some(graph) => Ok(Json(
+                Student::add_multiple_nodes(form, graph, user.sub, true).await?,
+            )),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {

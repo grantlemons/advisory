@@ -34,7 +34,7 @@ impl std::fmt::Display for Teacher {
 impl crate::lib::DatabaseNode for Teacher {
     async fn add_node<T: Into<String> + Send>(
         &self,
-        graph: neo4rs::Graph,
+        graph: &neo4rs::Graph,
         user_id: T,
         no_duplicates: bool,
     ) -> Result<u8, axum::http::StatusCode> {
@@ -53,7 +53,7 @@ impl crate::lib::DatabaseNode for Teacher {
 
     async fn add_multiple_nodes<T: Into<String> + Send>(
         nodes: Vec<Self>,
-        graph: neo4rs::Graph,
+        graph: &neo4rs::Graph,
         user_id: T,
         no_duplicates: bool,
     ) -> Result<u8, axum::http::StatusCode> {
@@ -95,7 +95,7 @@ impl crate::lib::DatabaseNode for Teacher {
 
     async fn remove_node<T: Into<String> + Send>(
         &self,
-        graph: neo4rs::Graph,
+        graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<u8, axum::http::StatusCode> {
         let query = neo4rs::query("MATCH (t { name: $name, user_id: $user_id }) DETACH DELETE t")
@@ -109,7 +109,7 @@ impl crate::lib::DatabaseNode for Teacher {
     }
 
     async fn get_nodes<T: Into<String> + Send>(
-        graph: neo4rs::Graph,
+        graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<Vec<Self>, axum::http::StatusCode> {
         let query = neo4rs::query("MATCH (t { user_id: $user_id }) RETURN distinct(t) as teachers")

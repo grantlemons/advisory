@@ -59,7 +59,7 @@ impl Default for Student {
 impl crate::lib::DatabaseNode for Student {
     async fn add_node<T: Into<String> + Send>(
         &self,
-        graph: neo4rs::Graph,
+        graph: &neo4rs::Graph,
         user_id: T,
         no_duplicates: bool,
     ) -> Result<u8, axum::http::StatusCode> {
@@ -90,14 +90,14 @@ impl crate::lib::DatabaseNode for Student {
 
     async fn add_multiple_nodes<T: Into<String> + Send>(
         nodes: Vec<Self>,
-        graph: neo4rs::Graph,
+        graph: &neo4rs::Graph,
         user_id: T,
         no_duplicates: bool,
     ) -> Result<u8, axum::http::StatusCode> {
         let inside_query = match no_duplicates {
-            true => "MERGE (s { name: student.name, grade: $grade, sex: $sex user_id: $user_id }) MERGE (s)<-[:TEACHES]-(t)",
+            true => "MERGE (s { name: student.name, grade: student.grade, sex: student.sex user_id: $user_id }) MERGE (s)<-[:TEACHES]-(t)",
             false => {
-                "CREATE (s { name: student.name, grade: $grade, sex: $sex user_id: $user_id }) CREATE (s)<-[:TEACHES]-(t)"
+                "CREATE (s { name: student.name, grade: student.grade, sex: student.sex user_id: $user_id }) CREATE (s)<-[:TEACHES]-(t)"
             }
         };
 
@@ -156,7 +156,7 @@ impl crate::lib::DatabaseNode for Student {
 
     async fn remove_node<T: Into<String> + Send>(
         &self,
-        graph: neo4rs::Graph,
+        graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<u8, axum::http::StatusCode> {
         let query = neo4rs::query(
@@ -180,7 +180,7 @@ impl crate::lib::DatabaseNode for Student {
     }
 
     async fn get_nodes<T: Into<String> + Send>(
-        graph: neo4rs::Graph,
+        graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<Vec<Self>, axum::http::StatusCode> {
         let query = neo4rs::query("MATCH (s:Student { user_id: $user_id })<-[:TEACHES]-(t:Teacher) RETURN distinct(s) as students, collect(t) as teachers")
