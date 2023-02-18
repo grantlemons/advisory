@@ -29,3 +29,61 @@ impl std::fmt::Display for Teacher {
         write!(f, "{}", self.name)
     }
 }
+
+#[async_trait::async_trait]
+impl crate::lib::DatabaseNode for Teacher {
+    async fn add_node<T: Into<String> + Send>(
+        &self,
+        graph: neo4rs::Graph,
+        user_id: T,
+        no_duplicates: bool,
+    ) -> Result<u8, axum::http::StatusCode> {
+        let query = match no_duplicates {
+            true => neo4rs::query("MERGE (t { name: $name, user_id: $user_id })"),
+            false => neo4rs::query("CREATE (t { name: $name, user_id: $user_id })"),
+        }
+        .param("name", self.name.as_str())
+        .param("user_id", user_id.into());
+
+        match graph.run(query).await {
+            Ok(_) => Ok(1),
+            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+        }
+    }
+
+    async fn remove_node<T: Into<String> + Send>(
+        &self,
+        graph: neo4rs::Graph,
+        user_id: T,
+    ) -> Result<u8, axum::http::StatusCode> {
+        let query = neo4rs::query("MATCH (t { name: $name, user_id: $user_id }) DETACH DELETE t")
+            .param("name", self.name.as_str())
+            .param("user_id", user_id.into());
+
+        match graph.run(query).await {
+            Ok(_) => Ok(1),
+            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+        }
+    }
+
+    async fn get_nodes<T: Into<String> + Send>(
+        graph: neo4rs::Graph,
+        user_id: T,
+    ) -> Result<Vec<Self>, axum::http::StatusCode> {
+        let query = neo4rs::query("MATCH (t { user_id: $user_id }) RETURN distinct(t) as teachers")
+            .param("user_id", user_id.into());
+
+        match graph.execute(query).await {
+            Ok(mut result) => {
+                let mut people: Vec<Self> = Vec::new();
+                while let Ok(Some(row)) = result.next().await {
+                    let person: neo4rs::Node = row.get("teachers").unwrap();
+                    let name: String = person.get("name").unwrap();
+                    people.push(Self { name })
+                }
+                Ok(people)
+            }
+            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+        }
+    }
+}
