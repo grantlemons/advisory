@@ -54,3 +54,102 @@ impl Default for Student {
         }
     }
 }
+
+#[async_trait::async_trait]
+impl crate::lib::DatabaseNode for Student {
+    async fn add_node<T: Into<String> + Send>(
+        &self,
+        graph: neo4rs::Graph,
+        user_id: T,
+        no_duplicates: bool,
+    ) -> Result<u8, axum::http::StatusCode> {
+        let query = match no_duplicates {
+            true => neo4rs::query(
+                "MERGE (s:Student { name: $name, grade: $grade, sex: $sex, user_id: $user_id })",
+            ),
+            false => neo4rs::query(
+                "CREATE (s:Student { name: $name, grade: $grade, sex: $sex, user_id: $user_id })",
+            ),
+        }
+        .param("name", self.name.as_str())
+        .param("grade", i64::from(&self.grade))
+        .param(
+            "sex",
+            match &self.sex {
+                Some(value) => value.to_string(),
+                None => String::new(),
+            },
+        )
+        .param("user_id", user_id.into());
+
+        match graph.run(query).await {
+            Ok(_) => Ok(1),
+            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+        }
+    }
+
+    async fn remove_node<T: Into<String> + Send>(
+        &self,
+        graph: neo4rs::Graph,
+        user_id: T,
+    ) -> Result<u8, axum::http::StatusCode> {
+        let query = neo4rs::query(
+            "MATCH (s:Student { name: $name, grade: $grade, sex: $sex, user_id: $user_id }) DETACH DELETE s",
+        )
+        .param("name", self.name.as_str())
+        .param("grade", self.grade.to_string())
+        .param(
+            "sex",
+            match &self.sex {
+                Some(value) => value.to_string(),
+                None => String::new(),
+            },
+        )
+        .param("user_id", user_id.into());
+
+        match graph.run(query).await {
+            Ok(_) => Ok(1),
+            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+        }
+    }
+
+    async fn get_nodes<T: Into<String> + Send>(
+        graph: neo4rs::Graph,
+        user_id: T,
+    ) -> Result<Vec<Self>, axum::http::StatusCode> {
+        let query = neo4rs::query("MATCH (s:Student { user_id: $user_id })<-[:TEACHES]-(t:Teacher) RETURN distinct(s) as students, collect(t) as teachers")
+            .param("user_id", user_id.into());
+
+        match graph.execute(query).await {
+            Ok(mut result) => {
+                let mut students: Vec<Self> = Vec::new();
+                while let Ok(Some(row)) = result.next().await {
+                    let person: neo4rs::Node = row.get("students").unwrap();
+                    let name: String = person.get("name").unwrap();
+                    let grade: Grade = person.get::<i64>("grade").unwrap().into();
+                    let sex: Option<Sex> = match person.get::<String>("sex").unwrap().as_str() {
+                        "" => None,
+                        value => Some(Sex::from(value)),
+                    };
+                    let teachers = row
+                        .get::<Vec<neo4rs::Node>>("teachers")
+                        .unwrap()
+                        .iter()
+                        .map(|t| Teacher {
+                            name: t.get("name").unwrap(),
+                        })
+                        .collect::<Vec<_>>();
+
+                    students.push(Self {
+                        name,
+                        teachers,
+                        grade,
+                        sex,
+                    })
+                }
+                Ok(students)
+            }
+            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+        }
+    }
+}

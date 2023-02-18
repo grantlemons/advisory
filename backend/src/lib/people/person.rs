@@ -46,6 +46,7 @@ impl crate::lib::DatabaseNode for Person {
             Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
         }
     }
+
     async fn remove_node<T: Into<String> + Send>(
         &self,
         graph: neo4rs::Graph,
@@ -60,6 +61,7 @@ impl crate::lib::DatabaseNode for Person {
             Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
         }
     }
+
     async fn get_nodes<T: Into<String> + Send>(
         graph: neo4rs::Graph,
         user_id: T,
