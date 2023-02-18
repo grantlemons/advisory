@@ -75,7 +75,7 @@ impl crate::lib::DatabaseNode for Student {
         let teachers = self.teachers.iter().map(|t| format!("\"{}\"", t.name.clone())).collect::<Vec<_>>().join(",");
         let query = neo4rs::query(&format!("WITH [{}] as teachers OPTIONAL MATCH (t:Teacher {{ user_id: $user_id }}) WHERE t.name IN teachers {}", teachers, query_string))
         .param("name", self.name.as_str())
-        .param("grade", i64::from(&self.grade).to_string())
+        .param("grade", i64::from(&self.grade))
         .param(
             "sex",
             match &self.sex {
@@ -110,7 +110,6 @@ impl crate::lib::DatabaseNode for Student {
             .map(|q| {
                 let key = random_string::generate(50, "abcdefghijklmnopqrstuvwxyz");
                 parameter_pairs.insert(key.clone() + "name", q.name.clone());
-                parameter_pairs.insert(key.clone() + "grade", i64::from(&q.grade).to_string());
                 parameter_pairs.insert(
                     key.clone() + "sex",
                     match &q.sex {
@@ -128,8 +127,8 @@ impl crate::lib::DatabaseNode for Student {
                             .collect::<Vec<_>>()
                             .join(","));
                 format!(
-                    "{{ name: ${}name, grade: ${}grade, sex: ${}sex, teachers: {} }}",
-                    key, key, key, teachers
+                    "{{ name: ${}name, grade: ${}, sex: ${}sex, teachers: {} }}",
+                    key, i64::from(&q.grade), key, teachers
                 )
             })
             .collect::<Vec<_>>()
