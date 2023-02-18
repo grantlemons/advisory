@@ -16,7 +16,6 @@ pub(crate) async fn get_health() -> &'static str {
 pub(crate) async fn get_info(
     Extension(user_option): Extension<Option<UserData>>,
 ) -> Result<Json<CrateInfo>, StatusCode> {
-    log::info!("GET made to get_info");
     if let Some(user) = user_option {
         log::info!("Checking user {}'s authorization for get_info", user.sub);
         if user.groups.contains("Administrator") {

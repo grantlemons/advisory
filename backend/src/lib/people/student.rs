@@ -74,16 +74,16 @@ impl crate::lib::DatabaseNode for Student {
         // maybe look for a way to sanitize inputs
         let teachers = self.teachers.iter().map(|t| format!("\"{}\"", t.name.clone())).collect::<Vec<_>>().join(",");
         let query = neo4rs::query(&format!("WITH [{}] as teachers OPTIONAL MATCH (t:Teacher {{ user_id: $user_id }}) WHERE t.name IN teachers {}", teachers, query_string))
-        .param("name", self.name.as_str())
-        .param("grade", i64::from(&self.grade))
-        .param(
-            "sex",
-            match &self.sex {
-                Some(value) => value.to_string(),
-                None => String::new(),
-            },
-        )
-        .param("user_id", user_id.into());
+            .param("name", self.name.as_str())
+            .param("grade", i64::from(&self.grade))
+            .param(
+                "sex",
+                match &self.sex {
+                    Some(value) => value.to_string(),
+                    None => String::new(),
+                },
+            )
+            .param("user_id", user_id.into());
 
         match graph.run(query).await {
             Ok(_) => Ok(1),
@@ -127,7 +127,7 @@ impl crate::lib::DatabaseNode for Student {
                             .collect::<Vec<_>>()
                             .join(","));
                 format!(
-                    "{{ name: ${}name, grade: ${}, sex: ${}sex, teachers: {} }}",
+                    "{{ name: ${}name, grade: {}, sex: ${}sex, teachers: {} }}",
                     key, i64::from(&q.grade), key, teachers
                 )
             })

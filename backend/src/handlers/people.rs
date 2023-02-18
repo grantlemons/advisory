@@ -15,8 +15,6 @@ pub(crate) async fn clear_people_handler(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::info!("DELETE made to people");
-
     if let Some(user) = user_option {
         match &state.graph {
             Some(graph) => Ok(Json(Person::clear_nodes(graph, user.sub).await?)),
@@ -34,8 +32,6 @@ pub(crate) async fn get_people_handler(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
 ) -> Result<Json<Vec<Person>>, StatusCode> {
-    log::info!("GET made to people");
-
     if let Some(user) = user_option {
         match &state.graph {
             Some(graph) => Ok(Json(Person::get_nodes(graph, user.sub).await?)),
@@ -56,8 +52,6 @@ pub(crate) async fn add_teacher_handler(
     Extension(user_option): Extension<Option<UserData>>,
     Json(form): Json<Teacher>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::info!("POST made to people/teacher");
-
     if let Some(user) = user_option {
         match &state.graph {
             Some(graph) => Ok(Json(form.add_node(graph, user.sub, true).await?)),
@@ -78,8 +72,6 @@ pub(crate) async fn add_teacher_bulk(
     Extension(user_option): Extension<Option<UserData>>,
     Json(form): Json<Vec<Teacher>>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::info!("POST made to people/teacher/bulk");
-
     if let Some(user) = user_option {
         if !form.verify() {
             return Err(StatusCode::UNPROCESSABLE_ENTITY);
@@ -105,8 +97,6 @@ pub(crate) async fn add_student_handler(
     Extension(user_option): Extension<Option<UserData>>,
     Json(form): Json<Student>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::info!("POST made to people/student");
-
     if let Some(user) = user_option {
         match &state.graph {
             Some(graph) => Ok(Json(form.add_node(graph, user.sub, true).await?)),
@@ -127,8 +117,6 @@ pub(crate) async fn add_student_bulk(
     Extension(user_option): Extension<Option<UserData>>,
     Json(form): Json<Vec<Student>>,
 ) -> Result<Json<u8>, StatusCode> {
-    log::info!("POST made to people/student/bulk");
-
     if let Some(user) = user_option {
         if !form.verify() {
             return Err(StatusCode::UNPROCESSABLE_ENTITY);

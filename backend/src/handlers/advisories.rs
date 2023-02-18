@@ -15,8 +15,6 @@ pub(crate) async fn get_advisories(
     Extension(user_option): Extension<Option<UserData>>,
     Json(form): Json<Settings>,
 ) -> Result<Json<Vec<Advisory>>, StatusCode> {
-    log::info!("GET made to get_advisories");
-
     if let Some(user) = user_option {
         match &state.graph {
             Some(graph) => Ok(Json(

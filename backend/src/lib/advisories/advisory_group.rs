@@ -17,7 +17,6 @@ impl AdvisoryGroup {
         for (index, target_advisory) in self.0.iter_mut().enumerate() {
             let [t1, t2] = teacher_pairs[index].clone();
 
-            log::info!("Adding {:?} to {}", vec![&t1, &t2], target_advisory);
             target_advisory.add_teacher(t1);
             target_advisory.add_teacher(t2);
         }

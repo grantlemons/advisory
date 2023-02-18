@@ -27,7 +27,6 @@ pub(crate) async fn build_advisories(
     let advisory_count: i16 = form.num_advisories;
 
     // create vector of advisories to fill
-    log::info!("{} Students, {} Advisories", student_count, advisory_count);
     let mut advisories: AdvisoryGroup = AdvisoryGroup::default(student_count, advisory_count);
 
     advisories.populate_teachers(&form.teacher_pairs);
@@ -48,7 +47,6 @@ pub(crate) async fn build_advisories(
             .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .map(|(index, _)| index);
         if let Some(max) = max {
-            log::info!("Adding {} to {}", student, advisories.0[max]);
             advisories.0[max].add_student(student);
         }
     }

@@ -37,14 +37,12 @@ impl std::fmt::Display for Advisory {
 impl Advisory {
     /// Adds a [`Student`] struct to the students vector
     pub(crate) fn add_student(&mut self, s: Student) {
-        log::info!("Adding student {} to advisory {}", s, self);
         // Reduce number of remaining "spots" for the added student's sex
         match s.sex {
             Some(Sex::Male) => self.remaining_sex[0] -= 1,
             Some(Sex::Female) => self.remaining_sex[1] -= 1,
             None => {}
         }
-        log::info!("Sex 'spots' in {}: {:?}", self, self.remaining_sex);
         // Reduce number of remaining "spots" for the added student's grade
         match s.grade {
             Grade::Freshman => self.remaining_grade[0] -= 1,
@@ -52,7 +50,6 @@ impl Advisory {
             Grade::Junior => self.remaining_grade[2] -= 1,
             Grade::Senior => self.remaining_grade[3] -= 1,
         }
-        log::info!("Grade 'spots' in {}: {:?}", self, self.remaining_grade);
 
         self.students.push(s);
     }
@@ -64,29 +61,23 @@ impl Advisory {
             Some(Sex::Female) => self.remaining_sex[1],
             None => 0,
         };
-        if let Some(sex) = sex {
-            log::info!("{} has {} 'spots' left in {}", sex, num, self);
-        }
         num
     }
 
     /// Gets the remaining number of "spots" left for a given grade in an advisory
     pub(crate) fn get_remaining_grade(&self, grade: &Grade) -> i16 {
-        log::info!("Getting remaining 'spots' for {} in {}", grade, self);
         let num = match grade {
             Grade::Freshman => self.remaining_grade[0],
             Grade::Sophomore => self.remaining_grade[1],
             Grade::Junior => self.remaining_grade[2],
             Grade::Senior => self.remaining_grade[3],
         };
-        log::info!("{} has {} 'spots' left in {}", grade, num, self);
         num
     }
 
     /// Adds a [`Teacher`] struct to the advisors vector if Some
     pub(crate) fn add_teacher(&mut self, t: Option<Teacher>) {
         if let Some(t) = t {
-            log::info!("Adding teacher {} to advisory {}", t, self);
             self.advisors.push(t);
         } else {
             log::info!("Added teacher is None type: doing nothing");
@@ -95,14 +86,12 @@ impl Advisory {
 
     /// Checks whether one of the advisors teaches the given student
     pub(crate) fn has_teacher(&self, s: &Student) -> bool {
-        log::info!("Checking if {} has a teacher in {}", s, self);
         let mut has = false;
         for i in &s.teachers {
             if self.advisors.contains(i) {
                 has = true;
             }
         }
-        log::info!("{} has a teacher in {}: {}", s, self, has);
         has
     }
 
@@ -127,7 +116,6 @@ impl Advisory {
         let number_of_sexes: i32 = self.remaining_sex.len() as i32;
         let number_of_grades: i32 = self.remaining_grade.len() as i32;
 
-        log::info!("Calculating weight for {} & {}", student, self);
         let teacher_weighted_value = weights.has_teacher as i32
             * students_per_advisory as i32
             * self.has_teacher(student) as i32;
@@ -136,15 +124,6 @@ impl Advisory {
         let grade_weighted_value = number_of_grades
             * (weights.grade_diverse as i32 * self.get_remaining_grade(&student.grade) as i32);
         let weighted_value = teacher_weighted_value + sexes_weighted_value + grade_weighted_value;
-        log::info!(
-            "Weights for {} and {} is {} ({}, {}, {})",
-            student,
-            self,
-            weighted_value,
-            teacher_weighted_value,
-            sexes_weighted_value,
-            grade_weighted_value
-        );
         weighted_value
     }
 }

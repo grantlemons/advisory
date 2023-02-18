@@ -43,10 +43,7 @@ pub(crate) async fn auth<B>(
 /// Interface for [`decrypt_jwt`]
 pub(crate) async fn verify_jwt(token: &str, state: SharedState) -> Option<UserData> {
     match decrypt_jwt(token, &state.keyset, &state.verifier).await {
-        Ok(user) => {
-            log::info!("Successful JWT Verification for user {}", user.sub);
-            Some(user)
-        }
+        Ok(user) => Some(user),
         Err(_) => {
             log::info!("Failed JWT Verification");
             None
