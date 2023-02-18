@@ -27,6 +27,28 @@ pub(crate) async fn add_teacher(
     Ok(1)
 }
 
+pub(crate) async fn add_teacher_bulk(
+    user: &UserData,
+    graph: &neo4rs::Graph,
+    form: Vec<Teacher>,
+) -> Result<u8, StatusCode> {
+    if !form.verify() {
+        return Err(StatusCode::UNPROCESSABLE_ENTITY);
+    }
+    let mut query_vec: Vec<crate::lib::Query> = Vec::default();
+    for teacher in form {
+        query_vec.push(
+            crate::lib::Query::new("MERGE (t:Teacher { name: $name, user_id: $user_id })")
+                .param("name", teacher.name.clone())
+                .param("user_id", user.sub.clone()),
+        )
+    }
+    let query_group: crate::lib::QueryGroup = query_vec.into();
+    graph.run(query_group.into()).await.unwrap();
+
+    Ok(1)
+}
+
 pub(crate) async fn clear_people(user: &UserData, graph: &neo4rs::Graph) -> Result<u8, StatusCode> {
     use neo4rs::query;
 
@@ -127,6 +149,54 @@ pub(crate) async fn add_student(
         )
         .await
         .expect("Unable to send query to database");
+    Ok(1)
+}
+
+pub(crate) async fn add_student_bulk(
+    user: &UserData,
+    graph: &neo4rs::Graph,
+    form: Vec<Student>,
+) -> Result<u8, StatusCode> {
+    if !form.verify() {
+        return Err(StatusCode::UNPROCESSABLE_ENTITY);
+    }
+    let mut query_vec: Vec<crate::lib::Query> = Vec::default();
+    for student in form {
+        query_vec.push(
+            crate::lib::Query::new(
+                "MERGE (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $user_id })",
+            )
+            .param("name", String::from(&student.name))
+            .param(
+                "sex",
+                match student.sex {
+                    Some(ref val) => val.to_string(),
+                    None => "".to_string(),
+                },
+            )
+            .param("grade", i64::from(&student.grade).to_string())
+            .param("user_id", &user.sub),
+        );
+        let teacher_names: Vec<String> = student.teachers.iter().map(|t| t.name.clone()).collect();
+        query_vec.push(
+            crate::lib::Query::new(
+                "MATCH (t:Teacher {user_id: $user_id}), (s:Student { name: $name, sex: $sex, grade: $grade, user_id: $user_id }) \
+                WHERE t.name in $t_arr \
+                MERGE (t)-[:TEACHES]->(s)",
+            )
+            .param("t_arr", format!("{:?}", teacher_names))
+            .param("name", String::from(&student.name))
+            .param("sex", match student.sex {
+                Some(val) => val.to_string(),
+                None => "".to_string(),
+            })
+            .param("grade", i64::from(&student.grade).to_string())
+            .param("user_id", String::from(&user.sub)),
+        )
+    }
+    let query_group: crate::lib::QueryGroup = query_vec.into();
+    graph.run(query_group.into()).await.unwrap();
+
     Ok(1)
 }
 
