@@ -71,7 +71,7 @@ impl crate::lib::DatabaseNode for Person {
             .join(",");
         let mut query = neo4rs::query(
             format!(
-                "UNWIND [{}] as person CALL {{WITH person {}}}",
+                "UNWIND [{}] as person CALL {{ WITH person {} }}",
                 parameter_list, inside_query
             )
             .as_str(),

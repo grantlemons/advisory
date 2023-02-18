@@ -69,10 +69,13 @@ impl crate::lib::DatabaseNode for Student {
             false => 
                 "CREATE (s:Student { name: $name, grade: $grade, sex: $sex, user_id: $user_id }) CREATE (s)<-[:TEACHES]-(t)",
         };
+        // potential for sql injection by directly using the value from teachers
+        // that being said, it doesn't work otherwise
+        // maybe look for a way to sanitize inputs
         let teachers = self.teachers.iter().map(|t| format!("\"{}\"", t.name.clone())).collect::<Vec<_>>().join(",");
-        let query = neo4rs::query(&format!("WITH [{}] as teachers MATCH (t:Teacher) WHERE t.name IN teachers {}", teachers, query_string))
+        let query = neo4rs::query(&format!("WITH [{}] as teachers OPTIONAL MATCH (t:Teacher {{ user_id: $user_id }}) WHERE t.name IN teachers {}", teachers, query_string))
         .param("name", self.name.as_str())
-        .param("grade", i64::from(&self.grade))
+        .param("grade", i64::from(&self.grade).to_string())
         .param(
             "sex",
             match &self.sex {
@@ -95,10 +98,9 @@ impl crate::lib::DatabaseNode for Student {
         no_duplicates: bool,
     ) -> Result<u8, axum::http::StatusCode> {
         let inside_query = match no_duplicates {
-            true => "MERGE (s:Student { name: student.name, grade: student.grade, sex: student.sex user_id: $user_id }) MERGE (s)<-[:TEACHES]-(t)",
-            false => {
-                "CREATE (s:Student { name: student.name, grade: student.grade, sex: student.sex user_id: $user_id }) CREATE (s)<-[:TEACHES]-(t)"
-            }
+            true => "MERGE (s:Student { name: student.name, grade: student.grade, sex: student.sex, user_id: $user_id }) MERGE (s)<-[:TEACHES]-(t)",
+            false => 
+                "CREATE (s:Student { name: student.name, grade: student.grade, sex: student.sex, user_id: $user_id }) CREATE (s)<-[:TEACHES]-(t)"
         };
 
         let mut parameter_pairs: std::collections::HashMap<String, String> =
@@ -108,7 +110,7 @@ impl crate::lib::DatabaseNode for Student {
             .map(|q| {
                 let key = random_string::generate(50, "abcdefghijklmnopqrstuvwxyz");
                 parameter_pairs.insert(key.clone() + "name", q.name.clone());
-                parameter_pairs.insert(key.clone() + "grade", q.grade.to_string());
+                parameter_pairs.insert(key.clone() + "grade", i64::from(&q.grade).to_string());
                 parameter_pairs.insert(
                     key.clone() + "sex",
                     match &q.sex {
@@ -116,33 +118,31 @@ impl crate::lib::DatabaseNode for Student {
                         None => String::new(),
                     },
                 );
-                parameter_pairs.insert(
-                    key.clone() + "teachers",
-                    format!(
-                        "[{}]",
-                        q.teachers
+                // potential for sql injection by directly using the value from teachers
+                // that being said, it doesn't work otherwise
+                // maybe look for a way to sanitize inputs
+                // (same as when adding single student)
+                let teachers = format!("[{}]", q.teachers
                             .iter()
                             .map(|t| format!("\"{}\"", t.name.clone()))
                             .collect::<Vec<_>>()
-                            .join(",")
-                    ),
-                );
+                            .join(","));
                 format!(
-                    "{{ name: ${}name, grade: ${}grade, sex: ${}sex, teachers: ${}teachers }}",
-                    key, key, key, key
+                    "{{ name: ${}name, grade: ${}grade, sex: ${}sex, teachers: {} }}",
+                    key, key, key, teachers
                 )
             })
             .collect::<Vec<_>>()
             .join(",");
         let query_string = format!(
-            "UNWIND [{}] as student CALL {{WITH student MATCH (t:Teacher) WHERE t.name in student.teachers {} }}",
+            "UNWIND [{}] as student CALL {{ WITH student OPTIONAL MATCH (t:Teacher {{ user_id: $user_id }}) WHERE t.name IN student.teachers {} }}",
             parameter_list, inside_query
         );
         let mut query = neo4rs::query(&query_string).param("user_id", user_id.into());
 
         // substitute values in
         for (key, value) in parameter_pairs {
-            query = query.param(&key, value);
+                query = query.param(key.as_str(), value);
         }
 
         match graph.run(query).await {

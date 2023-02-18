@@ -75,7 +75,7 @@ impl crate::lib::DatabaseNode for Teacher {
             .join(",");
         let mut query = neo4rs::query(
             format!(
-                "UNWIND [{}] as teacher CALL {{WITH teacher {}}}",
+                "UNWIND [{}] as teacher CALL {{ WITH teacher {} }}",
                 parameter_list, inside_query
             )
             .as_str(),
