@@ -34,8 +34,6 @@ impl AdvisoryGroup {
     }
 
     /// Places students into advisories and returns a vector of them
-    ///
-    /// Called by [`crate::advisories::Advisory`]
     pub async fn generate<T: Into<String> + Send>(
         form: Settings,
         graph: &neo4rs::Graph,

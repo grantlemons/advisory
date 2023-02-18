@@ -1,5 +1,5 @@
 #![warn(missing_docs, clippy::missing_docs_in_private_items)]
-//! Functions and data types used by [`advisory_backend_bin`]
+//! Functions and data types used for generating advisories
 
 /// Verify trait for input validation
 pub trait Verify {
@@ -69,15 +69,15 @@ pub mod people {
     /// Enum representing each grade level
     mod grade;
     /// Struct and implementations for the abstraction of a Person in general
-    /// Almost identical to [`Teacher`], but with slightly different [`DatabaseNode`] implementations
+    /// Almost identical to [`Teacher`], but with slightly different [`crate::DatabaseNode`] implementations
     mod person;
     /// Enum representing Male & Female
     mod sex;
     /// Struct and implementations for the abstraction of a Student
-    /// Implementations of [`DatabaseNode`] include creating relationships with teacher nodes
+    /// Implementations of [`crate::DatabaseNode`] include creating relationships with teacher nodes
     mod student;
     /// Struct and implementations for the abstraction of a Teacher
-    /// Almost identical to [`Person`], but with slightly different [`DatabaseNode`] implementations
+    /// Almost identical to [`Person`], but with slightly different [`crate::DatabaseNode`] implementations
     mod teacher;
 
     // Re-exports of data types defined in modules

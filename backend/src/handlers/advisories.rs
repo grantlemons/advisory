@@ -8,7 +8,7 @@ use axum::{
     http::StatusCode,
 };
 
-/// Wrapper of [`build_advisories`] called by https get requests to `/`
+/// Get list of populated advisories based around passed settings and database values
 #[axum_macros::debug_handler]
 pub(crate) async fn get_advisories(
     State(state): State<SharedState>,
