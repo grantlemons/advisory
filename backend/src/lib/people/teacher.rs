@@ -39,8 +39,8 @@ impl crate::lib::DatabaseNode for Teacher {
         no_duplicates: bool,
     ) -> Result<u8, axum::http::StatusCode> {
         let query = match no_duplicates {
-            true => neo4rs::query("MERGE (t { name: $name, user_id: $user_id })"),
-            false => neo4rs::query("CREATE (t { name: $name, user_id: $user_id })"),
+            true => neo4rs::query("MERGE (t:Teacher { name: $name, user_id: $user_id })"),
+            false => neo4rs::query("CREATE (t:Teacher { name: $name, user_id: $user_id })"),
         }
         .param("name", self.name.as_str())
         .param("user_id", user_id.into());
@@ -58,8 +58,8 @@ impl crate::lib::DatabaseNode for Teacher {
         no_duplicates: bool,
     ) -> Result<u8, axum::http::StatusCode> {
         let inside_query = match no_duplicates {
-            true => "MERGE (p { name: teacher.name, user_id: $user_id })",
-            false => "CREATE (p { name: teacher.name, user_id: $user_id })",
+            true => "MERGE (t:Teacher { name: teacher.name, user_id: $user_id })",
+            false => "CREATE (t:Teacher { name: teacher.name, user_id: $user_id })",
         };
 
         let mut parameter_pairs: std::collections::HashMap<String, String> =
@@ -98,9 +98,10 @@ impl crate::lib::DatabaseNode for Teacher {
         graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<u8, axum::http::StatusCode> {
-        let query = neo4rs::query("MATCH (t { name: $name, user_id: $user_id }) DETACH DELETE t")
-            .param("name", self.name.as_str())
-            .param("user_id", user_id.into());
+        let query =
+            neo4rs::query("MATCH (t:Teacher { name: $name, user_id: $user_id }) DETACH DELETE t")
+                .param("name", self.name.as_str())
+                .param("user_id", user_id.into());
 
         match graph.run(query).await {
             Ok(_) => Ok(1),
@@ -112,8 +113,9 @@ impl crate::lib::DatabaseNode for Teacher {
         graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<Vec<Self>, axum::http::StatusCode> {
-        let query = neo4rs::query("MATCH (t { user_id: $user_id }) RETURN distinct(t) as teachers")
-            .param("user_id", user_id.into());
+        let query =
+            neo4rs::query("MATCH (t:Teacher { user_id: $user_id }) RETURN distinct(t) as teachers")
+                .param("user_id", user_id.into());
 
         match graph.execute(query).await {
             Ok(mut result) => {

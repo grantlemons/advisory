@@ -95,9 +95,9 @@ impl crate::lib::DatabaseNode for Student {
         no_duplicates: bool,
     ) -> Result<u8, axum::http::StatusCode> {
         let inside_query = match no_duplicates {
-            true => "MERGE (s { name: student.name, grade: student.grade, sex: student.sex user_id: $user_id }) MERGE (s)<-[:TEACHES]-(t)",
+            true => "MERGE (s:Student { name: student.name, grade: student.grade, sex: student.sex user_id: $user_id }) MERGE (s)<-[:TEACHES]-(t)",
             false => {
-                "CREATE (s { name: student.name, grade: student.grade, sex: student.sex user_id: $user_id }) CREATE (s)<-[:TEACHES]-(t)"
+                "CREATE (s:Student { name: student.name, grade: student.grade, sex: student.sex user_id: $user_id }) CREATE (s)<-[:TEACHES]-(t)"
             }
         };
 
