@@ -3,23 +3,33 @@ use anyhow::{anyhow, Result};
 use axum::{extract::State, http::Request, middleware::Next, response::Response};
 use serde::{Deserialize, Serialize};
 
-#[allow(missing_docs)]
+#[allow(clippy::missing_docs_in_private_items)]
 #[derive(Deserialize, Serialize, Debug, Clone, Default)]
 pub(crate) struct UserData {
-    pub(crate) auth_time: u64,
-    pub(crate) client_id: String,
+    auth_time: u64,
+    client_id: String,
     #[serde(rename = "cognito:groups", default)]
-    pub(crate) groups: std::collections::HashSet<String>,
-    pub(crate) event_id: String,
-    pub(crate) exp: u64,
-    pub(crate) iat: u64,
-    pub(crate) iss: String,
-    pub(crate) jti: String,
-    pub(crate) origin_jti: String,
-    pub(crate) scope: String,
-    pub(crate) sub: String,
-    pub(crate) token_use: String,
-    pub(crate) username: String,
+    groups: std::collections::HashSet<String>,
+    event_id: String,
+    exp: u64,
+    iat: u64,
+    iss: String,
+    jti: String,
+    origin_jti: String,
+    scope: String,
+    sub: String,
+    token_use: String,
+    username: String,
+}
+
+impl UserData {
+    pub(crate) fn user_id(&self) -> &str {
+        &self.sub
+    }
+
+    pub(crate) fn is_member(&self, group: &str) -> bool {
+        self.groups.contains(group)
+    }
 }
 
 /// Tower layer that adds an [`Option<UserData>`] as an extension to the request

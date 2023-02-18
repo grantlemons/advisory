@@ -18,7 +18,9 @@ pub(crate) async fn get_advisories(
     if let Some(user) = user_option {
         form.verify()?;
         match &state.graph {
-            Some(graph) => Ok(Json(AdvisoryGroup::generate(form, graph, user.sub).await?)),
+            Some(graph) => Ok(Json(
+                AdvisoryGroup::generate(form, graph, user.user_id()).await?,
+            )),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {

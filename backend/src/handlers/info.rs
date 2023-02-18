@@ -17,9 +17,15 @@ pub(crate) async fn get_info(
     Extension(user_option): Extension<Option<UserData>>,
 ) -> Result<Json<CrateInfo>, StatusCode> {
     if let Some(user) = user_option {
-        log::info!("Checking user {}'s authorization for get_info", user.sub);
-        if user.groups.contains("Administrator") {
-            log::info!("get_info authorization check successful for {}", user.sub);
+        log::info!(
+            "Checking user {}'s authorization for get_info",
+            user.user_id()
+        );
+        if user.is_member("Administrator") {
+            log::info!(
+                "get_info authorization check successful for {}",
+                user.user_id()
+            );
             Ok(Json(CrateInfo {
                 name: env!("CARGO_PKG_NAME"),
                 authors: env!("CARGO_PKG_AUTHORS").split(',').collect(),
@@ -29,7 +35,10 @@ pub(crate) async fn get_info(
                 repository: env!("CARGO_PKG_REPOSITORY"),
             }))
         } else {
-            log::info!("Insufficient permissions to access get_info {}", user.sub);
+            log::info!(
+                "Insufficient permissions to access get_info {}",
+                user.user_id()
+            );
             Err(StatusCode::UNAUTHORIZED)
         }
     } else {
