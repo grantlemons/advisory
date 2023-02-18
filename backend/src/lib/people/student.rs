@@ -63,14 +63,14 @@ impl crate::lib::DatabaseNode for Student {
         user_id: T,
         no_duplicates: bool,
     ) -> Result<u8, axum::http::StatusCode> {
-        let query = match no_duplicates {
-            true => neo4rs::query(
-                "MERGE (s:Student { name: $name, grade: $grade, sex: $sex, user_id: $user_id })",
-            ),
-            false => neo4rs::query(
-                "CREATE (s:Student { name: $name, grade: $grade, sex: $sex, user_id: $user_id })",
-            ),
-        }
+        let query_string = match no_duplicates {
+            true => 
+                "MERGE (s:Student { name: $name, grade: $grade, sex: $sex, user_id: $user_id }) MERGE (s)<-[:TEACHES]-(t)",
+            false => 
+                "CREATE (s:Student { name: $name, grade: $grade, sex: $sex, user_id: $user_id }) CREATE (s)<-[:TEACHES]-(t)",
+        };
+        let teachers = self.teachers.iter().map(|t| format!("\"{}\"", t.name.clone())).collect::<Vec<_>>().join(",");
+        let query = neo4rs::query(&format!("WITH [{}] as teachers MATCH (t:Teacher) WHERE t.name IN teachers {}", teachers, query_string))
         .param("name", self.name.as_str())
         .param("grade", i64::from(&self.grade))
         .param(
@@ -134,14 +134,11 @@ impl crate::lib::DatabaseNode for Student {
             })
             .collect::<Vec<_>>()
             .join(",");
-        let mut query = neo4rs::query(
-            format!(
-                "UNWIND [{}] as student CALL {{WITH student MATCH (t:Teacher) WHERE t.name in student.teachers {} }}",
-                parameter_list, inside_query
-            )
-            .as_str(),
-        )
-        .param("user_id", user_id.into());
+        let query_string = format!(
+            "UNWIND [{}] as student CALL {{WITH student MATCH (t:Teacher) WHERE t.name in student.teachers {} }}",
+            parameter_list, inside_query
+        );
+        let mut query = neo4rs::query(&query_string).param("user_id", user_id.into());
 
         // substitute values in
         for (key, value) in parameter_pairs {
@@ -172,6 +169,19 @@ impl crate::lib::DatabaseNode for Student {
             },
         )
         .param("user_id", user_id.into());
+
+        match graph.run(query).await {
+            Ok(_) => Ok(1),
+            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+        }
+    }
+
+    async fn clear_nodes<T: Into<String> + Send>(
+        graph: &neo4rs::Graph,
+        user_id: T,
+    ) -> Result<u8, axum::http::StatusCode> {
+        let query = neo4rs::query("MATCH (s:Student { user_id: $user_id }) DETACH DELETE (s)")
+            .param("user_id", user_id.into());
 
         match graph.run(query).await {
             Ok(_) => Ok(1),

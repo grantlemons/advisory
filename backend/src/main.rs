@@ -33,6 +33,10 @@ mod lib {
             graph: &neo4rs::Graph,
             user_id: T,
         ) -> Result<u8, axum::http::StatusCode>;
+        async fn clear_nodes<T: Into<String> + Send>(
+            graph: &neo4rs::Graph,
+            user_id: T,
+        ) -> Result<u8, axum::http::StatusCode>;
         async fn get_nodes<T: Into<String> + Send>(
             graph: &neo4rs::Graph,
             user_id: T,

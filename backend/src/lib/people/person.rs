@@ -104,6 +104,19 @@ impl crate::lib::DatabaseNode for Person {
         }
     }
 
+    async fn clear_nodes<T: Into<String> + Send>(
+        graph: &neo4rs::Graph,
+        user_id: T,
+    ) -> Result<u8, axum::http::StatusCode> {
+        let query = neo4rs::query("MATCH (p { user_id: $user_id }) DETACH DELETE (p)")
+            .param("user_id", user_id.into());
+
+        match graph.run(query).await {
+            Ok(_) => Ok(1),
+            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+        }
+    }
+
     async fn get_nodes<T: Into<String> + Send>(
         graph: &neo4rs::Graph,
         user_id: T,
@@ -121,21 +134,6 @@ impl crate::lib::DatabaseNode for Person {
                 }
                 Ok(people)
             }
-            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
-        }
-    }
-}
-
-impl Person {
-    pub(crate) async fn clear_nodes<T: Into<String> + Send>(
-        graph: &neo4rs::Graph,
-        user_id: T,
-    ) -> Result<u8, axum::http::StatusCode> {
-        let query = neo4rs::query("MATCH (p { user_id: $user_id }) DETACH DELETE (p)")
-            .param("user_id", user_id.into());
-
-        match graph.run(query).await {
-            Ok(_) => Ok(1),
             Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
         }
     }

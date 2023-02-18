@@ -109,6 +109,19 @@ impl crate::lib::DatabaseNode for Teacher {
         }
     }
 
+    async fn clear_nodes<T: Into<String> + Send>(
+        graph: &neo4rs::Graph,
+        user_id: T,
+    ) -> Result<u8, axum::http::StatusCode> {
+        let query = neo4rs::query("MATCH (t:Teacher { user_id: $user_id }) DETACH DELETE (t)")
+            .param("user_id", user_id.into());
+
+        match graph.run(query).await {
+            Ok(_) => Ok(1),
+            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+        }
+    }
+
     async fn get_nodes<T: Into<String> + Send>(
         graph: &neo4rs::Graph,
         user_id: T,
