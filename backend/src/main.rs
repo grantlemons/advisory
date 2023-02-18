@@ -7,6 +7,7 @@
 //! **Notes**
 //!
 //! A custom fork of neo4rs is used to add functionality for handling vectors as a return type from neo4j
+use anyhow::{Context, Result};
 use axum::{routing::*, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
@@ -29,16 +30,20 @@ mod auth;
 #[allow(dead_code)]
 #[derive(Clone)]
 struct SharedState {
+    /// Graph for database access
     graph: Option<Arc<neo4rs::Graph>>,
+    /// Keyset for JWT decoding (auth)
     keyset: jsonwebtokens_cognito::KeySet,
+    /// Verifier for JWT decoding (auth)
+    /// Stored in state so it doesn't need to be generated each time
     verifier: jsonwebtokens::Verifier,
 }
 
 /// Main async function run when executing the crate
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     // Setup logger
-    setup_logger().expect("Unable to setup logger with fern");
+    setup_logger()?;
 
     // Connect to database
     let user = "neo4j";
@@ -53,7 +58,7 @@ async fn main() {
     let graph = Arc::new(
         neo4rs::Graph::new(&uri, user, &pass)
             .await
-            .expect("Unable to connect to database"),
+            .context("Unable to connect to database")?,
     );
 
     // JSON webtoken setup
@@ -61,8 +66,7 @@ async fn main() {
     keyset.prefetch_jwks().await.unwrap();
     let verifier = keyset
         .new_access_token_verifier(&["5c6eva8nctpb3aug8l0teak36v"])
-        .build()
-        .unwrap();
+        .build()?;
 
     // State to be accessed by handlers
     let state = SharedState {
@@ -91,8 +95,7 @@ async fn main() {
         false => {
             axum::Server::bind(&addr)
                 .serve(app(state).into_make_service())
-                .await
-                .unwrap();
+                .await?;
         }
         true => {
             // Get SSL certificates from file
@@ -105,15 +108,14 @@ async fn main() {
                     .join("self_signed_certs")
                     .join("key.pem"),
             )
-            .await
-            .unwrap();
+            .await?;
 
             axum_server::bind_rustls(addr, config)
                 .serve(app(state).into_make_service())
-                .await
-                .unwrap();
+                .await?;
         }
     }
+    Ok(())
 }
 
 fn app(state: SharedState) -> Router {
@@ -144,7 +146,7 @@ fn app(state: SharedState) -> Router {
 }
 
 /// Logger configuration using [`fern`]
-fn setup_logger() -> Result<(), fern::InitError> {
+fn setup_logger() -> Result<()> {
     fern::Dispatch::new()
         .format(|out, message, record| {
             out.finish(format_args!(
@@ -157,10 +159,14 @@ fn setup_logger() -> Result<(), fern::InitError> {
         })
         .level(log::LevelFilter::Info)
         .chain(std::io::stdout())
-        .chain(fern::log_file(format!(
-            "/logs/{}.log",
-            chrono::Local::now().format("[%Y-%m-%d][%H:%M]")
-        ))?)
-        .apply()?;
+        .chain(
+            fern::log_file(format!(
+                "/logs/{}.log",
+                chrono::Local::now().format("[%Y-%m-%d][%H:%M]")
+            ))
+            .context("Unable to open log file")?,
+        )
+        .apply()
+        .context("Failed to dispatch logger")?;
     Ok(())
 }

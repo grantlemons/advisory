@@ -58,6 +58,7 @@ pub mod advisories {
     pub use settings::Settings;
     pub use weights::Weights;
 }
+
 pub mod people {
     mod grade;
     mod person;

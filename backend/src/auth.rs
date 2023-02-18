@@ -1,7 +1,9 @@
 use crate::SharedState;
+use anyhow::{anyhow, Result};
 use axum::{extract::State, http::Request, middleware::Next, response::Response};
 use serde::{Deserialize, Serialize};
 
+#[allow(missing_docs)]
 #[derive(Deserialize, Serialize, Debug, Clone, Default)]
 pub(crate) struct UserData {
     pub(crate) auth_time: u64,
@@ -56,9 +58,10 @@ async fn decrypt_jwt(
     token: &str,
     keyset: &jsonwebtokens_cognito::KeySet,
     verifier: &jsonwebtokens::Verifier,
-) -> Result<UserData, jsonwebtokens_cognito::Error> {
-    match keyset.verify(token, verifier).await {
-        Ok(res) => Ok(serde_json::from_value(res).unwrap()),
-        Err(err) => Err(err),
-    }
+) -> Result<UserData> {
+    let json = match keyset.verify(token, verifier).await {
+        Ok(value) => Ok(value),
+        Err(err) => Err(anyhow!("{}", err)),
+    }?;
+    Ok(serde_json::from_value(json)?)
 }

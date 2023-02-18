@@ -15,7 +15,7 @@ impl AdvisoryGroup {
 
         Self(vec![
             Advisory::default(students_per_advisory);
-            advisory_count.try_into().unwrap()
+            advisory_count as usize
         ])
     }
 
