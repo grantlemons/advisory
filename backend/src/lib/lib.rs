@@ -4,6 +4,7 @@
 /// Verify trait for input validation
 pub trait Verify {
     /// Verify whether the data in a struct fits certain defined restraints
+    /// Returns an [`axum::http::StatusCode`] type, so errors can be passed through to handlers
     fn verify(&self) -> Result<(), axum::http::StatusCode>;
 }
 

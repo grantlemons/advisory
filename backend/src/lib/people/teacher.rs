@@ -1,13 +1,43 @@
 use serde::{Deserialize, Serialize};
 
 /// Representation of a teacher
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Debug, Default, PartialEq, Eq)]
 pub struct Teacher {
     /// Teacher's name - should be in `First Last` format, but can be anything that distinguishes them from other teachers
     pub name: String,
 }
 
+impl Teacher {
+    /// Creates a new teacher with a name
+    pub fn new<T: Into<String>>(name: T) -> Self {
+        Self { name: name.into() }
+    }
+}
+
 impl crate::Verify for Teacher {
+    /// Returns an [`axum::http::StatusCode`] type, so errors can be passed through to handlers
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teacher = Teacher { name: "Testing Name".to_string() };
+    ///     teacher.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_eq!(func(), Ok(()))
+    /// ```
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teacher = Teacher { name: "".to_string() };
+    ///     teacher.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_ne!(func(), Ok(()))
+    /// ```
     fn verify(&self) -> Result<(), axum::http::StatusCode> {
         if self.name.is_empty() {
             Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
@@ -18,12 +48,51 @@ impl crate::Verify for Teacher {
 }
 
 impl crate::Verify for Vec<Teacher> {
+    /// Returns an [`axum::http::StatusCode`] type, so errors can be passed through to handlers
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teacher = Teacher { name: "Testing Name".to_string() };
+    ///     let teachers: Vec<Teacher> = vec![teacher];
+    ///     teachers.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_eq!(func(), Ok(()))
+    /// ```
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teacher = Teacher { name: "".to_string() };
+    ///     let teachers: Vec<Teacher> = vec![teacher];
+    ///     teachers.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_ne!(func(), Ok(()))
+    /// ```
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teachers: Vec<Teacher> = Vec::new();
+    ///     teachers.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_ne!(func(), Ok(()))
+    /// ```
     fn verify(&self) -> Result<(), axum::http::StatusCode> {
         // Check if each teacher is valid
         for i in self {
             i.verify()?;
         }
-        Ok(())
+        if self.is_empty() {
+            Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
+        } else {
+            Ok(())
+        }
     }
 }
 

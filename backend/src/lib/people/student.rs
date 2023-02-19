@@ -22,12 +22,41 @@ impl std::fmt::Display for Student {
 }
 
 impl crate::Verify for Student {
+    /// Returns an [`axum::http::StatusCode`] type, so errors can be passed through to handlers
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher, Grade}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teacher = Teacher { name: "Testing Name".to_string() };
+    ///     let student = Student {
+    ///         name: "Testing Name".to_string(),
+    ///         teachers: vec![teacher],
+    ///         grade: Grade::Freshman,
+    ///         sex: None,
+    ///     };
+    ///     student.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_eq!(func(), Ok(()))
+    /// ```
+    /// 
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let student = Student::default();
+    ///     student.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_ne!(func(), Ok(()))
+    /// ```
     fn verify(&self) -> Result<(), axum::http::StatusCode> {
         // Check if each teacher is valid
         for i in &self.teachers {
             i.verify()?
         }
-        if self.name.is_empty() {
+        if self.name.is_empty() || self.teachers.len() == 0 {
             Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
         } else {
             Ok(())
@@ -36,6 +65,37 @@ impl crate::Verify for Student {
 }
 
 impl crate::Verify for Vec<Student> {
+    /// Returns an [`axum::http::StatusCode`] type, so errors can be passed through to handlers
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher, Grade}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teacher = Teacher { name: "Testing Name".to_string() };
+    ///     let student = Student {
+    ///         name: "Testing Name".to_string(),
+    ///         teachers: vec![teacher],
+    ///         grade: Grade::Freshman,
+    ///         sex: None,
+    ///     };
+    ///     let students: Vec<Student> = vec![student];
+    ///     students.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_eq!(func(), Ok(()))
+    /// ```
+    /// 
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let student = Student::default();
+    ///     let students: Vec<Student> = vec![student];
+    ///     students.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_ne!(func(), Ok(()))
+    /// ```
     fn verify(&self) -> Result<(), axum::http::StatusCode> {
         // Check if each teacher is valid
         for i in self {
@@ -47,9 +107,22 @@ impl crate::Verify for Vec<Student> {
 
 /// Default values of the [`Student`] struct
 impl Default for Student {
+    /// Example
+    /// 
+    /// ```
+    /// # use advisory_backend_lib::people::{Student, Teacher, Grade};
+    /// let default_student = Student::default();
+    /// let student = Student {
+    ///     name: "".to_string(),
+    ///     teachers: Vec::<Teacher>::new(),
+    ///     grade: Grade::Freshman,
+    ///     sex: None,
+    /// };
+    /// assert_eq!(default_student, student);
+    /// ```
     fn default() -> Student {
         Self {
-            name: String::from("Default Name"),
+            name: "".to_string(),
             teachers: Vec::<Teacher>::new(),
             grade: Grade::Freshman,
             sex: None,

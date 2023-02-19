@@ -13,6 +13,22 @@ pub struct Settings {
 }
 
 impl crate::Verify for Settings {
+    /// Returns an [`axum::http::StatusCode`] type, so errors can be passed through to handlers
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, advisories::{Settings, Weights}, people::Teacher};
+    /// # fn main() -> Result<(), axum::http::StatusCode> {
+    /// # let settings = Settings {
+    /// #     weights: Weights::default(),
+    /// #     num_advisories: 1,
+    /// #     teacher_pairs: vec![[Some(Teacher::default()), Some(Teacher::default())]]
+    /// # };
+    /// settings.verify()?;
+    /// # Ok(())
+    /// # }
+    /// ```
     fn verify(&self) -> Result<(), axum::http::StatusCode> {
         if !self.num_advisories > 0 {
             Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)

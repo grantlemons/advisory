@@ -38,6 +38,18 @@ impl std::fmt::Display for Advisory {
 }
 
 impl Advisory {
+    /// Default advisory values given target number of students for the advisory
+    pub(crate) fn new(n: i16) -> Advisory {
+        log::info!("Initialized new advisory via new");
+        Self {
+            advisors: Vec::<Teacher>::with_capacity(2),
+            students: Vec::<Student>::with_capacity(n as usize),
+            // Set number of "spots" based on number of students in advisory
+            remaining_sex: [n / 2, n / 2],
+            remaining_grade: [n / 4, n / 4, n / 4, n / 4],
+        }
+    }
+
     /// Adds a [`Student`] struct to the students vector
     pub(crate) fn add_student(&mut self, s: Student) {
         // Reduce number of remaining "spots" for the added student's sex
@@ -94,18 +106,6 @@ impl Advisory {
             }
         }
         has
-    }
-
-    /// Default advisory values given target number of students for the advisory
-    pub(crate) fn new(n: i16) -> Advisory {
-        log::info!("Initialized new advisory via new");
-        Self {
-            advisors: Vec::<Teacher>::new(),
-            students: Vec::<Student>::new(),
-            // Set number of "spots" based on number of students in advisory
-            remaining_sex: [n / 2, n / 2],
-            remaining_grade: [n / 4, n / 4, n / 4, n / 4],
-        }
     }
 
     /// Calculate a weight between the advisory and a student
