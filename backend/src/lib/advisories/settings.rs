@@ -2,7 +2,7 @@ use crate::{advisories::Weights, people::Teacher};
 use serde::{Deserialize, Serialize};
 
 /// Form for [`crate::advisories::Advisory`]'s input
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Settings {
     /// The respective value of each factor in the calculation of advisory 'scores'
     pub weights: Weights,
