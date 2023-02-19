@@ -56,7 +56,7 @@ impl crate::Verify for Student {
         for i in &self.teachers {
             i.verify()?
         }
-        if self.name.is_empty() || self.teachers.len() == 0 {
+        if self.name.is_empty() || self.teachers.is_empty() {
             Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
         } else {
             Ok(())
