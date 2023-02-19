@@ -1,18 +1,18 @@
 use crate::{
     advisories::{Advisory, Settings},
     people::{Student, Teacher},
-    DatabaseNode, Verify,
+    Verify,
 };
 use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
 
-/// Multiple advisories
+/// Multiple advisories make up an organization
 /// Generating this struct is the goal of the program
 #[derive(Deserialize, Serialize)]
-pub struct AdvisoryGroup(pub Vec<Advisory>);
+pub struct Organization(pub Vec<Advisory>);
 
-impl AdvisoryGroup {
-    /// Initialize [`AdvisoryGroup`] to the number of desired advisories
+impl Organization {
+    /// Initialize [`Organization`] to the number of desired advisories
     /// Initialize each advisory with quotas
     fn new(student_count: i16, advisory_count: i16) -> Self {
         let students_per_advisory = student_count / advisory_count;
@@ -34,23 +34,16 @@ impl AdvisoryGroup {
     }
 
     /// Places students into advisories and returns a vector of them
-    pub async fn generate<T: Into<String> + Send>(
-        form: Settings,
-        graph: &neo4rs::Graph,
-        user_id: T,
-    ) -> Result<Self, StatusCode> {
+    pub async fn generate(form: Settings, students: Vec<Student>) -> Result<Self, StatusCode> {
         log::info!("Building advisories");
         form.verify()?;
-
-        // fetch student data from database
-        let students: Vec<Student> = Student::get_nodes(graph, user_id).await?;
 
         // define constants for later use
         let student_count: i16 = students.len() as i16;
         let advisory_count: i16 = form.num_advisories;
 
         // create vector of advisories to fill
-        let mut advisories: AdvisoryGroup = AdvisoryGroup::new(student_count, advisory_count);
+        let mut advisories: Organization = Organization::new(student_count, advisory_count);
 
         advisories.assign_teachers(&form.teacher_pairs);
 
@@ -83,7 +76,7 @@ mod test {
 
     #[test]
     fn new_group() {
-        let advisory_group = AdvisoryGroup::new(10, 5);
+        let advisory_group = Organization::new(10, 5);
         assert_eq!(advisory_group.0.len(), 5);
     }
 
@@ -93,7 +86,7 @@ mod test {
         let teacher2 = Teacher::default();
         let teacher_pairs: &[[Option<Teacher>; 2]] = &[[Some(teacher1), Some(teacher2)]];
 
-        let mut advisory_group = AdvisoryGroup::new(10, 1);
+        let mut advisory_group = Organization::new(10, 1);
         advisory_group.assign_teachers(teacher_pairs);
 
         assert_eq!(advisory_group.0.len(), 1);

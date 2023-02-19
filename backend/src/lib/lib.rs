@@ -52,7 +52,7 @@ pub mod advisories {
     /// Struct and implementations that represent the concept of an advisory
     mod advisory;
     /// Struct that represents a vector of advisories and is able to generate advisories
-    mod advisory_group;
+    mod organization;
     /// Struct representing the data sent to the database to configure the returned advisories
     mod settings;
     /// Struct controlling the relative importance of each criteria for a student and advisory
@@ -60,7 +60,7 @@ pub mod advisories {
 
     // Re-exports of data types defined in modules
     pub use advisory::Advisory;
-    pub use advisory_group::AdvisoryGroup;
+    pub use organization::Organization;
     pub use settings::Settings;
     pub use weights::Weights;
 }
