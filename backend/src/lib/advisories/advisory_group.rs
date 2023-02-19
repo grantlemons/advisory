@@ -76,3 +76,26 @@ impl AdvisoryGroup {
         Ok(advisories)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn new_group() {
+        let advisory_group = AdvisoryGroup::new(10, 5);
+        assert_eq!(advisory_group.0.len(), 5);
+    }
+
+    #[test]
+    fn assign_teachers_to_group() {
+        let teacher1 = Teacher::default();
+        let teacher2 = Teacher::default();
+        let teacher_pairs: &[[Option<Teacher>; 2]] = &[[Some(teacher1), Some(teacher2)]];
+
+        let mut advisory_group = AdvisoryGroup::new(10, 1);
+        advisory_group.assign_teachers(teacher_pairs);
+
+        assert_eq!(advisory_group.0.len(), 1);
+    }
+}
