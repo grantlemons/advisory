@@ -144,14 +144,14 @@
 
     function get_advisories() {
         let teacher_pairs: [Teacher, Teacher][] = [
-            [{ name: 'Wessels' }, { name: 'Downes' }],
-            [{ name: 'McGarvey' }, { name: 'Curiel' }],
-            [{ name: 'Sim' }, { name: 'Sims' }],
-            [{ name: 'Minks' }, { name: 'Doongaji' }],
-            [{ name: 'Hesseltine' }, { name: 'Briggs' }],
-            [{ name: 'Lundberg' }, { name: 'Li' }],
-            [{ name: 'Murillo' }, { name: 'Mir' }],
-            [{ name: 'Gross' }, { name: 'Fleisher' }],
+            [{ name: 'Garcia' }, { name: 'Downes' }],
+            [{ name: 'Hardy' }, { name: 'Sims' }],
+            [{ name: 'Bobbit' }, { name: 'Gross' }],
+            [{ name: 'Mir' }, { name: 'Fleisher' }],
+            [{ name: 'Hesseltine' }, { name: 'McGarvey' }],
+            [{ name: 'Doongaji' }, { name: 'Sim' }],
+            [{ name: 'Li' }, { name: 'Lundberg' }],
+            [{ name: 'Curiel' }, { name: 'Wessels' }],
         ];
         let data: Settings = {
             weights: {
