@@ -39,7 +39,7 @@ impl std::fmt::Display for Advisory {
 
 impl Advisory {
     /// Default advisory values given target number of students for the advisory
-    pub(crate) fn new(n: i16) -> Advisory {
+    pub(crate) fn new(n: i16) -> Self {
         log::info!("Initialized new advisory via new");
         Self {
             advisors: Vec::<Teacher>::with_capacity(2),
