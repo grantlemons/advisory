@@ -3,16 +3,16 @@ use serde::{Deserialize, Serialize};
 
 /// Representation of a student
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Student {
+pub struct Student {
     /// Student's name - should be in `First Last` format, but can be anything that distinguishes them from other students
-    pub(crate) name: String,
+    pub name: String,
     /// Vector list of the student's teacher for the current academic school year
-    pub(crate) teachers: Vec<Teacher>,
+    pub teachers: Vec<Teacher>,
     /// Student's grade represented with the [`Grade`] enum
-    pub(crate) grade: Grade,
+    pub grade: Grade,
     /// Student's biological sex, represented by the [`Sex`] enum
     /// Optional
-    pub(crate) sex: Option<Sex>,
+    pub sex: Option<Sex>,
 }
 
 impl std::fmt::Display for Student {
@@ -22,32 +22,107 @@ impl std::fmt::Display for Student {
 }
 
 impl crate::Verify for Student {
-    fn verify(&self) -> bool {
+    /// Returns an [`axum::http::StatusCode`] type, so errors can be passed through to handlers
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher, Grade}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teacher = Teacher { name: "Testing Name".to_string() };
+    ///     let student = Student {
+    ///         name: "Testing Name".to_string(),
+    ///         teachers: vec![teacher],
+    ///         grade: Grade::Freshman,
+    ///         sex: None,
+    ///     };
+    ///     student.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_eq!(func(), Ok(()))
+    /// ```
+    /// 
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let student = Student::default();
+    ///     student.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_ne!(func(), Ok(()))
+    /// ```
+    fn verify(&self) -> Result<(), axum::http::StatusCode> {
         // Check if each teacher is valid
-        let mut teachers_valid = true;
         for i in &self.teachers {
-            teachers_valid = teachers_valid && i.verify()
+            i.verify()?
         }
-        !self.name.is_empty() && teachers_valid
+        if self.name.is_empty() || self.teachers.is_empty() {
+            Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
+        } else {
+            Ok(())
+        }
     }
 }
 
 impl crate::Verify for Vec<Student> {
-    fn verify(&self) -> bool {
+    /// Returns an [`axum::http::StatusCode`] type, so errors can be passed through to handlers
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher, Grade}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teacher = Teacher { name: "Testing Name".to_string() };
+    ///     let student = Student {
+    ///         name: "Testing Name".to_string(),
+    ///         teachers: vec![teacher],
+    ///         grade: Grade::Freshman,
+    ///         sex: None,
+    ///     };
+    ///     let students: Vec<Student> = vec![student];
+    ///     students.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_eq!(func(), Ok(()))
+    /// ```
+    /// 
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let student = Student::default();
+    ///     let students: Vec<Student> = vec![student];
+    ///     students.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_ne!(func(), Ok(()))
+    /// ```
+    fn verify(&self) -> Result<(), axum::http::StatusCode> {
         // Check if each teacher is valid
-        let mut students_valid = true;
         for i in self {
-            students_valid = students_valid && i.verify();
+            i.verify()?
         }
-        students_valid
+        Ok(())
     }
 }
 
 /// Default values of the [`Student`] struct
 impl Default for Student {
+    /// Example
+    /// 
+    /// ```
+    /// # use advisory_backend_lib::people::{Student, Teacher, Grade};
+    /// let default_student = Student::default();
+    /// let student = Student {
+    ///     name: "".to_string(),
+    ///     teachers: Vec::<Teacher>::new(),
+    ///     grade: Grade::Freshman,
+    ///     sex: None,
+    /// };
+    /// assert_eq!(default_student, student);
+    /// ```
     fn default() -> Student {
         Self {
-            name: String::from("Default Name"),
+            name: "".to_string(),
             teachers: Vec::<Teacher>::new(),
             grade: Grade::Freshman,
             sex: None,
@@ -56,7 +131,7 @@ impl Default for Student {
 }
 
 #[async_trait::async_trait]
-impl crate::lib::DatabaseNode for Student {
+impl crate::DatabaseNode for Student {
     async fn add_node<T: Into<String> + Send>(
         &self,
         graph: &neo4rs::Graph,

@@ -1,26 +1,98 @@
 use serde::{Deserialize, Serialize};
 
 /// Representation of a teacher
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Teacher {
+#[derive(Deserialize, Serialize, Clone, Debug, Default, PartialEq, Eq)]
+pub struct Teacher {
     /// Teacher's name - should be in `First Last` format, but can be anything that distinguishes them from other teachers
-    pub(crate) name: String,
+    pub name: String,
+}
+
+impl Teacher {
+    /// Creates a new teacher with a name
+    pub fn new<T: Into<String>>(name: T) -> Self {
+        Self { name: name.into() }
+    }
 }
 
 impl crate::Verify for Teacher {
-    fn verify(&self) -> bool {
-        !self.name.is_empty()
+    /// Returns an [`axum::http::StatusCode`] type, so errors can be passed through to handlers
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teacher = Teacher { name: "Testing Name".to_string() };
+    ///     teacher.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_eq!(func(), Ok(()))
+    /// ```
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teacher = Teacher { name: "".to_string() };
+    ///     teacher.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_ne!(func(), Ok(()))
+    /// ```
+    fn verify(&self) -> Result<(), axum::http::StatusCode> {
+        if self.name.is_empty() {
+            Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
+        } else {
+            Ok(())
+        }
     }
 }
 
 impl crate::Verify for Vec<Teacher> {
-    fn verify(&self) -> bool {
+    /// Returns an [`axum::http::StatusCode`] type, so errors can be passed through to handlers
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teacher = Teacher { name: "Testing Name".to_string() };
+    ///     let teachers: Vec<Teacher> = vec![teacher];
+    ///     teachers.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_eq!(func(), Ok(()))
+    /// ```
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teacher = Teacher { name: "".to_string() };
+    ///     let teachers: Vec<Teacher> = vec![teacher];
+    ///     teachers.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_ne!(func(), Ok(()))
+    /// ```
+    ///
+    /// ```
+    /// # use advisory_backend_lib::{Verify, people::{Teacher}};
+    /// fn func() -> Result<(), axum::http::StatusCode> {
+    ///     let teachers: Vec<Teacher> = Vec::new();
+    ///     teachers.verify()?;
+    ///     Ok(())
+    /// }
+    /// assert_ne!(func(), Ok(()))
+    /// ```
+    fn verify(&self) -> Result<(), axum::http::StatusCode> {
         // Check if each teacher is valid
-        let mut teachers_valid = true;
         for i in self {
-            teachers_valid = teachers_valid && i.verify();
+            i.verify()?;
         }
-        teachers_valid
+        if self.is_empty() {
+            Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -31,7 +103,7 @@ impl std::fmt::Display for Teacher {
 }
 
 #[async_trait::async_trait]
-impl crate::lib::DatabaseNode for Teacher {
+impl crate::DatabaseNode for Teacher {
     async fn add_node<T: Into<String> + Send>(
         &self,
         graph: &neo4rs::Graph,

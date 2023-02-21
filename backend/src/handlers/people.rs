@@ -1,8 +1,7 @@
-use crate::{
-    auth::UserData,
-    lib::DatabaseNode,
+use crate::{auth::UserData, SharedState};
+use advisory_backend_lib::{
     people::{Person, Student, Teacher},
-    SharedState, Verify,
+    DatabaseNode, Verify,
 };
 use axum::{
     extract::{Extension, Json, State},
@@ -17,7 +16,7 @@ pub(crate) async fn clear_people_handler(
 ) -> Result<Json<u8>, StatusCode> {
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(Person::clear_nodes(graph, user.sub).await?)),
+            Some(graph) => Ok(Json(Person::clear_nodes(graph, user.user_id()).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -34,7 +33,7 @@ pub(crate) async fn get_people_handler(
 ) -> Result<Json<Vec<Person>>, StatusCode> {
     if let Some(user) = user_option {
         match &state.graph {
-            Some(graph) => Ok(Json(Person::get_nodes(graph, user.sub).await?)),
+            Some(graph) => Ok(Json(Person::get_nodes(graph, user.user_id()).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -53,8 +52,9 @@ pub(crate) async fn add_teacher_handler(
     Json(form): Json<Teacher>,
 ) -> Result<Json<u8>, StatusCode> {
     if let Some(user) = user_option {
+        form.verify()?;
         match &state.graph {
-            Some(graph) => Ok(Json(form.add_node(graph, user.sub, true).await?)),
+            Some(graph) => Ok(Json(form.add_node(graph, user.user_id(), true).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -73,12 +73,10 @@ pub(crate) async fn add_teacher_bulk(
     Json(form): Json<Vec<Teacher>>,
 ) -> Result<Json<u8>, StatusCode> {
     if let Some(user) = user_option {
-        if !form.verify() {
-            return Err(StatusCode::UNPROCESSABLE_ENTITY);
-        }
+        form.verify()?;
         match &state.graph {
             Some(graph) => Ok(Json(
-                Teacher::add_multiple_nodes(form, graph, user.sub, true).await?,
+                Teacher::add_multiple_nodes(form, graph, user.user_id(), true).await?,
             )),
             None => Err(StatusCode::BAD_GATEWAY),
         }
@@ -98,8 +96,9 @@ pub(crate) async fn add_student_handler(
     Json(form): Json<Student>,
 ) -> Result<Json<u8>, StatusCode> {
     if let Some(user) = user_option {
+        form.verify()?;
         match &state.graph {
-            Some(graph) => Ok(Json(form.add_node(graph, user.sub, true).await?)),
+            Some(graph) => Ok(Json(form.add_node(graph, user.user_id(), true).await?)),
             None => Err(StatusCode::BAD_GATEWAY),
         }
     } else {
@@ -118,12 +117,10 @@ pub(crate) async fn add_student_bulk(
     Json(form): Json<Vec<Student>>,
 ) -> Result<Json<u8>, StatusCode> {
     if let Some(user) = user_option {
-        if !form.verify() {
-            return Err(StatusCode::UNPROCESSABLE_ENTITY);
-        }
+        form.verify()?;
         match &state.graph {
             Some(graph) => Ok(Json(
-                Student::add_multiple_nodes(form, graph, user.sub, true).await?,
+                Student::add_multiple_nodes(form, graph, user.user_id(), true).await?,
             )),
             None => Err(StatusCode::BAD_GATEWAY),
         }

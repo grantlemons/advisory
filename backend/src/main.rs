@@ -1,3 +1,4 @@
+#![warn(missing_docs, clippy::missing_docs_in_private_items)]
 //! A crate for running the backend of an application used to sort students into advisories based on
 //! specific criteria with weighted values that can be configured via an endpoint.
 //!
@@ -6,116 +7,46 @@
 //! **Notes**
 //!
 //! A custom fork of neo4rs is used to add functionality for handling vectors as a return type from neo4j
+use anyhow::{Context, Result};
 use axum::{routing::*, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
-/// Various functions and structs used elsewhere in the code
-mod lib {
-    #[async_trait::async_trait]
-    pub(crate) trait DatabaseNode {
-        async fn add_node<T: Into<String> + Send>(
-            &self,
-            graph: &neo4rs::Graph,
-            user_id: T,
-            no_duplicates: bool,
-        ) -> Result<u8, axum::http::StatusCode>;
-        async fn add_multiple_nodes<T: Into<String> + Send>(
-            nodes: Vec<Self>,
-            graph: &neo4rs::Graph,
-            user_id: T,
-            no_duplicates: bool,
-        ) -> Result<u8, axum::http::StatusCode>
-        where
-            Self: Sized;
-        async fn remove_node<T: Into<String> + Send>(
-            &self,
-            graph: &neo4rs::Graph,
-            user_id: T,
-        ) -> Result<u8, axum::http::StatusCode>;
-        async fn clear_nodes<T: Into<String> + Send>(
-            graph: &neo4rs::Graph,
-            user_id: T,
-        ) -> Result<u8, axum::http::StatusCode>;
-        async fn get_nodes<T: Into<String> + Send>(
-            graph: &neo4rs::Graph,
-            user_id: T,
-        ) -> Result<Vec<Self>, axum::http::StatusCode>
-        where
-            Self: Sized;
-    }
-
-    pub(crate) mod advisories {
-        mod advisory;
-        mod advisory_group;
-        mod settings;
-        mod weights;
-
-        pub(crate) use advisory::Advisory;
-        pub(crate) use advisory_group::AdvisoryGroup;
-        pub(crate) use settings::Settings;
-        pub(crate) use weights::Weights;
-    }
-    pub(crate) mod people {
-        mod grade;
-        mod person;
-        mod sex;
-        mod student;
-        mod teacher;
-
-        pub(crate) use grade::Grade;
-        pub(crate) use person::Person;
-        pub(crate) use sex::Sex;
-        pub(crate) use student::Student;
-        pub(crate) use teacher::Teacher;
-    }
-}
-use lib::advisories;
-use lib::people;
-
 /// Handlers for different HTTP requests made to the server
 mod handlers {
     /// Handlers that generate advisories when requested
-    pub(crate) mod advisories;
+    mod advisories;
     /// Handlers for server info and health check
-    pub(crate) mod info;
+    mod info;
     /// Handlers that handle adding and managing students and advisors
-    pub(crate) mod people;
+    mod people;
+
+    pub(crate) use advisories::*;
+    pub(crate) use info::*;
+    pub(crate) use people::*;
 }
-use handlers::advisories::*;
-use handlers::info::*;
-use handlers::people::*;
+
+/// Functions for verifying the JWT of HTTP(S) requests
 mod auth;
-
-#[cfg(test)]
-mod tests {
-    mod info_handlers;
-}
-
-/// Verify trait for input validation
-trait Verify {
-    fn verify(&self) -> bool;
-}
 
 /// Shared state for accessing the database
 #[allow(dead_code)]
 #[derive(Clone)]
-pub(crate) struct SharedState {
-    pub(crate) graph: Option<Arc<neo4rs::Graph>>,
-    pub(crate) keyset: jsonwebtokens_cognito::KeySet,
-    pub(crate) verifier: jsonwebtokens::Verifier,
-}
-
-enum Http {
-    Http,
-    Https,
+struct SharedState {
+    /// Graph for database access
+    graph: Option<Arc<neo4rs::Graph>>,
+    /// Keyset for JWT decoding (auth)
+    keyset: jsonwebtokens_cognito::KeySet,
+    /// Verifier for JWT decoding (auth)
+    /// Stored in state so it doesn't need to be generated each time
+    verifier: jsonwebtokens::Verifier,
 }
 
 /// Main async function run when executing the crate
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     // Setup logger
-    setup_logger().expect("Unable to setup logger with fern");
+    setup_logger()?;
 
     // Connect to database
     let user = "neo4j";
@@ -130,7 +61,7 @@ async fn main() {
     let graph = Arc::new(
         neo4rs::Graph::new(&uri, user, &pass)
             .await
-            .expect("Unable to connect to database"),
+            .context("Unable to connect to database")?,
     );
 
     // JSON webtoken setup
@@ -138,8 +69,7 @@ async fn main() {
     keyset.prefetch_jwks().await.unwrap();
     let verifier = keyset
         .new_access_token_verifier(&["5c6eva8nctpb3aug8l0teak36v"])
-        .build()
-        .unwrap();
+        .build()?;
 
     // State to be accessed by handlers
     let state = SharedState {
@@ -148,66 +78,65 @@ async fn main() {
         verifier,
     };
 
-    // Get SSL certificates from file
-    // Refer to `README.md` for instruction on generating these
-    let config = RustlsConfig::from_pem_file(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("self_signed_certs")
-            .join("cert.pem"),
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("self_signed_certs")
-            .join("key.pem"),
-    )
-    .await
-    .unwrap();
-
-    // Use HTTP or HTTPS depending on ENV environment variable
-    let mode: Http = match std::env::var("ENV") {
-        Ok(val) => match val.as_str() {
-            "DOCKER" => Http::Https,
-            "ECS" => Http::Http,
-            _ => Http::Http,
-        },
-        Err(_) => Http::Https,
-    };
-
     // IP and Port to bind to
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     log::info!("listening on {}", addr);
 
+    // Use HTTP or HTTPS depending on ENV environment variable
+    let use_tls = match std::env::var("ENV") {
+        Ok(val) => match val.as_str() {
+            "DOCKER" => true,
+            "ECS" => false,
+            _ => false,
+        },
+        Err(_) => true,
+    };
+
     // Bind axum app to configured IP and Port
-    // TLS if mode is [`Http::Https`]
-    match mode {
-        Http::Http => {
+    // Use TLS (HTTPS) depending on the previous check
+    match use_tls {
+        false => {
             axum::Server::bind(&addr)
                 .serve(app(state).into_make_service())
-                .await
-                .unwrap();
+                .await?;
         }
-        Http::Https => {
+        true => {
+            // Get SSL certificates from file
+            // Refer to `README.md` for instruction on generating these
+            let config = RustlsConfig::from_pem_file(
+                PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .join("self_signed_certs")
+                    .join("cert.pem"),
+                PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .join("self_signed_certs")
+                    .join("key.pem"),
+            )
+            .await?;
+
             axum_server::bind_rustls(addr, config)
                 .serve(app(state).into_make_service())
-                .await
-                .unwrap();
+                .await?;
         }
     }
+    Ok(())
 }
 
+/// Configure routes for axum server
 fn app(state: SharedState) -> Router {
     // Axum setup and configuration
     let api_router = Router::new()
         // Add routes to specific handler functions
-        .route("/health", get(get_health)) // Health check
-        .route("/info", get(get_info))
+        .route("/health", get(handlers::get_health)) // Health check
+        .route("/info", get(handlers::get_info))
         .route(
             "/people",
-            delete(clear_people_handler).get(get_people_handler),
+            delete(handlers::clear_people_handler).get(handlers::get_people_handler),
         )
-        .route("/people/teacher", post(add_teacher_handler))
-        .route("/people/student", post(add_student_handler))
-        .route("/people/teacher/bulk", post(add_teacher_bulk))
-        .route("/people/student/bulk", post(add_student_bulk))
-        .route("/", put(get_advisories));
+        .route("/people/teacher", post(handlers::add_teacher_handler))
+        .route("/people/student", post(handlers::add_student_handler))
+        .route("/people/teacher/bulk", post(handlers::add_teacher_bulk))
+        .route("/people/student/bulk", post(handlers::add_student_bulk))
+        .route("/", put(handlers::get_advisories));
     Router::new()
         // add /api before all routes
         .nest("/api", api_router)
@@ -221,7 +150,7 @@ fn app(state: SharedState) -> Router {
 }
 
 /// Logger configuration using [`fern`]
-fn setup_logger() -> Result<(), fern::InitError> {
+fn setup_logger() -> Result<()> {
     fern::Dispatch::new()
         .format(|out, message, record| {
             out.finish(format_args!(
@@ -234,10 +163,14 @@ fn setup_logger() -> Result<(), fern::InitError> {
         })
         .level(log::LevelFilter::Info)
         .chain(std::io::stdout())
-        .chain(fern::log_file(format!(
-            "/logs/{}.log",
-            chrono::Local::now().format("[%Y-%m-%d][%H:%M]")
-        ))?)
-        .apply()?;
+        .chain(
+            fern::log_file(format!(
+                "/logs/{}.log",
+                chrono::Local::now().format("[%Y-%m-%d][%H:%M]")
+            ))
+            .context("Unable to open log file")?,
+        )
+        .apply()
+        .context("Failed to dispatch logger")?;
     Ok(())
 }

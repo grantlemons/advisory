@@ -2,12 +2,20 @@ use serde::{Deserialize, Serialize};
 
 /// Representation of possible grades for students
 ///
-/// Adding more options requires changing the grade "spots" tuple in [`crate::advisories::Advisory`] as well as adding the mapping to the implementations
+/// Adding more options requires changing the grade quota tuple in [`crate::advisories::Advisory`] as well as adding the mapping to the implementations
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) enum Grade {
+pub enum Grade {
+    /// 9th grade
+    /// Represented in database as numeric value `9`
     Freshman,
+    /// 10th grade
+    /// Represented in database as numeric value `10`
     Sophomore,
+    /// 11th grade
+    /// Represented in database as numeric value `11`
     Junior,
+    /// 12th grade
+    /// Represented in database as numeric value `12`
     Senior,
 }
 

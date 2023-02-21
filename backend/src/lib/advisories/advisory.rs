@@ -6,16 +6,16 @@ use serde::{Deserialize, Serialize};
 
 /// Representation of an advisory
 #[derive(Deserialize, Serialize, Clone, Debug)]
-pub(crate) struct Advisory {
+pub struct Advisory {
     /// Vector of [`Teacher`] structs
     advisors: Vec<Teacher>,
     /// Vector of [`Student`] structs
     students: Vec<Student>,
-    /// Remaining "spots" for each [`Sex`]
+    /// Remaining quota for each [`Sex`]
     ///
     /// Represents (Male, Female)
     remaining_sex: [i16; 2],
-    /// Remaining "spots" for each [`Grade`]
+    /// Remaining quota for each [`Grade`]
     ///
     /// Represents (Freshman, Sophomore, Junior, Senior)
     remaining_grade: [i16; 4],
@@ -38,6 +38,18 @@ impl std::fmt::Display for Advisory {
 }
 
 impl Advisory {
+    /// Default advisory values given target number of students for the advisory
+    pub(crate) fn new(n: i16) -> Self {
+        log::info!("Initialized new advisory via new");
+        Self {
+            advisors: Vec::<Teacher>::with_capacity(2),
+            students: Vec::<Student>::with_capacity(n as usize),
+            // Set number of "spots" based on number of students in advisory
+            remaining_sex: [n / 2, n / 2],
+            remaining_grade: [n / 4, n / 4, n / 4, n / 4],
+        }
+    }
+
     /// Adds a [`Student`] struct to the students vector
     pub(crate) fn add_student(&mut self, s: Student) {
         // Reduce number of remaining "spots" for the added student's sex
@@ -96,18 +108,8 @@ impl Advisory {
         has
     }
 
-    /// Default advisory values given target number of students for the advisory
-    pub(crate) fn default(n: i16) -> Advisory {
-        log::info!("Initialized new advisory via default");
-        Self {
-            advisors: Vec::<Teacher>::new(),
-            students: Vec::<Student>::new(),
-            // Set number of "spots" based on number of students in advisory
-            remaining_sex: [n / 2, n / 2],
-            remaining_grade: [n / 4, n / 4, n / 4, n / 4],
-        }
-    }
-
+    /// Calculate a weight between the advisory and a student
+    /// This value compensates for what the user deems important with weights assigned to the different parameters
     pub(crate) fn calculate_weight(
         &self,
         student: &Student,

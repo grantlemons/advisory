@@ -7,8 +7,10 @@ use serde::{Deserialize, Serialize};
 /// I understand that grouping it like this might be somewhat sensitive, but it is needed for attempting diversity in the advisories. Sex is used in place of gender to avoid
 /// complexities and ambiguity by representing biological sex. I know that there are some exceptions, but there is no pressing need to accommodate that edge case currently.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
-pub(crate) enum Sex {
+pub enum Sex {
+    /// Represented in database as string value `"Male"`
     Male,
+    /// Represented in database as string value `"Female"`
     Female,
 }
 
