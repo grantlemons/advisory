@@ -30,7 +30,7 @@ impl crate::Verify for Settings {
     /// # }
     /// ```
     fn verify(&self) -> Result<(), axum::http::StatusCode> {
-        if !self.num_advisories > 0 {
+        if self.num_advisories != self.teacher_pairs.len() as i16 {
             Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
         } else {
             self.weights.verify()?;
