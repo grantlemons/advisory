@@ -1,12 +1,65 @@
 <script lang="ts">
+    import type { Student, Teacher, Weights } from '$lib/DBTypes';
+
     import SideBar from '$lib/SideBar.svelte';
     import BottomBar from '$lib/BottomBar.svelte';
     import TopBar from '$lib/TopBar.svelte';
     import AdvisoryWindow from '$lib/AdvisoryWindow.svelte';
 
-    function generate() {}
-    function clear() {}
-    function import_doc() {}
+    import API from '$lib/API';
+    import { sets_from_table } from '$lib/TableParsing';
+
+    import Button from '$lib/Button.svelte';
+    import Input from '$lib/Input.svelte';
+
+    let files: FileList | undefined;
+
+    const setting_strings = {
+        weights: {
+            has_teacher: '8',
+            sex_diverse: '5',
+            grade_diverse: '5',
+        },
+        num_advisories: '8',
+    };
+
+    function generate() {
+        let teacher_pairs: [Teacher, Teacher][] = [
+            [{ name: 'Garcia' }, { name: 'Downes' }],
+            [{ name: 'Hardy' }, { name: 'Sims' }],
+            [{ name: 'Bobbit' }, { name: 'Gross' }],
+            [{ name: 'Mir' }, { name: 'Fleisher' }],
+            [{ name: 'Hesseltine' }, { name: 'McGarvey' }],
+            [{ name: 'Doongaji' }, { name: 'Sim' }],
+            [{ name: 'Li' }, { name: 'Lundberg' }],
+            [{ name: 'Curiel' }, { name: 'Wessels' }],
+        ];
+
+        let weights: Weights = {
+            has_teacher: parseInt(setting_strings.weights.has_teacher),
+            sex_diverse: parseInt(setting_strings.weights.sex_diverse),
+            grade_diverse: parseInt(setting_strings.weights.has_teacher),
+        };
+
+        API.get_advisories(teacher_pairs, weights);
+    }
+
+    function clear() {
+        API.clean_database();
+    }
+
+    async function import_doc(files: FileList) {
+        for (let index = 0; index < files.length; index += 1) {
+            const file = files.item(index) as File;
+            const buffer = await file.arrayBuffer();
+            const sets: [Set<Teacher>, Set<Student>] = sets_from_table(buffer);
+            API.add_students_bulk(Array.from(sets[1]));
+            API.add_teachers_bulk(Array.from(sets[0]));
+        }
+    }
+    $: if (files) {
+        import_doc(files);
+    }
 </script>
 
 <div class="page">
