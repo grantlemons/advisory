@@ -7,45 +7,50 @@
         gender_weight,
     } from '$lib/auth_store';
     import HorizontalRule from '$lib/Horizontal-Rule.svelte';
+    import type { Settings } from '$lib/DBTypes';
 
-    let advisory_count_var = 0;
-    let weights = {
-        teacher: 0,
-        grade_diversity: 0,
-        gender_diversity: 0,
+    let settings: Settings = {
+        weights: {
+            has_teacher: 0,
+            sex_diverse: 0,
+            grade_diverse: 0,
+        },
+        num_advisories: 0,
+        teacher_pairs: [],
     };
 
-    advisory_count.subscribe((value) => {
+    advisory_count.subscribe((value: string) => {
         if (isNaN(Number(value)))
-            advisory_count.set(String(advisory_count_var));
+            advisory_count.set(String(settings.num_advisories));
         if (Number(value) > 100) advisory_count.set('100');
         if (Number(value) < 0) advisory_count.set('0');
 
-        advisory_count_var = Number(value);
+        settings.num_advisories = Number(value);
     });
 
-    teacher_weight.subscribe((value) => {
-        if (isNaN(Number(value))) teacher_weight.set(String(weights.teacher));
+    teacher_weight.subscribe((value: string) => {
+        if (isNaN(Number(value)))
+            teacher_weight.set(String(settings.weights.has_teacher));
         if (Number(value) > 10) teacher_weight.set('10');
         if (Number(value) < 0) teacher_weight.set('0');
 
-        weights.teacher = Number(value);
+        settings.weights.has_teacher = Number(value);
     });
-    grade_weight.subscribe((value) => {
+    grade_weight.subscribe((value: string) => {
         if (isNaN(Number(value)))
-            grade_weight.set(String(weights.grade_diversity));
+            grade_weight.set(String(settings.weights.grade_diverse));
         if (Number(value) > 10) grade_weight.set('10');
         if (Number(value) < 0) grade_weight.set('0');
 
-        weights.grade_diversity = Number(value);
+        settings.weights.grade_diverse = Number(value);
     });
-    gender_weight.subscribe((value) => {
+    gender_weight.subscribe((value: string) => {
         if (isNaN(Number(value)))
-            gender_weight.set(String(weights.gender_diversity));
+            gender_weight.set(String(settings.weights.sex_diverse));
         if (Number(value) > 10) gender_weight.set('10');
         if (Number(value) < 0) gender_weight.set('0');
 
-        weights.gender_diversity = Number(value);
+        settings.weights.sex_diverse = Number(value);
     });
 </script>
 

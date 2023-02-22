@@ -14,15 +14,6 @@
 
     let files: FileList | undefined;
 
-    const setting_strings = {
-        weights: {
-            has_teacher: '8',
-            sex_diverse: '5',
-            grade_diverse: '5',
-        },
-        num_advisories: '8',
-    };
-
     function generate() {
         let teacher_pairs: [Teacher, Teacher][] = [
             [{ name: 'Garcia' }, { name: 'Downes' }],
