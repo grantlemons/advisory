@@ -35,7 +35,7 @@ impl Organization {
 
     /// Places students into advisories and returns a vector of them
     pub async fn generate(form: Settings, students: Vec<Student>) -> Result<Self, StatusCode> {
-        log::info!("Building advisories");
+        log::trace!("Building advisories");
         form.verify()?;
 
         // define constants for later use
