@@ -88,8 +88,6 @@
         font-family: Roboto;
         color: #424242;
 
-        position: absolute;
-        left: 0;
         background-color: #d2d2d2;
 
         width: 15vw;

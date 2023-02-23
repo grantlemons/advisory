@@ -59,6 +59,9 @@
             <AdvisoryWindow />
         </div>
     </div>
+    <div class="bottom-bar">
+        <BottomBar />
+    </div>
 </div>
 
 <style>
@@ -74,16 +77,23 @@
         flex: top;
     }
     .content {
-        flex: bottom;
+        flex-grow: 1;
 
         display: flex;
         flex-flow: row;
         justify-content: space-between;
     }
+    .bottom-bar {
+        flex: bottom;
+    }
     .left-content {
         flex: left;
+        height: 100%;
+        width: fit-content;
     }
     .right-content {
         flex: right;
+        height: 100%;
+        flex-grow: 1;
     }
 </style>
