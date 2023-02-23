@@ -60,13 +60,12 @@
         </div>
     </div>
     <div class="bottom-bar">
-        <BottomBar />
+        <BottomBar on:clear={clear} on:generate={generate} />
     </div>
 </div>
 
 <style>
     .page {
-        background-color: brown;
         display: flex;
         flex-flow: column;
 
