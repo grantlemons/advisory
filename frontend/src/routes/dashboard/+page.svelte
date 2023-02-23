@@ -38,8 +38,8 @@
             const file = files.item(index) as File;
             const buffer = await file.arrayBuffer();
             const sets: [Set<Teacher>, Set<Student>] = sets_from_table(buffer);
-            API.add_students_bulk(Array.from(sets[1]));
             API.add_teachers_bulk(Array.from(sets[0]));
+            API.add_students_bulk(Array.from(sets[1]));
         }
     }
     $: if (files) {
