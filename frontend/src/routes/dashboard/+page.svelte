@@ -14,19 +14,18 @@
 
     let files: FileList | undefined;
     let settings: Settings;
+    let teacher_pairs: [Teacher, Teacher][] = [
+        [{ name: 'Garcia' }, { name: 'Downes' }],
+        [{ name: 'Hardy' }, { name: 'Sims' }],
+        [{ name: 'Bobbit' }, { name: 'Gross' }],
+        [{ name: 'Mir' }, { name: 'Fleisher' }],
+        [{ name: 'Hesseltine' }, { name: 'McGarvey' }],
+        [{ name: 'Doongaji' }, { name: 'Sim' }],
+        [{ name: 'Li' }, { name: 'Lundberg' }],
+        [{ name: 'Curiel' }, { name: 'Wessels' }],
+    ];
 
     function generate() {
-        let teacher_pairs: [Teacher, Teacher][] = [
-            [{ name: 'Garcia' }, { name: 'Downes' }],
-            [{ name: 'Hardy' }, { name: 'Sims' }],
-            [{ name: 'Bobbit' }, { name: 'Gross' }],
-            [{ name: 'Mir' }, { name: 'Fleisher' }],
-            [{ name: 'Hesseltine' }, { name: 'McGarvey' }],
-            [{ name: 'Doongaji' }, { name: 'Sim' }],
-            [{ name: 'Li' }, { name: 'Lundberg' }],
-            [{ name: 'Curiel' }, { name: 'Wessels' }],
-        ];
-
         API.get_advisories(teacher_pairs, settings.weights);
     }
 
