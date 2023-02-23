@@ -34,6 +34,7 @@
         margin-top: auto;
         margin-bottom: auto;
         margin-left: 8px;
+        width: 165px;
 
         color: #313131;
     }

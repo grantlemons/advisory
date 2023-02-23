@@ -7,6 +7,6 @@
         background-color: #ededed;
         flex-direction: row;
         width: 100%;
-        height: 70px;
+        height: 55px;
     }
 </style>

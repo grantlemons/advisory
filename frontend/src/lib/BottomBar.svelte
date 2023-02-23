@@ -29,7 +29,7 @@
 
         background-color: #d9d9d9;
         width: 100%;
-        height: 70px;
+        height: 55px;
         display: flex;
         flex-direction: row-reverse;
     }

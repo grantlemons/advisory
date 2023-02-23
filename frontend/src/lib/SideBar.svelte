@@ -57,7 +57,7 @@
 <div class="side-bar">
     <div class="input-container">
         <div class="input">
-            <h1 style="margin-bottom: 6px">Settings</h1>
+            <h2 style="margin-bottom: 6px">Settings</h2>
             <LabeledNumberField
                 bind:value={$advisory_count}
                 label="Number of Advisories"
@@ -91,7 +91,7 @@
         background-color: #d2d2d2;
 
         width: 15vw;
-        min-width: 308px;
+        min-width: 315px;
         height: 100%;
         display: grid;
     }
@@ -99,7 +99,6 @@
         grid-area: 1/1;
         width: 95%;
         height: fit-content;
-        margin-top: 15vh;
 
         /* flex */
         display: flex;
