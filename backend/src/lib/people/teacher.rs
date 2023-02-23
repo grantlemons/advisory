@@ -22,7 +22,7 @@ impl crate::Verify for Teacher {
     /// ```
     /// # use advisory_backend_lib::{Verify, people::{Teacher}};
     /// fn func() -> Result<(), axum::http::StatusCode> {
-    ///     let teacher = Teacher { name: "Testing Name".to_string() };
+    ///     let teacher = Teacher { name: "Testing Name".to_owned() };
     ///     teacher.verify()?;
     ///     Ok(())
     /// }
@@ -32,7 +32,7 @@ impl crate::Verify for Teacher {
     /// ```
     /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
     /// fn func() -> Result<(), axum::http::StatusCode> {
-    ///     let teacher = Teacher { name: "".to_string() };
+    ///     let teacher = Teacher { name: "".to_owned() };
     ///     teacher.verify()?;
     ///     Ok(())
     /// }
@@ -55,7 +55,7 @@ impl crate::Verify for Vec<Teacher> {
     /// ```
     /// # use advisory_backend_lib::{Verify, people::{Teacher}};
     /// fn func() -> Result<(), axum::http::StatusCode> {
-    ///     let teacher = Teacher { name: "Testing Name".to_string() };
+    ///     let teacher = Teacher { name: "Testing Name".to_owned() };
     ///     let teachers: Vec<Teacher> = vec![teacher];
     ///     teachers.verify()?;
     ///     Ok(())
@@ -66,7 +66,7 @@ impl crate::Verify for Vec<Teacher> {
     /// ```
     /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
     /// fn func() -> Result<(), axum::http::StatusCode> {
-    ///     let teacher = Teacher { name: "".to_string() };
+    ///     let teacher = Teacher { name: "".to_owned() };
     ///     let teachers: Vec<Teacher> = vec![teacher];
     ///     teachers.verify()?;
     ///     Ok(())

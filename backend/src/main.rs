@@ -52,11 +52,11 @@ async fn main() -> Result<()> {
     let user = "neo4j";
     let uri = match std::env::var("DB_ADDRESS") {
         Ok(val) => format!("{}:7687", val),
-        Err(_) => "localhost:7687".to_string(),
+        Err(_) => "localhost:7687".to_owned(),
     };
     let pass = match std::env::var("DB_PASS") {
         Ok(val) => val,
-        Err(_) => "test".to_string(),
+        Err(_) => "test".to_owned(),
     };
     let graph = Arc::new(
         neo4rs::Graph::new(&uri, user, &pass)

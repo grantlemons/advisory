@@ -31,7 +31,7 @@ fn create_dummy_students(count: u16) -> Result<Vec<Student>> {
 
     for _ in 0..count {
         students.push(Student {
-            name: "Dummy Student".to_string(),
+            name: "Dummy Student".to_owned(),
             teachers: teachers
                 .choose_multiple(&mut rng, 8)
                 .cloned()

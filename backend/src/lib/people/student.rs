@@ -29,9 +29,9 @@ impl crate::Verify for Student {
     /// ```
     /// # use advisory_backend_lib::{Verify, people::{Student, Teacher, Grade}};
     /// fn func() -> Result<(), axum::http::StatusCode> {
-    ///     let teacher = Teacher { name: "Testing Name".to_string() };
+    ///     let teacher = Teacher { name: "Testing Name".to_owned() };
     ///     let student = Student {
-    ///         name: "Testing Name".to_string(),
+    ///         name: "Testing Name".to_owned(),
     ///         teachers: vec![teacher],
     ///         grade: Grade::Freshman,
     ///         sex: None,
@@ -72,9 +72,9 @@ impl crate::Verify for Vec<Student> {
     /// ```
     /// # use advisory_backend_lib::{Verify, people::{Student, Teacher, Grade}};
     /// fn func() -> Result<(), axum::http::StatusCode> {
-    ///     let teacher = Teacher { name: "Testing Name".to_string() };
+    ///     let teacher = Teacher { name: "Testing Name".to_owned() };
     ///     let student = Student {
-    ///         name: "Testing Name".to_string(),
+    ///         name: "Testing Name".to_owned(),
     ///         teachers: vec![teacher],
     ///         grade: Grade::Freshman,
     ///         sex: None,
@@ -113,7 +113,7 @@ impl Default for Student {
     /// # use advisory_backend_lib::people::{Student, Teacher, Grade};
     /// let default_student = Student::default();
     /// let student = Student {
-    ///     name: "".to_string(),
+    ///     name: "".to_owned(),
     ///     teachers: Vec::<Teacher>::new(),
     ///     grade: Grade::Freshman,
     ///     sex: None,
@@ -122,7 +122,7 @@ impl Default for Student {
     /// ```
     fn default() -> Student {
         Self {
-            name: "".to_string(),
+            name: "".to_owned(),
             teachers: Vec::<Teacher>::new(),
             grade: Grade::Freshman,
             sex: None,
