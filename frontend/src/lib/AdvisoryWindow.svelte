@@ -1,7 +1,7 @@
+<script lang="ts">
+    import Advisory from '$lib/Advisory.svelte';
+</script>
+
 <div class="advisory-window" />
 
-<style>
-    .advisory-window {
-        height: 100%;
-    }
-</style>
+<style></style>
