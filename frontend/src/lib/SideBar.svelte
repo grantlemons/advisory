@@ -9,7 +9,7 @@
     import HorizontalRule from '$lib/Horizontal-Rule.svelte';
     import type { Settings } from '$lib/DBTypes';
 
-    let settings: Settings = {
+    export let settings: Settings = {
         weights: {
             has_teacher: 0,
             sex_diverse: 0,

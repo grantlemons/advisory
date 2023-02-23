@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Student, Teacher, Weights } from '$lib/DBTypes';
+    import type { Settings, Student, Teacher, Weights } from '$lib/DBTypes';
 
     import SideBar from '$lib/SideBar.svelte';
     import BottomBar from '$lib/BottomBar.svelte';
@@ -13,6 +13,7 @@
     import Input from '$lib/Input.svelte';
 
     let files: FileList | undefined;
+    let settings: Settings;
 
     function generate() {
         let teacher_pairs: [Teacher, Teacher][] = [
@@ -26,13 +27,7 @@
             [{ name: 'Curiel' }, { name: 'Wessels' }],
         ];
 
-        let weights: Weights = {
-            has_teacher: parseInt(setting_strings.weights.has_teacher),
-            sex_diverse: parseInt(setting_strings.weights.sex_diverse),
-            grade_diverse: parseInt(setting_strings.weights.has_teacher),
-        };
-
-        API.get_advisories(teacher_pairs, weights);
+        API.get_advisories(teacher_pairs, settings.weights);
     }
 
     function clear() {
@@ -59,7 +54,7 @@
     </div>
     <div class="content">
         <div class="left-content">
-            <SideBar />
+            <SideBar bind:settings />
         </div>
         <div class="right-content">
             <AdvisoryWindow />
