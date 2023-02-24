@@ -15,7 +15,9 @@
     .advisory-window {
         height: 100%;
         display: flex;
-        flex-flow: wrap;
+        flex-flow: row wrap;
         justify-content: stretch;
+        gap: 8px;
+        margin: 8px;
     }
 </style>
