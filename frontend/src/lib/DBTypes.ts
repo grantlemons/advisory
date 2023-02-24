@@ -18,7 +18,7 @@ export interface Student {
     grade: Grade;
 }
 
-export interface Advisories {
+export interface Advisory {
     user_id: string;
     advisors: Teacher[];
     students: Student[];
