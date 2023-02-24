@@ -1,7 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { type AxiosResponse } from 'axios';
 import { id_token } from '$lib/auth_store';
-import type { Teacher, Student, Weights, Settings } from './DBTypes';
+import type {
+    Teacher,
+    Advisory,
+    Student,
+    Weights,
+    Settings,
+    Person,
+} from '$lib/DBTypes';
 
 let auth: string;
 id_token.subscribe((value) => {
@@ -68,7 +75,7 @@ export default class API {
     }
 
     static list_people(): Promise<AxiosResponse<any, any>> {
-        return axios({
+        return axios<Person[]>({
             method: 'get',
             url: `${this.BASE_URL}/people`,
             headers: {
@@ -80,14 +87,14 @@ export default class API {
     static get_advisories(
         teacher_pairs: [Teacher, Teacher][],
         weights: Weights
-    ): Promise<AxiosResponse<any, any>> {
+    ): Promise<AxiosResponse<Advisory[], any>> {
         const data: Settings = {
             weights,
             num_advisories: teacher_pairs.length,
             teacher_pairs,
         };
 
-        return axios({
+        return axios<Advisory[]>({
             method: 'put',
             url: `${this.BASE_URL}/`,
             data,

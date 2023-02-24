@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Settings, Student, Teacher, Weights } from '$lib/DBTypes';
+    import type { Settings, Student, Teacher, Advisory } from '$lib/DBTypes';
 
     import SideBar from '$lib/SideBar.svelte';
     import BottomBar from '$lib/BottomBar.svelte';
@@ -8,9 +8,6 @@
 
     import API from '$lib/API';
     import { sets_from_table } from '$lib/TableParsing';
-
-    import Button from '$lib/Button.svelte';
-    import Input from '$lib/Input.svelte';
 
     let files: FileList | undefined;
     let settings: Settings;
@@ -24,9 +21,13 @@
         [{ name: 'Li' }, { name: 'Lundberg' }],
         [{ name: 'Curiel' }, { name: 'Wessels' }],
     ];
+    let advisories: Advisory[] = [];
 
     function generate() {
-        API.get_advisories(teacher_pairs, settings.weights);
+        API.get_advisories(teacher_pairs, settings.weights).then((response) => {
+            const { data } = response;
+            advisories = data;
+        });
     }
 
     function clear() {
@@ -56,11 +57,11 @@
             <SideBar bind:settings />
         </div>
         <div class="right-content">
-            <AdvisoryWindow />
+            <AdvisoryWindow bind:advisories />
         </div>
     </div>
     <div class="bottom-bar">
-        <BottomBar on:clear={clear} on:generate={generate} />
+        <BottomBar bind:files on:clear={clear} on:generate={generate} />
     </div>
 </div>
 

@@ -2,12 +2,12 @@
     import Advisory from '$lib/Advisory.svelte';
     import type { Advisory as AdvisoryType } from '$lib/DBTypes';
 
-    let advisories: AdvisoryType[];
+    export let advisories: AdvisoryType[] = [];
 </script>
 
 <div class="advisory-window">
     {#each advisories as advisory}
-        <Advisory data={advisory} />
+        <Advisory bind:data={advisory} />
     {/each}
 </div>
 

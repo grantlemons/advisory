@@ -4,12 +4,21 @@
 
     const dispatch = createEventDispatcher();
 
+    export let files: FileList | undefined;
+
     const clear = () => dispatch('clear');
     const generate = () => dispatch('generate');
 </script>
 
 <div class="bottom-bar">
     <div class="buttonbox">
+        <div class="button">
+            <input
+                bind:files
+                accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                type="file"
+            />
+        </div>
         <div class="button">
             <Button color="primary" on:click={clear} variant="unelevated">
                 <Label>Clear</Label>
