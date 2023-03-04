@@ -1,4 +1,4 @@
-use crate::{advisories::Weights, people::Teacher};
+use crate::{advisories::Weights, people::Person, people::Teacher};
 use serde::{Deserialize, Serialize};
 
 /// Form for [`crate::advisories::Advisory`]'s input
@@ -10,6 +10,8 @@ pub struct Settings {
     pub num_advisories: i16,
     /// Pairs of teachers for advisories
     pub teacher_pairs: Vec<[Option<Teacher>; 2]>,
+    /// Pairs of people that cannot be together
+    pub banned_pairs: Vec<[Person; 2]>,
 }
 
 impl crate::Verify for Settings {

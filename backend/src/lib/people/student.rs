@@ -13,6 +13,8 @@ pub struct Student {
     /// Student's biological sex, represented by the [`Sex`] enum
     /// Optional
     pub sex: Option<Sex>,
+    /// People whom the student is not supposed to be placed with in an advisory
+    pub banned_pairings: Vec<String>,
 }
 
 impl std::fmt::Display for Student {
@@ -126,6 +128,7 @@ impl Default for Student {
             teachers: Vec::<Teacher>::new(),
             grade: Grade::Freshman,
             sex: None,
+            banned_pairings: Vec::new(),
         }
     }
 }
@@ -281,6 +284,7 @@ impl crate::DatabaseNode for Student {
                         "" => None,
                         value => Some(Sex::from(value)),
                     };
+                    let banned_pairings = row.get::<Vec<String>>("banned").unwrap();
                     let teachers = row
                         .get::<Vec<neo4rs::Node>>("teachers")
                         .unwrap()
@@ -295,6 +299,7 @@ impl crate::DatabaseNode for Student {
                         teachers,
                         grade,
                         sex,
+                        banned_pairings,
                     })
                 }
                 Ok(students)

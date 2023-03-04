@@ -129,3 +129,23 @@ pub(crate) async fn add_student_bulk(
         Err(StatusCode::UNAUTHORIZED)
     }
 }
+
+/// Handler to ban pairs of people from being together
+#[axum_macros::debug_handler]
+pub(crate) async fn ban_pair_handler(
+    State(state): State<SharedState>,
+    Extension(user_option): Extension<Option<UserData>>,
+    Json(form): Json<[Person; 2]>,
+) -> Result<Json<u8>, StatusCode> {
+    if let Some(user) = user_option {
+        match &state.graph {
+            Some(graph) => Ok(Json(
+                Person::ban_pair(form, graph, user.user_id(), true).await?,
+            )),
+            None => Err(StatusCode::BAD_GATEWAY),
+        }
+    } else {
+        log::info!("Unauthorized access to ban_pair_handler prevented");
+        Err(StatusCode::UNAUTHORIZED)
+    }
+}

@@ -26,6 +26,35 @@ impl From<Teacher> for Person {
     }
 }
 
+impl Person {
+    /// Ban two people from being in the same advisory (unless they are both teachers, which
+    /// wouldn't do anything)
+    pub async fn ban_pair<T: Into<String> + Send>(
+        form: [Person; 2],
+        graph: &neo4rs::Graph,
+        user_id: T,
+        no_duplicates: bool,
+    ) -> Result<u8, axum::http::StatusCode> {
+        let query_string = match no_duplicates {
+            true => "MERGE (p1)-[:BANNED]-(p2)",
+            false => "CREATE (p1)-[:BANNED]-(p2)",
+        };
+
+        // potential for sql injection by directly using the value from banned
+        // that being said, it doesn't work otherwise
+        // maybe look for a way to sanitize inputs
+        let query = neo4rs::query(&format!("OPTIONAL MATCH (p1 {{ name: $banned_name, user_id: $user_id }}) OPTIONAL MATCH (p2 {{ name: $banned_name2, user_id: $user_id }}) {}", query_string))
+            .param("user_id", user_id.into())
+            .param("banned_name", form[0].name.clone())
+            .param("banned_name2", form[1].name.clone());
+
+        match graph.run(query).await {
+            Ok(_) => Ok(1),
+            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+        }
+    }
+}
+
 #[async_trait::async_trait]
 impl crate::DatabaseNode for Person {
     async fn add_node<T: Into<String> + Send>(

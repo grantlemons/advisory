@@ -101,9 +101,23 @@ impl Advisory {
     pub(crate) fn has_teacher(&self, s: &Student) -> bool {
         let mut has = false;
         for i in &s.teachers {
-            if self.advisors.contains(i) {
-                has = true;
-            }
+            has = has || self.advisors.contains(i);
+        }
+        has
+    }
+
+    /// Checks in the advisory already has a student that is not supposed to be with the student
+    pub(crate) fn has_banned_pairing(&self, s: &Student) -> bool {
+        let mut has = false;
+        for i in &s.banned_pairings {
+            let advisory_names = self
+                .students
+                .iter()
+                .map(|s| &s.name)
+                .chain(self.advisors.iter().map(|a| &a.name))
+                .collect::<Vec<&String>>();
+
+            has = has || advisory_names.contains(&i)
         }
         has
     }
@@ -126,6 +140,7 @@ impl Advisory {
             * (weights.sex_diverse as i32 * self.get_remaining_sex(&student.sex) as i32);
         let grade_weighted_value = number_of_grades
             * (weights.grade_diverse as i32 * self.get_remaining_grade(&student.grade) as i32);
-        teacher_weighted_value + sexes_weighted_value + grade_weighted_value
+        let banned_weighted_value = -10000.0 as i32 * self.has_banned_pairing(&student) as i32;
+        teacher_weighted_value + sexes_weighted_value + grade_weighted_value + banned_weighted_value
     }
 }
