@@ -25,7 +25,8 @@ impl crate::Verify for Settings {
     /// # let settings = Settings {
     /// #     weights: Weights::default(),
     /// #     num_advisories: 1,
-    /// #     teacher_pairs: vec![[Some(Teacher::default()), Some(Teacher::default())]]
+    /// #     teacher_pairs: vec![[Some(Teacher::default()), Some(Teacher::default())]],
+    /// #     banned_pairs: Vec::new(),
     /// # };
     /// settings.verify()?;
     /// # Ok(())

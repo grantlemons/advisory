@@ -37,6 +37,7 @@ impl crate::Verify for Student {
     ///         teachers: vec![teacher],
     ///         grade: Grade::Freshman,
     ///         sex: None,
+    ///         banned_pairings: Vec::new(),
     ///     };
     ///     student.verify()?;
     ///     Ok(())
@@ -80,6 +81,7 @@ impl crate::Verify for Vec<Student> {
     ///         teachers: vec![teacher],
     ///         grade: Grade::Freshman,
     ///         sex: None,
+    ///         banned_pairings: Vec::new(),
     ///     };
     ///     let students: Vec<Student> = vec![student];
     ///     students.verify()?;
@@ -119,6 +121,7 @@ impl Default for Student {
     ///     teachers: Vec::<Teacher>::new(),
     ///     grade: Grade::Freshman,
     ///     sex: None,
+    ///     banned_pairings: Vec::new(),
     /// };
     /// assert_eq!(default_student, student);
     /// ```
