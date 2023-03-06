@@ -4,8 +4,10 @@ use serde::{Deserialize, Serialize};
 /// Representation of a person
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Person {
-    /// Student's name - should be in `First Last` format, but can be anything that distinguishes them from other students
+    /// Person's name - should be in `First Last` format, but can be anything that distinguishes them from others
     pub name: String,
+    /// People whom the person is not supposed to be placed with in an advisory
+    pub banned_pairings: Vec<String>,
 }
 
 impl std::fmt::Display for Person {
@@ -16,13 +18,19 @@ impl std::fmt::Display for Person {
 
 impl From<Student> for Person {
     fn from(s: Student) -> Self {
-        Self { name: s.name }
+        Self {
+            name: s.name,
+            banned_pairings: Vec::new(),
+        }
     }
 }
 
 impl From<Teacher> for Person {
     fn from(t: Teacher) -> Self {
-        Self { name: t.name }
+        Self {
+            name: t.name,
+            banned_pairings: Vec::new(),
+        }
     }
 }
 
@@ -150,16 +158,20 @@ impl crate::DatabaseNode for Person {
         graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<Vec<Self>, axum::http::StatusCode> {
-        let query = neo4rs::query("MATCH (p { user_id: $user_id }) RETURN distinct(p) as people")
+        let query = neo4rs::query("MATCH (p { user_id: $user_id })-[:BANNED]-(b) RETURN distinct(p) as people, collect(b) as banned")
             .param("user_id", user_id.into());
 
         match graph.execute(query).await {
             Ok(mut result) => {
                 let mut people: Vec<Self> = Vec::new();
                 while let Ok(Some(row)) = result.next().await {
-                    let person: neo4rs::Node = row.get("people").unwrap();
+                    let person: neo4rs::Node = row.get("students").unwrap();
                     let name: String = person.get("name").unwrap();
-                    people.push(Self { name })
+                    let banned_pairings = row.get::<Vec<String>>("banned").unwrap();
+                    people.push(Self {
+                        name,
+                        banned_pairings,
+                    })
                 }
                 Ok(people)
             }
