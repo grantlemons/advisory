@@ -13,6 +13,8 @@ pub struct Student {
     /// Student's biological sex, represented by the [`Sex`] enum
     /// Optional
     pub sex: Option<Sex>,
+    /// People whom the student is not supposed to be placed with in an advisory
+    pub banned_pairings: Vec<String>,
 }
 
 impl std::fmt::Display for Student {
@@ -35,6 +37,7 @@ impl crate::Verify for Student {
     ///         teachers: vec![teacher],
     ///         grade: Grade::Freshman,
     ///         sex: None,
+    ///         banned_pairings: Vec::new(),
     ///     };
     ///     student.verify()?;
     ///     Ok(())
@@ -78,6 +81,7 @@ impl crate::Verify for Vec<Student> {
     ///         teachers: vec![teacher],
     ///         grade: Grade::Freshman,
     ///         sex: None,
+    ///         banned_pairings: Vec::new(),
     ///     };
     ///     let students: Vec<Student> = vec![student];
     ///     students.verify()?;
@@ -117,6 +121,7 @@ impl Default for Student {
     ///     teachers: Vec::<Teacher>::new(),
     ///     grade: Grade::Freshman,
     ///     sex: None,
+    ///     banned_pairings: Vec::new(),
     /// };
     /// assert_eq!(default_student, student);
     /// ```
@@ -126,6 +131,7 @@ impl Default for Student {
             teachers: Vec::<Teacher>::new(),
             grade: Grade::Freshman,
             sex: None,
+            banned_pairings: Vec::new(),
         }
     }
 }
@@ -267,7 +273,7 @@ impl crate::DatabaseNode for Student {
         graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<Vec<Self>, axum::http::StatusCode> {
-        let query = neo4rs::query("MATCH (s:Student { user_id: $user_id })<-[:TEACHES]-(t:Teacher) RETURN distinct(s) as students, collect(t) as teachers")
+        let query = neo4rs::query("MATCH (s:Student { user_id: $user_id })<-[:TEACHES]-(t:Teacher) RETURN distinct(s) as students, collect(t) as teachers, collect(b) as banned")
             .param("user_id", user_id.into());
 
         match graph.execute(query).await {
@@ -281,6 +287,7 @@ impl crate::DatabaseNode for Student {
                         "" => None,
                         value => Some(Sex::from(value)),
                     };
+                    let banned_pairings = row.get::<Vec<String>>("banned").unwrap();
                     let teachers = row
                         .get::<Vec<neo4rs::Node>>("teachers")
                         .unwrap()
@@ -295,6 +302,7 @@ impl crate::DatabaseNode for Student {
                         teachers,
                         grade,
                         sex,
+                        banned_pairings,
                     })
                 }
                 Ok(students)

@@ -4,8 +4,10 @@ use serde::{Deserialize, Serialize};
 /// Representation of a person
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Person {
-    /// Student's name - should be in `First Last` format, but can be anything that distinguishes them from other students
+    /// Person's name - should be in `First Last` format, but can be anything that distinguishes them from others
     pub name: String,
+    /// People whom the person is not supposed to be placed with in an advisory
+    pub banned_pairings: Vec<String>,
 }
 
 impl std::fmt::Display for Person {
@@ -16,13 +18,48 @@ impl std::fmt::Display for Person {
 
 impl From<Student> for Person {
     fn from(s: Student) -> Self {
-        Self { name: s.name }
+        Self {
+            name: s.name,
+            banned_pairings: Vec::new(),
+        }
     }
 }
 
 impl From<Teacher> for Person {
     fn from(t: Teacher) -> Self {
-        Self { name: t.name }
+        Self {
+            name: t.name,
+            banned_pairings: Vec::new(),
+        }
+    }
+}
+
+impl Person {
+    /// Ban two people from being in the same advisory (unless they are both teachers, which
+    /// wouldn't do anything)
+    pub async fn ban_pair<T: Into<String> + Send>(
+        form: [Person; 2],
+        graph: &neo4rs::Graph,
+        user_id: T,
+        no_duplicates: bool,
+    ) -> Result<u8, axum::http::StatusCode> {
+        let query_string = match no_duplicates {
+            true => "MERGE (p1)-[:BANNED]-(p2)",
+            false => "CREATE (p1)-[:BANNED]-(p2)",
+        };
+
+        // potential for sql injection by directly using the value from banned
+        // that being said, it doesn't work otherwise
+        // maybe look for a way to sanitize inputs
+        let query = neo4rs::query(&format!("OPTIONAL MATCH (p1 {{ name: $banned_name, user_id: $user_id }}) OPTIONAL MATCH (p2 {{ name: $banned_name2, user_id: $user_id }}) {}", query_string))
+            .param("user_id", user_id.into())
+            .param("banned_name", form[0].name.clone())
+            .param("banned_name2", form[1].name.clone());
+
+        match graph.run(query).await {
+            Ok(_) => Ok(1),
+            Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
+        }
     }
 }
 
@@ -121,16 +158,20 @@ impl crate::DatabaseNode for Person {
         graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<Vec<Self>, axum::http::StatusCode> {
-        let query = neo4rs::query("MATCH (p { user_id: $user_id }) RETURN distinct(p) as people")
+        let query = neo4rs::query("MATCH (p { user_id: $user_id })-[:BANNED]-(b) RETURN distinct(p) as people, collect(b) as banned")
             .param("user_id", user_id.into());
 
         match graph.execute(query).await {
             Ok(mut result) => {
                 let mut people: Vec<Self> = Vec::new();
                 while let Ok(Some(row)) = result.next().await {
-                    let person: neo4rs::Node = row.get("people").unwrap();
+                    let person: neo4rs::Node = row.get("students").unwrap();
                     let name: String = person.get("name").unwrap();
-                    people.push(Self { name })
+                    let banned_pairings = row.get::<Vec<String>>("banned").unwrap();
+                    people.push(Self {
+                        name,
+                        banned_pairings,
+                    })
                 }
                 Ok(people)
             }
