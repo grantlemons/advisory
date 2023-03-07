@@ -74,6 +74,20 @@ export default class API {
         });
     }
 
+    static ban_pairing(pairing: Person[]): Promise<AxiosResponse<any, any>> {
+        if (pairing.length > 2) {
+            throw Error;
+        }
+        return axios({
+            method: 'post',
+            url: `${this.BASE_URL}/people/ban`,
+            data: pairing,
+            headers: {
+                Authorization: auth,
+            },
+        });
+    }
+
     static list_people(): Promise<AxiosResponse<any, any>> {
         return axios<Person[]>({
             method: 'get',
