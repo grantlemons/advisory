@@ -23,11 +23,11 @@ export interface Student {
 }
 
 export interface Advisory {
-    user_id: string;
+    // user_id: string;
     advisors: Teacher[];
     students: Student[];
-    remaining_sex: [number, number];
-    remaining_grade: [number, number, number, number];
+    // remaining_sex: [number, number];
+    // remaining_grade: [number, number, number, number];
 }
 
 export interface Weights {
@@ -39,5 +39,5 @@ export interface Weights {
 export interface Settings {
     weights: Weights;
     num_advisories: number;
-    teacher_pairs: [Teacher, Teacher][];
+    teacher_groupings: Teacher[][];
 }

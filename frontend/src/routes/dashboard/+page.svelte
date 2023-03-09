@@ -11,23 +11,29 @@
 
     let files: FileList | undefined;
     let settings: Settings;
-    let teacher_pairs: [Teacher, Teacher][] = [
-        [{ name: 'Garcia' }, { name: 'Downes' }],
-        [{ name: 'Hardy' }, { name: 'Sims' }],
-        [{ name: 'Bobbit' }, { name: 'Gross' }],
-        [{ name: 'Mir' }, { name: 'Fleisher' }],
-        [{ name: 'Hesseltine' }, { name: 'McGarvey' }],
-        [{ name: 'Doongaji' }, { name: 'Sim' }],
-        [{ name: 'Li' }, { name: 'Lundberg' }],
-        [{ name: 'Curiel' }, { name: 'Wessels' }],
-    ];
+    let unallocated_teachers: Teacher[] = [];
     let advisories: Advisory[] = [];
 
+    function update_advisories(data: Advisory[]) {
+        for (let advisory in data) {
+            advisories
+                .map((a) => a.advisors)
+                .filter(
+                    (a) => a === (advisory as any as Advisory).advisors.sort()
+                )
+                .forEach((_) => advisory);
+        }
+        console.log(advisories);
+    }
+
     function generate() {
-        API.get_advisories(teacher_pairs, settings.weights).then((response) => {
-            const { data } = response;
-            advisories = data;
-        });
+        let teacher_groupings = advisories.map((a) => a.advisors);
+        API.get_advisories(teacher_groupings, settings.weights).then(
+            (response) => {
+                const { data } = response;
+                update_advisories(data);
+            }
+        );
     }
 
     function clear() {
@@ -39,6 +45,8 @@
             const file = files.item(index) as File;
             const buffer = await file.arrayBuffer();
             const sets: [Set<Teacher>, Set<Student>] = sets_from_table(buffer);
+            advisories = [];
+            unallocated_teachers = Array.from(sets[0]);
             API.add_teachers_bulk(Array.from(sets[0]));
             API.add_students_bulk(Array.from(sets[1]));
         }
@@ -57,7 +65,7 @@
             <SideBar bind:settings />
         </div>
         <div class="right-content">
-            <AdvisoryWindow bind:advisories />
+            <AdvisoryWindow bind:advisories bind:unallocated_teachers />
         </div>
     </div>
     <div class="bottom-bar">

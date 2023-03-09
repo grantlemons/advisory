@@ -23,13 +23,12 @@ impl Organization {
         ])
     }
 
-    /// Assign teachers to advisories in accordance with the pairs passed in
-    fn assign_teachers(&mut self, teacher_pairs: &[[Option<Teacher>; 2]]) {
+    /// Assign teachers to advisories in accordance with the groupings passed in
+    fn assign_teachers(&mut self, teacher_groupings: &[Vec<Teacher>]) {
         for (index, target_advisory) in self.0.iter_mut().enumerate() {
-            let [t1, t2] = teacher_pairs[index].clone();
-
-            target_advisory.add_teacher(t1);
-            target_advisory.add_teacher(t2);
+            teacher_groupings[index]
+                .iter()
+                .for_each(|t| target_advisory.add_teacher(t.clone()));
         }
     }
 
@@ -45,7 +44,7 @@ impl Organization {
         // create vector of advisories to fill
         let mut advisories: Organization = Organization::new(student_count, advisory_count);
 
-        advisories.assign_teachers(&form.teacher_pairs);
+        advisories.assign_teachers(&form.teacher_groupings);
 
         // add students to advisories
         for student in students {
@@ -82,12 +81,10 @@ mod test {
 
     #[test]
     fn assign_teachers_to_group() {
-        let teacher1 = Teacher::default();
-        let teacher2 = Teacher::default();
-        let teacher_pairs: &[[Option<Teacher>; 2]] = &[[Some(teacher1), Some(teacher2)]];
+        let teacher_groupings: &[Vec<Teacher>] = &[vec![Teacher::default(); 2]];
 
         let mut advisory_group = Organization::new(10, 1);
-        advisory_group.assign_teachers(teacher_pairs);
+        advisory_group.assign_teachers(teacher_groupings);
 
         assert_eq!(advisory_group.0.len(), 1);
     }

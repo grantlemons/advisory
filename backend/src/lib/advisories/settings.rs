@@ -8,8 +8,8 @@ pub struct Settings {
     pub weights: Weights,
     /// Number of advisories to be generated
     pub num_advisories: i16,
-    /// Pairs of teachers for advisories
-    pub teacher_pairs: Vec<[Option<Teacher>; 2]>,
+    /// Groupings of teachers for advisories
+    pub teacher_groupings: Vec<Vec<Teacher>>,
 }
 
 impl crate::Verify for Settings {
@@ -23,14 +23,14 @@ impl crate::Verify for Settings {
     /// # let settings = Settings {
     /// #     weights: Weights::default(),
     /// #     num_advisories: 1,
-    /// #     teacher_pairs: vec![[Some(Teacher::default()), Some(Teacher::default())]],
+    /// #     teacher_groupings: vec![vec![Teacher::default(); 2]],
     /// # };
     /// settings.verify()?;
     /// # Ok(())
     /// # }
     /// ```
     fn verify(&self) -> Result<(), axum::http::StatusCode> {
-        if self.num_advisories != self.teacher_pairs.len() as i16 {
+        if self.num_advisories != self.teacher_groupings.len() as i16 {
             Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
         } else {
             self.weights.verify()?;

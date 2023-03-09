@@ -89,12 +89,8 @@ impl Advisory {
     }
 
     /// Adds a [`Teacher`] struct to the advisors vector if Some
-    pub(crate) fn add_teacher(&mut self, t: Option<Teacher>) {
-        if let Some(t) = t {
-            self.advisors.push(t);
-        } else {
-            log::info!("Added teacher is None type: doing nothing");
-        }
+    pub(crate) fn add_teacher(&mut self, t: Teacher) {
+        self.advisors.push(t);
     }
 
     /// Checks whether one of the advisors teaches the given student
