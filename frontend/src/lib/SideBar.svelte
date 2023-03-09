@@ -16,7 +16,7 @@
             grade_diverse: 0,
         },
         num_advisories: 0,
-        teacher_pairs: [],
+        teacher_groupings: [],
     };
 
     advisory_count.subscribe((value: string) => {

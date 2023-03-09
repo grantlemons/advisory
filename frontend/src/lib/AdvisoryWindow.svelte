@@ -1,9 +1,5 @@
 <script lang="ts">
-    import type {
-        Advisory as AdvisoryType,
-        Student,
-        Teacher,
-    } from '$lib/DBTypes';
+    import type { Advisory as AdvisoryType, Teacher } from '$lib/DBTypes';
     import Card, { Content } from '@smui/card';
     import List, { Item, Text } from '@smui/list';
     import Advisory from '$lib/Advisory.svelte';
@@ -44,6 +40,9 @@
         display: flex;
         flex-flow: row wrap;
         justify-content: stretch;
+    }
+    .unallocated {
+        width: 250px;
     }
     div {
         height: 100%;

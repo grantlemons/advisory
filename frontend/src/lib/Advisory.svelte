@@ -33,6 +33,8 @@
 <style>
     .advisory-card {
         font-family: Roboto;
+        height: 100%;
+        width: 250px;
         /* border-radius: 12px; */
         /* background-color: rgb(199, 199, 199); */
     }

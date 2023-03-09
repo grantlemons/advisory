@@ -1,4 +1,8 @@
-<div class="top-bar" />
+<script lang="ts">
+    import Name from '$lib/Name.svelte';
+</script>
+
+<div class="top-bar"><Name /></div>
 
 <style>
     .top-bar {
@@ -7,6 +11,6 @@
         background-color: #ededed;
         flex-direction: row;
         width: 100%;
-        height: 55px;
+        height: 70px;
     }
 </style>

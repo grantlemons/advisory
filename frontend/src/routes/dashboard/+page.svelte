@@ -28,6 +28,9 @@
 
     function generate() {
         let teacher_groupings = advisories.map((a) => a.advisors);
+        if (teacher_groupings.length != settings.num_advisories) {
+            return;
+        }
         API.get_advisories(teacher_groupings, settings.weights).then(
             (response) => {
                 const { data } = response;
@@ -38,6 +41,18 @@
 
     function clear() {
         API.clean_database();
+    }
+
+    function sync_advisory_count() {
+        if (settings.num_advisories == advisories.length) return;
+        if (settings.num_advisories > advisories.length) {
+            advisories.push({
+                students: [],
+                advisors: [],
+            });
+        } else {
+            advisories.pop();
+        }
     }
 
     async function import_doc(files: FileList) {
