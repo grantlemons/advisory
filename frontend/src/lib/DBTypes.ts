@@ -19,6 +19,7 @@ export interface Student {
     sex: Sex;
     teachers: Teacher[];
     grade: Grade;
+    banned_pairings: [];
 }
 
 export interface Advisory {

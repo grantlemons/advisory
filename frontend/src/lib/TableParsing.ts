@@ -36,6 +36,7 @@ export function get_students(table: Table): Set<Student> {
         teachers: [],
         grade: Grade.Freshman,
         sex: Sex.Male,
+        banned_pairings: [],
     };
     const current_student_teachers = new Set<string>();
 
@@ -66,6 +67,7 @@ export function get_students(table: Table): Set<Student> {
                 teachers: [],
                 grade: row_grade,
                 sex: row_sex,
+                banned_pairings: []
             };
         }
         if (row_teacher_name != undefined) {

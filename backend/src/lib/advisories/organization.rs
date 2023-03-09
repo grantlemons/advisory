@@ -38,7 +38,7 @@ impl Organization {
         log::trace!("Building advisories");
         form.verify()?;
 
-        // define constants for later use
+        // define values for later use
         let student_count: i16 = students.len() as i16;
         let advisory_count: i16 = form.num_advisories;
 

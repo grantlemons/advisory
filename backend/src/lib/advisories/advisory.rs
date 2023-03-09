@@ -140,7 +140,7 @@ impl Advisory {
             * (weights.sex_diverse as i32 * self.get_remaining_sex(&student.sex) as i32);
         let grade_weighted_value = number_of_grades
             * (weights.grade_diverse as i32 * self.get_remaining_grade(&student.grade) as i32);
-        let banned_weighted_value = -10000.0 as i32 * self.has_banned_pairing(&student) as i32;
+        let banned_weighted_value = -10000 * self.has_banned_pairing(&student) as i32;
         teacher_weighted_value + sexes_weighted_value + grade_weighted_value + banned_weighted_value
     }
 }
