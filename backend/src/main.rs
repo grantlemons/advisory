@@ -134,7 +134,9 @@ fn app(state: SharedState) -> Router {
         )
         .route("/people/ban", post(handlers::ban_pair_handler))
         .route("/people/teacher", post(handlers::add_teacher_handler))
+        .route("/people/teacher", get(handlers::get_teachers_handler))
         .route("/people/student", post(handlers::add_student_handler))
+        .route("/people/student", get(handlers::get_students_handler))
         .route("/people/teacher/bulk", post(handlers::add_teacher_bulk))
         .route("/people/student/bulk", post(handlers::add_student_bulk))
         .route("/", put(handlers::get_advisories));

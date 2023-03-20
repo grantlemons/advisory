@@ -98,6 +98,26 @@ export default class API {
                 });
         }
 
+        static list_teachers(): Promise<AxiosResponse<any, any>> {
+                return axios<Teacher[]>({
+                        method: 'get',
+                        url: `${this.BASE_URL}/people/teacher`,
+                        headers: {
+                                Authorization: auth,
+                        },
+                });
+        }
+
+        static list_students(): Promise<AxiosResponse<any, any>> {
+                return axios<Student[]>({
+                        method: 'get',
+                        url: `${this.BASE_URL}/people/student`,
+                        headers: {
+                                Authorization: auth,
+                        },
+                });
+        }
+
         static get_advisories(
                 teacher_groupings: Teacher[][],
                 weights: Weights
