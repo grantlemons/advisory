@@ -10,7 +10,16 @@
     import { sets_from_table } from '$lib/TableParsing';
 
     let files: FileList | undefined;
-    let settings: Settings;
+    let settings: Settings = {
+        weights: {
+            has_teacher: 0,
+            sex_diverse: 0,
+            grade_diverse: 0,
+        },
+        num_advisories: 5,
+        teacher_groupings: [],
+    };
+
     let unallocated_teachers: Teacher[] = [];
     let advisories: Advisory[] = [];
 
@@ -41,18 +50,15 @@
 
     function clear() {
         API.clean_database();
+        unallocated_teachers = [];
+        advisories = [];
     }
 
-    function sync_advisory_count() {
-        if (settings.num_advisories == advisories.length) return;
-        if (settings.num_advisories > advisories.length) {
-            advisories.push({
-                students: [],
-                advisors: [],
-            });
-        } else {
-            advisories.pop();
-        }
+    function load() {
+        API.list_teachers().then((response) => {
+            const { data } = response;
+            unallocated_teachers = data;
+        });
     }
 
     async function import_doc(files: FileList) {
@@ -66,9 +72,25 @@
             API.add_students_bulk(Array.from(sets[1]));
         }
     }
+
+    function sync_advisory_count(num: number) {
+        if (num == advisories.length) return;
+        while (num > advisories.length) {
+            advisories.push({
+                students: [],
+                advisors: [],
+            });
+        }
+        while (num < advisories.length) {
+            advisories.pop();
+        }
+        advisories = advisories;
+    }
+
     $: if (files) {
         import_doc(files);
     }
+    $: sync_advisory_count(settings.num_advisories);
 </script>
 
 <div class="page">
@@ -84,7 +106,12 @@
         </div>
     </div>
     <div class="bottom-bar">
-        <BottomBar bind:files on:clear={clear} on:generate={generate} />
+        <BottomBar
+            bind:files
+            on:clear={clear}
+            on:generate={generate}
+            on:load={load}
+        />
     </div>
 </div>
 

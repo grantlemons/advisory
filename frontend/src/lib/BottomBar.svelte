@@ -8,6 +8,7 @@
 
     const clear = () => dispatch('clear');
     const generate = () => dispatch('generate');
+    const load = () => dispatch('load');
 </script>
 
 <div class="bottom-bar">
@@ -22,6 +23,11 @@
         <div class="button">
             <Button color="primary" on:click={clear} variant="unelevated">
                 <Label>Clear</Label>
+            </Button>
+        </div>
+        <div class="button">
+            <Button color="primary" on:click={load} variant="unelevated">
+                <Label>Fetch</Label>
             </Button>
         </div>
         <div class="button">

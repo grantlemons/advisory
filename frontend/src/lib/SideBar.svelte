@@ -7,7 +7,7 @@
         gender_weight,
     } from '$lib/auth_store';
     import HorizontalRule from '$lib/Horizontal-Rule.svelte';
-    import type { Settings } from '$lib/DBTypes';
+    import type { Settings, Advisory } from '$lib/DBTypes';
 
     export let settings: Settings = {
         weights: {
@@ -15,7 +15,7 @@
             sex_diverse: 0,
             grade_diverse: 0,
         },
-        num_advisories: 0,
+        num_advisories: 5,
         teacher_groupings: [],
     };
 
@@ -61,6 +61,7 @@
             <LabeledNumberField
                 bind:value={$advisory_count}
                 label="Number of Advisories"
+                min={1}
                 max={100}
             />
         </div>
@@ -70,14 +71,20 @@
             <LabeledNumberField
                 bind:value={$teacher_weight}
                 label="Student has Teacher"
+                min={0}
+                max={10}
             />
             <LabeledNumberField
                 bind:value={$grade_weight}
                 label="Grade Diversity"
+                min={0}
+                max={10}
             />
             <LabeledNumberField
                 bind:value={$gender_weight}
                 label="Gender Diversity"
+                min={0}
+                max={10}
             />
         </div>
     </div>
