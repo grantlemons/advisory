@@ -73,24 +73,22 @@
         }
     }
 
-    function sync_advisory_count(num: number) {
-        if (num == advisories.length) return;
-        while (num > advisories.length) {
+    $: if (files) {
+        import_doc(files);
+    }
+    // force reactivity for number of advisories
+    $: {
+        while (settings.num_advisories > advisories.length) {
             advisories.push({
                 students: [],
                 advisors: [],
             });
         }
-        while (num < advisories.length) {
+        while (settings.num_advisories < advisories.length) {
             advisories.pop();
         }
         advisories = advisories;
     }
-
-    $: if (files) {
-        import_doc(files);
-    }
-    $: sync_advisory_count(settings.num_advisories);
 </script>
 
 <div class="page">

@@ -6,25 +6,35 @@
     import Button, { Label } from '@smui/button';
     import Radio from '@smui/radio';
     export let advisories: Advisory[] = [];
+    export let unallocated_teachers: Teacher[] = [];
     export let data: Advisory;
 
     let teachers: Teacher[] = data.advisors;
     let students: Student[] = data.students;
 
     let open = false;
-    let dialog_teacher = {};
-    let selection: Advisory;
+    let dialog_teacher: Teacher;
+    let selection: Teacher[];
 
+    // run when move accepted
     function closeHandler(e: CustomEvent<{ action: string }>) {
         if (e.detail.action === 'accept') {
-            // selection.teachers.push(dialog_teacher);
+            selection.push(dialog_teacher);
+            let index = teachers.indexOf(dialog_teacher);
+            teachers.splice(index, 1);
         }
+        advisories = advisories;
+        unallocated_teachers = unallocated_teachers;
     }
 
+    // run when teacher clicked to start move
     function select_teacher(teacher: Teacher) {
         dialog_teacher = teacher;
         open = true;
     }
+
+    // reactivity on move
+    $: teachers = data.advisors;
 </script>
 
 <div class="advisory-card">
@@ -61,18 +71,31 @@
             {#each advisories as advisory, index}
                 <Item>
                     <Graphic>
-                        <Radio bind:group={selection} value={advisory} />
+                        <Radio
+                            bind:group={selection}
+                            value={advisory.advisors}
+                        />
                     </Graphic>
                     <Text>Advisory {index + 1}</Text>
                 </Item>
             {/each}
+            <Separator />
+            <Item>
+                <Graphic>
+                    <Radio
+                        bind:group={selection}
+                        value={unallocated_teachers}
+                    />
+                </Graphic>
+                <Text>Unallocate</Text>
+            </Item>
         </List>
     </Content>
     <Actions>
-        <Button>
+        <Button color="secondary" variant="unelevated">
             <Label>Cancel</Label>
         </Button>
-        <Button action="accept">
+        <Button action="accept" color="primary" variant="unelevated">
             <Label>Move</Label>
         </Button>
     </Actions>
