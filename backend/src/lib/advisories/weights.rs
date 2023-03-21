@@ -55,6 +55,7 @@ impl crate::Verify for Weights {
         if !(range.contains(&self.has_teacher)
             && range.contains(&self.sex_diverse)
             && range.contains(&self.grade_diverse))
+            || (&self.has_teacher + &self.sex_diverse + &self.grade_diverse) == 0
         {
             Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
         } else {

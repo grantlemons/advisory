@@ -24,15 +24,40 @@
     let advisories: Advisory[] = [];
 
     function update_advisories(data: Advisory[]) {
-        for (let advisory in data) {
+        for (let i = 0; i < data.length; i++) {
             advisories
-                .map((a) => a.advisors)
                 .filter(
-                    (a) => a === (advisory as any as Advisory).advisors.sort()
+                    (a) =>
+                        JSON.stringify(
+                            a.advisors.sort((a1, a2) => {
+                                if (a1.name > a2.name) {
+                                    return 1;
+                                }
+
+                                if (a1.name < a2.name) {
+                                    return -1;
+                                }
+
+                                return 0;
+                            })
+                        ) ==
+                        JSON.stringify(
+                            data[i].advisors.sort((a1, a2) => {
+                                if (a1.name > a2.name) {
+                                    return 1;
+                                }
+
+                                if (a1.name < a2.name) {
+                                    return -1;
+                                }
+
+                                return 0;
+                            })
+                        )
                 )
-                .forEach((_) => advisory);
+                .forEach((a) => (a.students = data[i].students));
         }
-        console.log(advisories);
+        advisories = advisories;
     }
 
     function generate() {

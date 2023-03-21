@@ -35,6 +35,7 @@
 
     // reactivity on move
     $: teachers = data.advisors;
+    $: students = data.students;
 </script>
 
 <div class="advisory-card">

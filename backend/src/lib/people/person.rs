@@ -158,14 +158,14 @@ impl crate::DatabaseNode for Person {
         graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<Vec<Self>, axum::http::StatusCode> {
-        let query = neo4rs::query("MATCH (p { user_id: $user_id })-[:BANNED]-(b) RETURN distinct(p) as people, collect(b) as banned")
+        let query = neo4rs::query("MATCH (p { user_id: $user_id }) OPTIONAL MATCH (p)-[:BANNED]-(b) RETURN distinct(p) as people, collect(b) as banned")
             .param("user_id", user_id.into());
 
         match graph.execute(query).await {
             Ok(mut result) => {
                 let mut people: Vec<Self> = Vec::new();
                 while let Ok(Some(row)) = result.next().await {
-                    let person: neo4rs::Node = row.get("students").unwrap();
+                    let person: neo4rs::Node = row.get("people").unwrap();
                     let name: String = person.get("name").unwrap();
                     let banned_pairings = row.get::<Vec<String>>("banned").unwrap();
                     people.push(Self {
