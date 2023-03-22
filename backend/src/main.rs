@@ -79,7 +79,7 @@ async fn main() -> Result<()> {
     };
 
     // IP and Port to bind to
-    let addr = SocketAddr::from(([0, 0, 0, 0], 80));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 81));
     log::info!("listening on {}", addr);
 
     // Use HTTP or HTTPS depending on ENV environment variable

@@ -12,4 +12,5 @@ RUN yarn run vbuild --mode development
 # -------
 
 FROM nginx:1.23.1-alpine
+COPY ./nginx-conf.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/build /usr/share/nginx/html

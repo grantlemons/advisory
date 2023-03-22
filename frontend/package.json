@@ -19,6 +19,7 @@
         "docker": "docker compose up frontend --build --no-deps --force-recreate --wait"
     },
     "devDependencies": {
+        "@smui-extra/autocomplete": "^6.1.0",
         "@smui/button": "^6.1.0",
         "@smui/card": "^6.1.0",
         "@smui/dialog": "^6.1.0",

@@ -283,6 +283,36 @@
     "@material/typography" "^13.0.0"
     tslib "^2.1.0"
 
+"@material/menu-surface@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@material/menu-surface/-/menu-surface-13.0.0.tgz#b4c6c799e714cba6465513dbf1020ba2fcaee588"
+  integrity sha512-Irfnk0l8AO7z8ucilbBzZI8izbFV/aK1GbiPpT1SmZuKkL1z+04rB2HpB+OqwaBixdLTDq70AyawcnQ0MACeXQ==
+  dependencies:
+    "@material/animation" "^13.0.0"
+    "@material/base" "^13.0.0"
+    "@material/elevation" "^13.0.0"
+    "@material/feature-targeting" "^13.0.0"
+    "@material/rtl" "^13.0.0"
+    "@material/shape" "^13.0.0"
+    "@material/theme" "^13.0.0"
+    tslib "^2.1.0"
+
+"@material/menu@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@material/menu/-/menu-13.0.0.tgz#60fdca3f3a8457dfee83938adaf6288789ad0ac1"
+  integrity sha512-RY9R2ubYU6a7WRJW3nWr/AoSzdrxwUGqkfJSx0U9M/wK1vbXYYcJ7eCXFzSpa5VrstE7of7PbyYtQ8V61tILEQ==
+  dependencies:
+    "@material/base" "^13.0.0"
+    "@material/dom" "^13.0.0"
+    "@material/elevation" "^13.0.0"
+    "@material/feature-targeting" "^13.0.0"
+    "@material/list" "^13.0.0"
+    "@material/menu-surface" "^13.0.0"
+    "@material/ripple" "^13.0.0"
+    "@material/rtl" "^13.0.0"
+    "@material/theme" "^13.0.0"
+    tslib "^2.1.0"
+
 "@material/notched-outline@^13.0.0":
   version "13.0.0"
   resolved "https://registry.yarnpkg.com/@material/notched-outline/-/notched-outline-13.0.0.tgz#0a043cb87fc9aa19b00a1a9b7c010eab8250b820"
@@ -430,6 +460,18 @@
     estree-walker "^2.0.1"
     picomatch "^2.2.2"
 
+"@smui-extra/autocomplete@^6.1.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@smui-extra/autocomplete/-/autocomplete-6.2.0.tgz#146924e80e620bc5c28cc21787ef68ea2f710c67"
+  integrity sha512-JCZOQO6rnDdCq8/q9gB4ElM04AIaQAcNLiNkPsgzUT6v8klYzerqPnfT3JBvm+p+ZUqocmRAIrdsF5QVvAgacg==
+  dependencies:
+    "@smui/common" "^6.1.4"
+    "@smui/list" "^6.1.4"
+    "@smui/menu" "^6.2.0"
+    "@smui/menu-surface" "^6.1.4"
+    "@smui/textfield" "^6.1.4"
+    svelte2tsx "^0.5.12"
+
 "@smui/button@^6.1.0", "@smui/button@^6.1.4":
   version "6.1.4"
   resolved "https://registry.yarnpkg.com/@smui/button/-/button-6.1.4.tgz#0417ef300fb2c8683bea91e42e0a32de580883ed"
@@ -505,7 +547,7 @@
     "@smui/common" "^6.1.4"
     svelte2tsx "^0.5.12"
 
-"@smui/list@^6.1.0":
+"@smui/list@^6.1.0", "@smui/list@^6.1.4":
   version "6.1.4"
   resolved "https://registry.yarnpkg.com/@smui/list/-/list-6.1.4.tgz#753972db3825a0c7ba82f5d7c957694d404be818"
   integrity sha512-YPecf8ib/EETUVlt+TZMclzm5S+usMVpFsIgidMR75+HFUpXVlHsaOqGdQuQYJ75YRf3HZcYwUNn4t2B3ayhTg==
@@ -515,6 +557,28 @@
     "@material/list" "^13.0.0"
     "@smui/common" "^6.1.4"
     "@smui/ripple" "^6.1.4"
+    svelte2tsx "^0.5.12"
+
+"@smui/menu-surface@^6.1.4":
+  version "6.1.4"
+  resolved "https://registry.yarnpkg.com/@smui/menu-surface/-/menu-surface-6.1.4.tgz#c3f546f1e5847c97fa22aec949eab2d07c07b16e"
+  integrity sha512-rZDHRLiAUCYrunhYAuZUSqtBO2r80rMu5/aeNuBNcemwBw/z/6opNTC8XEcAfN6kbbABewKDD/aW/MIZJgjHsA==
+  dependencies:
+    "@material/animation" "^13.0.0"
+    "@material/menu-surface" "^13.0.0"
+    "@smui/common" "^6.1.4"
+    svelte2tsx "^0.5.12"
+
+"@smui/menu@^6.2.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@smui/menu/-/menu-6.2.0.tgz#10431bf68564fef697f8de77743dc8d869e3f511"
+  integrity sha512-zYb3U5DPyrHWKwH2Q6KLSotrQ+6r223PnLbYGRcOCF7sEVNL+P7N8n8EfJTxX+/NF9Dbs48Z1a0QBvkN51klbQ==
+  dependencies:
+    "@material/dom" "^13.0.0"
+    "@material/menu" "^13.0.0"
+    "@smui/common" "^6.1.4"
+    "@smui/list" "^6.1.4"
+    "@smui/menu-surface" "^6.1.4"
     svelte2tsx "^0.5.12"
 
 "@smui/notched-outline@^6.1.4":
@@ -547,7 +611,7 @@
     "@smui/common" "^6.1.4"
     svelte2tsx "^0.5.12"
 
-"@smui/textfield@^6.1.0":
+"@smui/textfield@^6.1.0", "@smui/textfield@^6.1.4":
   version "6.1.4"
   resolved "https://registry.yarnpkg.com/@smui/textfield/-/textfield-6.1.4.tgz#ea8d22be3063d7d5df1d82e296ac113af49b4334"
   integrity sha512-Y873i6KCAeh3fa3Kp7EuVKR5BU5CtfVEJXP30uVM5PdNIVeAGV5xTCjOyq/rpiGALILxQFVMfE6NKKCyTCCenA==

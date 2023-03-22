@@ -1,10 +1,13 @@
 <script lang="ts">
-    import type { Advisory, Student, Teacher } from '$lib/DBTypes';
+    import type { Advisory, Student, Teacher, Person } from '$lib/DBTypes';
     import Card, { Content } from '@smui/card';
     import List, { Graphic, Item, Separator, Text } from '@smui/list';
     import Dialog, { Actions } from '@smui/dialog';
     import Button, { Label } from '@smui/button';
+    import Autocomplete from '@smui-extra/autocomplete';
     import Radio from '@smui/radio';
+    import API from '$lib/API';
+
     export let advisories: Advisory[] = [];
     export let unallocated_teachers: Teacher[] = [];
     export let data: Advisory;
@@ -12,14 +15,32 @@
     let teachers: Teacher[] = data.advisors;
     let students: Student[] = data.students;
 
-    let open = false;
+    let teacher_dialog_open = false;
     let dialog_teacher: Teacher;
-    let selection: Teacher[];
+    let teacher_column_selection: Teacher[];
+
+    let student_dialog_open = false;
+    let dialog_student: Student;
+    let student_banned_options: string[];
+    let student_banned_selection: string;
+
+    function get_people(): string[] {
+        let people: string[] = [];
+        for (let index = 0; index < advisories.length; index++) {
+            people = people.concat(
+                advisories[index].advisors.map((a) => a.name)
+            );
+            people = people.concat(
+                advisories[index].students.map((s) => s.name)
+            );
+        }
+        return people;
+    }
 
     // run when move accepted
-    function closeHandler(e: CustomEvent<{ action: string }>) {
+    function teacher_close_handler(e: CustomEvent<{ action: string }>) {
         if (e.detail.action === 'accept') {
-            selection.push(dialog_teacher);
+            teacher_column_selection.push(dialog_teacher);
             let index = teachers.indexOf(dialog_teacher);
             teachers.splice(index, 1);
         }
@@ -27,10 +48,25 @@
         unallocated_teachers = unallocated_teachers;
     }
 
+    // run when ban accepted
+    function student_close_handler(e: CustomEvent<{ action: string }>) {
+        if (e.detail.action === 'accept') {
+            let selected: Person = { name: student_banned_selection };
+            API.ban_pairing(dialog_student, selected);
+        }
+    }
+
     // run when teacher clicked to start move
     function select_teacher(teacher: Teacher) {
         dialog_teacher = teacher;
-        open = true;
+        teacher_dialog_open = true;
+    }
+
+    // run when student clicked
+    function select_student(student: Student) {
+        dialog_student = student;
+        student_banned_options = get_people();
+        student_dialog_open = true;
     }
 
     // reactivity on move
@@ -49,9 +85,9 @@
                 {/each}
             </List>
             <Separator />
-            <List nonInteractive>
+            <List>
                 {#each students as student}
-                    <Item>
+                    <Item on:SMUI:action={() => select_student(student)}>
                         <Text>{student.name}</Text>
                     </Item>
                 {/each}
@@ -61,11 +97,11 @@
 </div>
 
 <Dialog
-    bind:open
+    bind:open={teacher_dialog_open}
     selection
     aria-labelledby="list-selection-title"
     aria-describedby="list-selection-content"
-    on:SMUIDialog:closed={closeHandler}
+    on:SMUIDialog:closed={teacher_close_handler}
 >
     <Content>
         <List radioList>
@@ -73,7 +109,7 @@
                 <Item>
                     <Graphic>
                         <Radio
-                            bind:group={selection}
+                            bind:group={teacher_column_selection}
                             value={advisory.advisors}
                         />
                     </Graphic>
@@ -84,7 +120,7 @@
             <Item>
                 <Graphic>
                     <Radio
-                        bind:group={selection}
+                        bind:group={teacher_column_selection}
                         value={unallocated_teachers}
                     />
                 </Graphic>
@@ -98,6 +134,31 @@
         </Button>
         <Button action="accept" color="primary" variant="unelevated">
             <Label>Move</Label>
+        </Button>
+    </Actions>
+</Dialog>
+
+<Dialog
+    bind:open={student_dialog_open}
+    selection
+    aria-labelledby="list-selection-title"
+    aria-describedby="list-selection-content"
+    on:SMUIDialog:closed={student_close_handler}
+>
+    <Content>
+        <Autocomplete
+            options={student_banned_options}
+            textfield$variant="outlined"
+            bind:value={student_banned_selection}
+            label="Outlined"
+        />
+    </Content>
+    <Actions>
+        <Button color="secondary" variant="unelevated">
+            <Label>Cancel</Label>
+        </Button>
+        <Button action="accept" color="primary" variant="unelevated">
+            <Label>Ban Pairing</Label>
         </Button>
     </Actions>
 </Dialog>

@@ -74,14 +74,14 @@ export default class API {
         });
     }
 
-    static ban_pairing(pairing: Person[]): Promise<AxiosResponse<any, any>> {
-        if (pairing.length > 2) {
-            throw Error;
-        }
+    static ban_pairing(
+        p1: Person,
+        p2: Person
+    ): Promise<AxiosResponse<any, any>> {
         return axios({
             method: 'post',
             url: `${this.BASE_URL}/people/ban`,
-            data: pairing,
+            data: [p1, p2],
             headers: {
                 Authorization: auth,
             },
