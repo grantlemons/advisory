@@ -1,21 +1,31 @@
 use serde::{Deserialize, Serialize};
 
-/// Weights from 0-10 used to assign importance to each possible parameter in the 'score calculation'
+/// Weights from 1-10 used to assign importance to each possible parameter in the 'score calculation'
 /// Used by [`crate::advisories::Advisory`]
-#[derive(Deserialize, Serialize, Debug, Default, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Weights {
     /// The relative importance that each student an an advisory has one of the advisors as a teacher
     ///
-    /// Value from 0-10
+    /// Value from 1-10
     pub has_teacher: i8,
     /// The relative importance of biological sex diversity within advisories
     ///
-    /// Value from 0-10
+    /// Value from 1-10
     pub sex_diverse: i8,
     /// The relative importance of grade diversity within advisories
     ///
-    /// Value from 0-10
+    /// Value from 1-10
     pub grade_diverse: i8,
+}
+
+impl Default for Weights {
+    fn default() -> Self {
+        Self {
+            has_teacher: 1,
+            sex_diverse: 1,
+            grade_diverse: 1,
+        }
+    }
 }
 
 impl crate::Verify for Weights {
@@ -51,11 +61,10 @@ impl crate::Verify for Weights {
     /// assert_ne!(func(), Ok(()))
     /// ```
     fn verify(&self) -> Result<(), axum::http::StatusCode> {
-        let range = 0..=10;
+        let range = 1..=10;
         if !(range.contains(&self.has_teacher)
             && range.contains(&self.sex_diverse)
             && range.contains(&self.grade_diverse))
-            || (&self.has_teacher + &self.sex_diverse + &self.grade_diverse) == 0
         {
             Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
         } else {
