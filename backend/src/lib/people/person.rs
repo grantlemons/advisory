@@ -50,7 +50,8 @@ impl Person {
 
         // potential for sql injection by directly using the value from banned
         // that being said, it doesn't work otherwise
-        // maybe look for a way to sanitize inputs
+        // maybe look for a way to sanitize inputs or rewrite library (it hasn't been updated in
+        // forever)
         let query = neo4rs::query(&format!("OPTIONAL MATCH (p1 {{ name: $banned_name, user_id: $user_id }}) OPTIONAL MATCH (p2 {{ name: $banned_name2, user_id: $user_id }}) {}", query_string))
             .param("user_id", user_id.into())
             .param("banned_name", form[0].name.clone())
@@ -158,16 +159,21 @@ impl crate::DatabaseNode for Person {
         graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<Vec<Self>, axum::http::StatusCode> {
-        let query = neo4rs::query("MATCH (p { user_id: $user_id })-[:BANNED]-(b) RETURN distinct(p) as people, collect(b) as banned")
+        let query = neo4rs::query("MATCH (p { user_id: $user_id }) OPTIONAL MATCH (p)-[:BANNED]-(b) RETURN distinct(p) as people, collect(b) as banned")
             .param("user_id", user_id.into());
 
         match graph.execute(query).await {
             Ok(mut result) => {
                 let mut people: Vec<Self> = Vec::new();
                 while let Ok(Some(row)) = result.next().await {
-                    let person: neo4rs::Node = row.get("students").unwrap();
+                    let person: neo4rs::Node = row.get("people").unwrap();
                     let name: String = person.get("name").unwrap();
-                    let banned_pairings = row.get::<Vec<String>>("banned").unwrap();
+                    let banned_pairings = row
+                        .get::<Vec<neo4rs::Node>>("banned")
+                        .unwrap()
+                        .iter()
+                        .map(|b| b.get("name").unwrap())
+                        .collect::<Vec<_>>();
                     people.push(Self {
                         name,
                         banned_pairings,

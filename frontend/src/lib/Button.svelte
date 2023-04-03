@@ -6,7 +6,7 @@
 </script>
 
 {#if hidden}
-    <div class="button" style="visibility: hidden; width: 0;">
+    <div class="button hidden">
         <Button variant="unelevated" />
     </div>
 {:else}
@@ -25,5 +25,9 @@
         row-gap: 10px;
 
         width: 100%;
+    }
+    .hidden {
+        visibility: hidden;
+        width: 0;
     }
 </style>

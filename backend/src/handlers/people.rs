@@ -42,6 +42,40 @@ pub(crate) async fn get_people_handler(
     }
 }
 
+/// Handler to get all teachers for a specific user
+#[axum_macros::debug_handler]
+pub(crate) async fn get_teachers_handler(
+    State(state): State<SharedState>,
+    Extension(user_option): Extension<Option<UserData>>,
+) -> Result<Json<Vec<Teacher>>, StatusCode> {
+    if let Some(user) = user_option {
+        match &state.graph {
+            Some(graph) => Ok(Json(Teacher::get_nodes(graph, user.user_id()).await?)),
+            None => Err(StatusCode::BAD_GATEWAY),
+        }
+    } else {
+        log::info!("Unauthorized access to get_teachers_handler prevented");
+        Err(StatusCode::UNAUTHORIZED)
+    }
+}
+
+/// Handler to get all students for a specific user
+#[axum_macros::debug_handler]
+pub(crate) async fn get_students_handler(
+    State(state): State<SharedState>,
+    Extension(user_option): Extension<Option<UserData>>,
+) -> Result<Json<Vec<Student>>, StatusCode> {
+    if let Some(user) = user_option {
+        match &state.graph {
+            Some(graph) => Ok(Json(Student::get_nodes(graph, user.user_id()).await?)),
+            None => Err(StatusCode::BAD_GATEWAY),
+        }
+    } else {
+        log::info!("Unauthorized access to get_students_handler prevented");
+        Err(StatusCode::UNAUTHORIZED)
+    }
+}
+
 /// Handler to add a teacher to the database
 ///
 /// Uses [`Teacher`] as a form for input

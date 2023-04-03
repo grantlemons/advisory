@@ -89,12 +89,8 @@ impl Advisory {
     }
 
     /// Adds a [`Teacher`] struct to the advisors vector if Some
-    pub(crate) fn add_teacher(&mut self, t: Option<Teacher>) {
-        if let Some(t) = t {
-            self.advisors.push(t);
-        } else {
-            log::info!("Added teacher is None type: doing nothing");
-        }
+    pub(crate) fn add_teacher(&mut self, t: Teacher) {
+        self.advisors.push(t);
     }
 
     /// Checks whether one of the advisors teaches the given student
@@ -106,18 +102,18 @@ impl Advisory {
         has
     }
 
-    /// Checks in the advisory already has a student that is not supposed to be with the student
+    /// Checks in the advisory already has a person that is not supposed to be with the student
     pub(crate) fn has_banned_pairing(&self, s: &Student) -> bool {
         let mut has = false;
-        for i in &s.banned_pairings {
-            let advisory_names = self
-                .students
-                .iter()
-                .map(|s| &s.name)
-                .chain(self.advisors.iter().map(|a| &a.name))
-                .collect::<Vec<&String>>();
+        let advisory_names = self
+            .students
+            .iter()
+            .map(|s| &s.name)
+            .chain(self.advisors.iter().map(|a| &a.name))
+            .collect::<Vec<&String>>();
 
-            has = has || advisory_names.contains(&i)
+        for banned_name in &s.banned_pairings {
+            has = has || advisory_names.contains(&banned_name);
         }
         has
     }
@@ -140,7 +136,7 @@ impl Advisory {
             * (weights.sex_diverse as i32 * self.get_remaining_sex(&student.sex) as i32);
         let grade_weighted_value = number_of_grades
             * (weights.grade_diverse as i32 * self.get_remaining_grade(&student.grade) as i32);
-        let banned_weighted_value = -10000.0 as i32 * self.has_banned_pairing(&student) as i32;
+        let banned_weighted_value = -10000 * self.has_banned_pairing(&student) as i32;
         teacher_weighted_value + sexes_weighted_value + grade_weighted_value + banned_weighted_value
     }
 }

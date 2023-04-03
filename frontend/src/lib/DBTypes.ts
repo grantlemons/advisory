@@ -11,19 +11,24 @@ export enum Grade {
 export interface Teacher {
     name: string;
 }
+export interface Person {
+    name: string;
+    banned_pairings: string[];
+}
 export interface Student {
     name: string;
     sex: Sex;
     teachers: Teacher[];
     grade: Grade;
+    banned_pairings: string[];
 }
 
-export interface Advisories {
-    user_id: string;
+export interface Advisory {
+    // user_id: string;
     advisors: Teacher[];
     students: Student[];
-    remaining_sex: [number, number];
-    remaining_grade: [number, number, number, number];
+    // remaining_sex: [number, number];
+    // remaining_grade: [number, number, number, number];
 }
 
 export interface Weights {
@@ -35,5 +40,5 @@ export interface Weights {
 export interface Settings {
     weights: Weights;
     num_advisories: number;
-    teacher_pairs: [Teacher, Teacher][];
+    teacher_groupings: Teacher[][];
 }

@@ -273,7 +273,7 @@ impl crate::DatabaseNode for Student {
         graph: &neo4rs::Graph,
         user_id: T,
     ) -> Result<Vec<Self>, axum::http::StatusCode> {
-        let query = neo4rs::query("MATCH (s:Student { user_id: $user_id })<-[:TEACHES]-(t:Teacher) RETURN distinct(s) as students, collect(t) as teachers, collect(b) as banned")
+        let query = neo4rs::query("MATCH (s:Student { user_id: $user_id }) OPTIONAL MATCH (s)<-[:TEACHES]-(t:Teacher) OPTIONAL MATCH (s)-[:BANNED]-(b) RETURN distinct(s) as students, collect(t) as teachers, collect(b) as banned")
             .param("user_id", user_id.into());
 
         match graph.execute(query).await {
@@ -287,7 +287,12 @@ impl crate::DatabaseNode for Student {
                         "" => None,
                         value => Some(Sex::from(value)),
                     };
-                    let banned_pairings = row.get::<Vec<String>>("banned").unwrap();
+                    let banned_pairings = row
+                        .get::<Vec<neo4rs::Node>>("banned")
+                        .unwrap()
+                        .iter()
+                        .map(|b| b.get("name").unwrap())
+                        .collect::<Vec<_>>();
                     let teachers = row
                         .get::<Vec<neo4rs::Node>>("teachers")
                         .unwrap()

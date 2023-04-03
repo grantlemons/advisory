@@ -9,4 +9,3 @@
 {:else}
     <!-- <img src="" alt="Project Logo" /> -->
 {/if}
-

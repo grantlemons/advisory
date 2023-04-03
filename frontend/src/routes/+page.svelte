@@ -44,7 +44,7 @@
         goto('/password_reset');
     }
     function redirect_dashboard() {
-        goto('/conn_test');
+        goto('/dashboard');
     }
 
     // function to authenticate with Cognito
