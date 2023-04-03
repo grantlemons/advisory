@@ -11,9 +11,9 @@
 
     export let settings: Settings = {
         weights: {
-            has_teacher: 0,
-            sex_diverse: 0,
-            grade_diverse: 0,
+            has_teacher: 1,
+            sex_diverse: 1,
+            grade_diverse: 1,
         },
         num_advisories: 5,
         teacher_groupings: [],
@@ -32,7 +32,7 @@
         if (isNaN(Number(value)))
             teacher_weight.set(String(settings.weights.has_teacher));
         if (Number(value) > 10) teacher_weight.set('10');
-        if (Number(value) < 0) teacher_weight.set('0');
+        if (Number(value) < 1) teacher_weight.set('1');
 
         settings.weights.has_teacher = Number(value);
     });
@@ -40,7 +40,7 @@
         if (isNaN(Number(value)))
             grade_weight.set(String(settings.weights.grade_diverse));
         if (Number(value) > 10) grade_weight.set('10');
-        if (Number(value) < 0) grade_weight.set('0');
+        if (Number(value) < 1) grade_weight.set('1');
 
         settings.weights.grade_diverse = Number(value);
     });
@@ -48,7 +48,7 @@
         if (isNaN(Number(value)))
             gender_weight.set(String(settings.weights.sex_diverse));
         if (Number(value) > 10) gender_weight.set('10');
-        if (Number(value) < 0) gender_weight.set('0');
+        if (Number(value) < 1) gender_weight.set('1');
 
         settings.weights.sex_diverse = Number(value);
     });
@@ -71,19 +71,19 @@
             <LabeledNumberField
                 bind:value={$teacher_weight}
                 label="Student has Teacher"
-                min={0}
+                min={1}
                 max={10}
             />
             <LabeledNumberField
                 bind:value={$grade_weight}
                 label="Grade Diversity"
-                min={0}
+                min={1}
                 max={10}
             />
             <LabeledNumberField
                 bind:value={$gender_weight}
                 label="Gender Diversity"
-                min={0}
+                min={1}
                 max={10}
             />
         </div>

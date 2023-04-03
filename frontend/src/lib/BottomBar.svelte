@@ -50,11 +50,13 @@
     }
     .button {
         height: 70%;
+        margin: auto;
     }
     .buttonbox {
         display: flex;
         flex-direction: row;
         column-gap: 10px;
         width: fit-content;
+        margin-right: 10px;
     }
 </style>
