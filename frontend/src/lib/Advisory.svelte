@@ -51,9 +51,13 @@
     // run when ban accepted
     function student_close_handler(e: CustomEvent<{ action: string }>) {
         if (e.detail.action === 'accept') {
-            let selected: Person = { name: student_banned_selection };
+            let selected: Person = {
+                name: student_banned_selection,
+                banned_pairings: [],
+            };
             API.ban_pairing(dialog_student, selected);
         }
+        student_banned_selection = '';
     }
 
     // run when teacher clicked to start move

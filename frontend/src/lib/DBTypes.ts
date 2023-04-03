@@ -13,13 +13,14 @@ export interface Teacher {
 }
 export interface Person {
     name: string;
+    banned_pairings: string[];
 }
 export interface Student {
     name: string;
     sex: Sex;
     teachers: Teacher[];
     grade: Grade;
-    banned_pairings: [];
+    banned_pairings: string[];
 }
 
 export interface Advisory {

@@ -78,6 +78,9 @@ export default class API {
         p1: Person,
         p2: Person
     ): Promise<AxiosResponse<any, any>> {
+        p1.banned_pairings.push(p2.name);
+        p2.banned_pairings.push(p1.name);
+
         return axios({
             method: 'post',
             url: `${this.BASE_URL}/people/ban`,
