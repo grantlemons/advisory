@@ -15,7 +15,7 @@
             sex_diverse: 1,
             grade_diverse: 1,
         },
-        num_advisories: 5,
+        num_advisories: 0,
         teacher_groupings: [],
     };
 
