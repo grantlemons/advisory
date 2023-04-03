@@ -102,18 +102,18 @@ impl Advisory {
         has
     }
 
-    /// Checks in the advisory already has a student that is not supposed to be with the student
+    /// Checks in the advisory already has a person that is not supposed to be with the student
     pub(crate) fn has_banned_pairing(&self, s: &Student) -> bool {
         let mut has = false;
-        for i in &s.banned_pairings {
-            let advisory_names = self
-                .students
-                .iter()
-                .map(|s| &s.name)
-                .chain(self.advisors.iter().map(|a| &a.name))
-                .collect::<Vec<&String>>();
+        let advisory_names = self
+            .students
+            .iter()
+            .map(|s| &s.name)
+            .chain(self.advisors.iter().map(|a| &a.name))
+            .collect::<Vec<&String>>();
 
-            has = has || advisory_names.contains(&i)
+        for banned_name in &s.banned_pairings {
+            has = has || advisory_names.contains(&banned_name);
         }
         has
     }

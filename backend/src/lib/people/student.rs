@@ -287,7 +287,12 @@ impl crate::DatabaseNode for Student {
                         "" => None,
                         value => Some(Sex::from(value)),
                     };
-                    let banned_pairings = row.get::<Vec<String>>("banned").unwrap();
+                    let banned_pairings = row
+                        .get::<Vec<neo4rs::Node>>("banned")
+                        .unwrap()
+                        .iter()
+                        .map(|b| b.get("name").unwrap())
+                        .collect::<Vec<_>>();
                     let teachers = row
                         .get::<Vec<neo4rs::Node>>("teachers")
                         .unwrap()
