@@ -16,6 +16,10 @@ pub struct Weights {
     ///
     /// Value from 1-10
     pub grade_diverse: i8,
+    /// The relative importance of the advisories having an equal amount of people in them
+    ///
+    /// Value from 1-10
+    pub equal_people: i8,
 }
 
 impl Default for Weights {
@@ -24,6 +28,7 @@ impl Default for Weights {
             has_teacher: 1,
             sex_diverse: 1,
             grade_diverse: 1,
+            equal_people: 1,
         }
     }
 }
@@ -40,6 +45,7 @@ impl crate::Verify for Weights {
     ///         has_teacher: 8,
     ///         sex_diverse: 9,
     ///         grade_diverse: 10,
+    ///         equal_people: 10,
     ///     };
     ///     weights.verify()?;
     ///     Ok(())
@@ -54,6 +60,7 @@ impl crate::Verify for Weights {
     ///         has_teacher: 8,
     ///         sex_diverse: 11,
     ///         grade_diverse: 10,
+    ///         equal_people: 10,
     ///     };
     ///     weights.verify()?;
     ///     Ok(())
@@ -64,7 +71,8 @@ impl crate::Verify for Weights {
         let range = 1..=10;
         if !(range.contains(&self.has_teacher)
             && range.contains(&self.sex_diverse)
-            && range.contains(&self.grade_diverse))
+            && range.contains(&self.grade_diverse)
+            && range.contains(&self.equal_people))
         {
             Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
         } else {

@@ -5,6 +5,7 @@
         teacher_weight,
         grade_weight,
         gender_weight,
+        equal_people_weight,
     } from '$lib/auth_store';
     import HorizontalRule from '$lib/Horizontal-Rule.svelte';
     import type { Settings, Advisory } from '$lib/DBTypes';
@@ -14,6 +15,7 @@
             has_teacher: 1,
             sex_diverse: 1,
             grade_diverse: 1,
+            equal_people: 1,
         },
         num_advisories: 0,
         teacher_groupings: [],
@@ -52,6 +54,14 @@
 
         settings.weights.sex_diverse = Number(value);
     });
+    equal_people_weight.subscribe((value: string) => {
+        if (isNaN(Number(value)))
+            equal_people_weight.set(String(settings.weights.equal_people));
+        if (Number(value) > 10) equal_people_weight.set('10');
+        if (Number(value) < 1) equal_people_weight.set('1');
+
+        settings.weights.equal_people = Number(value);
+    });
 </script>
 
 <div class="side-bar">
@@ -83,6 +93,12 @@
             <LabeledNumberField
                 bind:value={$gender_weight}
                 label="Gender Diversity"
+                min={1}
+                max={10}
+            />
+            <LabeledNumberField
+                bind:value={$equal_people_weight}
+                label="Equal People Count"
                 min={1}
                 max={10}
             />
