@@ -7,7 +7,7 @@ COPY ./src/theme/ ./src/theme
 RUN yarn install
 RUN mkdir ./static && yarn run gentheme
 COPY . .
-RUN yarn run vbuild --mode development
+RUN yarn run vbuild
 
 # -------
 
