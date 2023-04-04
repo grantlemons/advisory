@@ -35,7 +35,7 @@
 <div class="advisory-window">
     {#if unallocated_teachers.length != 0}
         <div class="unallocated">
-            <Card>
+            <Card style="height:100%">
                 <Content>
                     <List>
                         {#each unallocated_teachers as teacher}
@@ -92,22 +92,19 @@
 
 <style>
     .advisory-window {
-        height: 100%;
+        height: 97.5%;
         display: flex;
         flex-flow: row wrap;
         justify-content: stretch;
+        margin: 0.5%;
     }
     .advisories {
         display: flex;
         flex-flow: row wrap;
         justify-content: stretch;
+        gap: 8px;
     }
     .unallocated {
         width: 250px;
-        height: 100%;
-    }
-    div {
-        height: 100%;
-        margin: 8px;
     }
 </style>

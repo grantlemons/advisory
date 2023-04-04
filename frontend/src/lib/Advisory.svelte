@@ -79,7 +79,7 @@
 </script>
 
 <div class="advisory-card">
-    <Card>
+    <Card style="height:100%">
         <Content>
             <List>
                 {#each teachers as teacher}
