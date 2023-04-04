@@ -92,11 +92,12 @@
 
 <style>
     .advisory-window {
-        height: 97.5%;
+        height: 98.5%;
         display: flex;
         flex-flow: row wrap;
         justify-content: stretch;
-        margin: 0.5%;
+        margin: 8px;
+        gap: 8px;
     }
     .advisories {
         display: flex;
