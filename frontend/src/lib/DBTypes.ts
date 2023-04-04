@@ -35,6 +35,7 @@ export interface Weights {
     has_teacher: number;
     sex_diverse: number;
     grade_diverse: number;
+    equal_people: number;
 }
 
 export interface Settings {
