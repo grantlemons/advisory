@@ -19,6 +19,9 @@ pub struct Advisory {
     ///
     /// Represents (Freshman, Sophomore, Junior, Senior)
     remaining_grade: [i16; 4],
+    /// Remaining person quota overall
+    /// Used for remaining people weighted value
+    remaining_people: i16,
 }
 
 impl std::fmt::Display for Advisory {
@@ -40,36 +43,38 @@ impl std::fmt::Display for Advisory {
 impl Advisory {
     /// Default advisory values given target number of students for the advisory
     pub(crate) fn new(n: i16) -> Self {
-        log::info!("Initialized new advisory via new");
         Self {
             advisors: Vec::<Teacher>::with_capacity(2),
             students: Vec::<Student>::with_capacity(n as usize),
             // Set number of "spots" based on number of students in advisory
             remaining_sex: [n / 2, n / 2],
             remaining_grade: [n / 4, n / 4, n / 4, n / 4],
+            remaining_people: n,
         }
     }
 
     /// Adds a [`Student`] struct to the students vector
     pub(crate) fn add_student(&mut self, s: Student) {
-        // Reduce number of remaining "spots" for the added student's sex
+        // Reduce sex quota for the added student's sex
         match s.sex {
             Some(Sex::Male) => self.remaining_sex[0] -= 1,
             Some(Sex::Female) => self.remaining_sex[1] -= 1,
             None => {}
         }
-        // Reduce number of remaining "spots" for the added student's grade
+        // Reduce grade quota for the added student's grade
         match s.grade {
             Grade::Freshman => self.remaining_grade[0] -= 1,
             Grade::Sophomore => self.remaining_grade[1] -= 1,
             Grade::Junior => self.remaining_grade[2] -= 1,
             Grade::Senior => self.remaining_grade[3] -= 1,
         }
+        // Reduce remaining people quota
+        self.remaining_people -= 1;
 
         self.students.push(s);
     }
 
-    /// Gets the remaining number or "spots" left for a given sex in an advisory
+    /// Gets the remaining quota for a given sex in an advisory
     pub(crate) fn get_remaining_sex(&self, sex: &Option<Sex>) -> i16 {
         match sex {
             Some(Sex::Male) => self.remaining_sex[0],
@@ -78,7 +83,7 @@ impl Advisory {
         }
     }
 
-    /// Gets the remaining number of "spots" left for a given grade in an advisory
+    /// Gets the remaining quota for a given grade in an advisory
     pub(crate) fn get_remaining_grade(&self, grade: &Grade) -> i16 {
         match grade {
             Grade::Freshman => self.remaining_grade[0],
@@ -86,6 +91,11 @@ impl Advisory {
             Grade::Junior => self.remaining_grade[2],
             Grade::Senior => self.remaining_grade[3],
         }
+    }
+
+    /// Gets the remaining person count quota
+    pub(crate) fn get_remaining_people(&self) -> i16 {
+        self.remaining_people
     }
 
     /// Adds a [`Teacher`] struct to the advisors vector if Some
@@ -136,7 +146,13 @@ impl Advisory {
             * (weights.sex_diverse as i32 * self.get_remaining_sex(&student.sex) as i32);
         let grade_weighted_value = number_of_grades
             * (weights.grade_diverse as i32 * self.get_remaining_grade(&student.grade) as i32);
+        let person_quota_weighted_value =
+            weights.equal_people as i32 * self.get_remaining_people() as i32;
         let banned_weighted_value = -10000 * self.has_banned_pairing(&student) as i32;
-        teacher_weighted_value + sexes_weighted_value + grade_weighted_value + banned_weighted_value
+        teacher_weighted_value
+            + sexes_weighted_value
+            + grade_weighted_value
+            + person_quota_weighted_value
+            + banned_weighted_value
     }
 }
