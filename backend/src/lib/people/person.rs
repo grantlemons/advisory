@@ -54,8 +54,8 @@ impl Person {
         // forever)
         let query = neo4rs::query(&format!("OPTIONAL MATCH (p1 {{ name: $banned_name, user_id: $user_id }}) OPTIONAL MATCH (p2 {{ name: $banned_name2, user_id: $user_id }}) {}", query_string))
             .param("user_id", user_id.into())
-            .param("banned_name", form[0].name.clone())
-            .param("banned_name2", form[1].name.clone());
+            .param("banned_name", form[0].name.as_str())
+            .param("banned_name2", form[1].name.as_str());
 
         match graph.run(query).await {
             Ok(_) => Ok(1),

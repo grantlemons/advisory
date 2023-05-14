@@ -153,7 +153,7 @@ impl crate::DatabaseNode for Student {
         // potential for sql injection by directly using the value from teachers
         // that being said, it doesn't work otherwise
         // maybe look for a way to sanitize inputs
-        let teachers = self.teachers.iter().map(|t| format!("\"{}\"", t.name.clone())).collect::<Vec<_>>().join(",");
+        let teachers = self.teachers.iter().map(|t| format!("\"{}\"", t.name)).collect::<Vec<_>>().join(",");
         let query = neo4rs::query(&format!("WITH [{}] as teachers OPTIONAL MATCH (t:Teacher {{ user_id: $user_id }}) WHERE t.name IN teachers {}", teachers, query_string))
             .param("name", self.name.as_str())
             .param("grade", i64::from(&self.grade))
@@ -204,7 +204,7 @@ impl crate::DatabaseNode for Student {
                 // (same as when adding single student)
                 let teachers = format!("[{}]", q.teachers
                             .iter()
-                            .map(|t| format!("\"{}\"", t.name.clone()))
+                            .map(|t| format!("\"{}\"", t.name))
                             .collect::<Vec<_>>()
                             .join(","));
                 format!(

@@ -5,84 +5,67 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use rand::seq::SliceRandom;
 
 fn create_dummy_teachers(count: u16) -> Result<Vec<Teacher>> {
-    let mut teachers = Vec::new();
-
-    for index in 0..count {
-        teachers.push(Teacher::new(format!("Dummy Teacher {}", index + 1)));
-    }
+    let teachers = (0..count)
+        .map(|i| Teacher::new(format!("Dummy Teacher {}", i + 1)))
+        .collect();
 
     Ok(teachers)
 }
 
-fn create_dummy_teacher_pairs(count: u16) -> Result<Vec<[Option<Teacher>; 2]>> {
-    let mut teachers = create_dummy_teachers(count * 2)?;
-    let mut teacher_pairs: Vec<[Option<Teacher>; 2]> = Vec::new();
+fn create_dummy_teacher_groupings(count: u16) -> Result<Vec<Vec<Teacher>>> {
+    let teachers = create_dummy_teachers(count * 2)?;
+    let teacher_groupings = teachers.chunks(2).map(|c| c.to_vec()).collect();
 
-    for _ in 0..count {
-        teacher_pairs.push([teachers.pop(), teachers.pop()]);
-    }
-    Ok(teacher_pairs)
+    Ok(teacher_groupings)
 }
 
 fn create_dummy_students(count: u16) -> Result<Vec<Student>> {
     let mut rng = &mut rand::thread_rng();
-    let teachers: Vec<Teacher> = create_dummy_teachers(10)?;
-    let mut students = Vec::new();
-
-    for _ in 0..count {
-        students.push(Student {
+    let teachers = create_dummy_teachers(10)?;
+    let students = (0..count)
+        .map(|_| Student {
             name: "Dummy Student".to_owned(),
-            teachers: teachers
-                .choose_multiple(&mut rng, 8)
-                .cloned()
-                .collect::<Vec<_>>(),
+            teachers: teachers.choose_multiple(&mut rng, 8).cloned().collect(),
             ..Default::default()
-        });
-    }
+        })
+        .collect();
+
     Ok(students)
 }
 
 pub fn generation_speed_benchmark_5(c: &mut Criterion) {
-    let settings: Settings = Settings {
-        weights: Weights {
-            has_teacher: 1,
-            sex_diverse: 1,
-            grade_diverse: 1,
-        },
+    let settings = Settings {
+        weights: Weights::default(),
         num_advisories: 5,
-        teacher_pairs: create_dummy_teacher_pairs(5).unwrap(),
+        teacher_groupings: create_dummy_teacher_groupings(5).unwrap(),
     };
 
-    c.bench_function("generate 100 students w/ 5 advisories", |b| {
-        b.iter(|| Organization::generate(settings.clone(), create_dummy_students(100).unwrap()))
+    c.bench_function("100 students w/ 5 advisories", |b| {
+        b.iter(|| Organization::generate(&settings, create_dummy_students(100).unwrap()))
     });
-    c.bench_function("generate 500 students w/ 5 advisories", |b| {
-        b.iter(|| Organization::generate(settings.clone(), create_dummy_students(500).unwrap()))
+    c.bench_function("500 students w/ 5 advisories", |b| {
+        b.iter(|| Organization::generate(&settings, create_dummy_students(500).unwrap()))
     });
-    c.bench_function("generate 1000 students w/ 5 advisories", |b| {
-        b.iter(|| Organization::generate(settings.clone(), create_dummy_students(1000).unwrap()))
+    c.bench_function("1000 students w/ 5 advisories", |b| {
+        b.iter(|| Organization::generate(&settings, create_dummy_students(1000).unwrap()))
     });
 }
 
 pub fn generation_speed_benchmark_20(c: &mut Criterion) {
-    let settings: Settings = Settings {
-        weights: Weights {
-            has_teacher: 1,
-            sex_diverse: 1,
-            grade_diverse: 1,
-        },
+    let settings = Settings {
+        weights: Weights::default(),
         num_advisories: 20,
-        teacher_pairs: create_dummy_teacher_pairs(20).unwrap(),
+        teacher_groupings: create_dummy_teacher_groupings(20).unwrap(),
     };
 
-    c.bench_function("generate 500 students w/ 20 advisories", |b| {
-        b.iter(|| Organization::generate(settings.clone(), create_dummy_students(500).unwrap()))
+    c.bench_function("500 students w/ 20 advisories", |b| {
+        b.iter(|| Organization::generate(&settings, create_dummy_students(500).unwrap()))
     });
-    c.bench_function("generate 2000 students w/ 20 advisories", |b| {
-        b.iter(|| Organization::generate(settings.clone(), create_dummy_students(2000).unwrap()))
+    c.bench_function("2000 students w/ 20 advisories", |b| {
+        b.iter(|| Organization::generate(&settings, create_dummy_students(2000).unwrap()))
     });
-    c.bench_function("generate 4000 students w/ 20 advisories", |b| {
-        b.iter(|| Organization::generate(settings.clone(), create_dummy_students(4000).unwrap()))
+    c.bench_function("4000 students w/ 20 advisories", |b| {
+        b.iter(|| Organization::generate(&settings, create_dummy_students(4000).unwrap()))
     });
 }
 

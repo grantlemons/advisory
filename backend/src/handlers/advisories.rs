@@ -21,7 +21,7 @@ pub(crate) async fn get_advisories(
         match &state.graph {
             Some(graph) => {
                 let students: Vec<Student> = Student::get_nodes(graph, user.user_id()).await?;
-                Ok(Json(Organization::generate(form, students).await?))
+                Ok(Json(Organization::generate(&form, students).await?))
             }
             None => Err(StatusCode::BAD_GATEWAY),
         }
