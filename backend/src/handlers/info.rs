@@ -1,6 +1,5 @@
 use crate::auth::UserData;
-use axum::{Extension, Json};
-use reqwest::StatusCode;
+use axum::{http::StatusCode, Extension, Json};
 use serde::Serialize;
 
 #[allow(clippy::missing_docs_in_private_items)]

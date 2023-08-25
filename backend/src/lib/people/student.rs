@@ -44,7 +44,7 @@ impl crate::Verify for Student {
     /// }
     /// assert_eq!(func(), Ok(()))
     /// ```
-    /// 
+    ///
     /// ```
     /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
     /// fn func() -> Result<(), axum::http::StatusCode> {
@@ -89,7 +89,7 @@ impl crate::Verify for Vec<Student> {
     /// }
     /// assert_eq!(func(), Ok(()))
     /// ```
-    /// 
+    ///
     /// ```
     /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
     /// fn func() -> Result<(), axum::http::StatusCode> {
@@ -112,7 +112,7 @@ impl crate::Verify for Vec<Student> {
 /// Default values of the [`Student`] struct
 impl Default for Student {
     /// Example
-    /// 
+    ///
     /// ```
     /// # use advisory_backend_lib::people::{Student, Teacher, Grade};
     /// let default_student = Student::default();
@@ -153,7 +153,12 @@ impl crate::DatabaseNode for Student {
         // potential for sql injection by directly using the value from teachers
         // that being said, it doesn't work otherwise
         // maybe look for a way to sanitize inputs
-        let teachers = self.teachers.iter().map(|t| format!("\"{}\"", t.name)).collect::<Vec<_>>().join(",");
+        let teachers = self
+            .teachers
+            .iter()
+            .map(|t| format!("\"{}\"", t.name))
+            .collect::<Vec<_>>()
+            .join(",");
         let query = neo4rs::query(&format!("WITH [{}] as teachers OPTIONAL MATCH (t:Teacher {{ user_id: $user_id }}) WHERE t.name IN teachers {}", teachers, query_string))
             .param("name", self.name.as_str())
             .param("grade", i64::from(&self.grade))
@@ -202,14 +207,20 @@ impl crate::DatabaseNode for Student {
                 // that being said, it doesn't work otherwise
                 // maybe look for a way to sanitize inputs
                 // (same as when adding single student)
-                let teachers = format!("[{}]", q.teachers
-                            .iter()
-                            .map(|t| format!("\"{}\"", t.name))
-                            .collect::<Vec<_>>()
-                            .join(","));
+                let teachers = format!(
+                    "[{}]",
+                    q.teachers
+                        .iter()
+                        .map(|t| format!("\"{}\"", t.name))
+                        .collect::<Vec<_>>()
+                        .join(",")
+                );
                 format!(
                     "{{ name: ${}name, grade: {}, sex: ${}sex, teachers: {} }}",
-                    key, i64::from(&q.grade), key, teachers
+                    key,
+                    i64::from(&q.grade),
+                    key,
+                    teachers
                 )
             })
             .collect::<Vec<_>>()
@@ -222,7 +233,7 @@ impl crate::DatabaseNode for Student {
 
         // substitute values in
         for (key, value) in parameter_pairs {
-                query = query.param(key.as_str(), value);
+            query = query.param(key.as_str(), value);
         }
 
         match graph.run(query).await {

@@ -1,6 +1,7 @@
 use advisory_backend_lib::advisories::*;
 use advisory_backend_lib::people::*;
 use anyhow::Result;
+use criterion::black_box;
 use criterion::{criterion_group, criterion_main, Criterion};
 use rand::seq::SliceRandom;
 
@@ -40,15 +41,17 @@ pub fn generation_speed_benchmark_5(c: &mut Criterion) {
         teacher_groupings: create_dummy_teacher_groupings(5).unwrap(),
     };
 
-    c.bench_function("100 students w/ 5 advisories", |b| {
-        b.iter(|| Organization::generate(&settings, create_dummy_students(100).unwrap()))
-    });
-    c.bench_function("500 students w/ 5 advisories", |b| {
-        b.iter(|| Organization::generate(&settings, create_dummy_students(500).unwrap()))
-    });
-    c.bench_function("1000 students w/ 5 advisories", |b| {
-        b.iter(|| Organization::generate(&settings, create_dummy_students(1000).unwrap()))
-    });
+    for student_count in [100, 500, 1000] {
+        let title = format!("{} students w/ 5 advisories", student_count);
+        c.bench_function(&title, |b| {
+            b.iter(|| {
+                Organization::generate(
+                    &settings,
+                    black_box(create_dummy_students(student_count).unwrap()),
+                )
+            })
+        });
+    }
 }
 
 pub fn generation_speed_benchmark_20(c: &mut Criterion) {
@@ -58,15 +61,17 @@ pub fn generation_speed_benchmark_20(c: &mut Criterion) {
         teacher_groupings: create_dummy_teacher_groupings(20).unwrap(),
     };
 
-    c.bench_function("500 students w/ 20 advisories", |b| {
-        b.iter(|| Organization::generate(&settings, create_dummy_students(500).unwrap()))
-    });
-    c.bench_function("2000 students w/ 20 advisories", |b| {
-        b.iter(|| Organization::generate(&settings, create_dummy_students(2000).unwrap()))
-    });
-    c.bench_function("4000 students w/ 20 advisories", |b| {
-        b.iter(|| Organization::generate(&settings, create_dummy_students(4000).unwrap()))
-    });
+    for student_count in [100, 500, 1000] {
+        let title = format!("{} students w/ 20 advisories", student_count);
+        c.bench_function(&title, |b| {
+            b.iter(|| {
+                Organization::generate(
+                    &settings,
+                    black_box(create_dummy_students(student_count).unwrap()),
+                )
+            })
+        });
+    }
 }
 
 criterion_group!(
