@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 /// Representation of possible grades for students
@@ -51,6 +53,19 @@ impl From<&Grade> for i64 {
             Grade::Junior => 11,
             Grade::Senior => 12,
         }
+    }
+}
+
+impl Into<Arc<str>> for Grade {
+    fn into(self) -> Arc<str> {
+        let string = match self {
+            Self::Freshman => "Freshman",
+            Self::Sophomore => "Sophomore",
+            Self::Junior => "Junior",
+            Self::Senior => "Senior",
+        };
+
+        Arc::from(string)
     }
 }
 

@@ -6,9 +6,9 @@ use std::sync::Arc;
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Person {
     /// Person's name - should be in `First Last` format, but can be anything that distinguishes them from others
-    pub name: Arc<String>,
+    pub name: Arc<str>,
     /// People whom the person is not supposed to be placed with in an advisory
-    pub banned_pairings: Arc<[Arc<String>]>,
+    pub banned_pairings: Arc<[Arc<str>]>,
 }
 
 impl std::fmt::Display for Person {
@@ -39,7 +39,7 @@ impl Person {
     /// Ban two people from being in the same advisory (unless they are both teachers, which
     /// wouldn't do anything)
     pub async fn ban_pair<T: Into<String> + Send>(
-        form: [Person; 2],
+        form: [Self; 2],
         graph: &neo4rs::Graph,
         user_id: T,
         no_duplicates: bool,
@@ -55,8 +55,8 @@ impl Person {
         // forever)
         let query = neo4rs::query(&format!("OPTIONAL MATCH (p1 {{ name: $banned_name, user_id: $user_id }}) OPTIONAL MATCH (p2 {{ name: $banned_name2, user_id: $user_id }}) {}", query_string))
             .param("user_id", user_id.into())
-            .param("banned_name", form[0].name.as_str())
-            .param("banned_name2", form[1].name.as_str());
+            .param("banned_name", form[0].name.clone())
+            .param("banned_name2", form[1].name.clone());
 
         match graph.run(query).await {
             Ok(_) => Ok(1),
@@ -77,7 +77,7 @@ impl crate::DatabaseNode for Person {
             true => neo4rs::query("MERGE (p { name: $name, user_id: $user_id })"),
             false => neo4rs::query("CREATE (p { name: $name, user_id: $user_id })"),
         }
-        .param("name", self.name.as_str())
+        .param("name", self.name.clone())
         .param("user_id", user_id.into());
 
         match graph.run(query).await {
@@ -97,7 +97,7 @@ impl crate::DatabaseNode for Person {
             false => "CREATE (p { name: person.name, user_id: $user_id })",
         };
 
-        let mut parameter_pairs: std::collections::HashMap<String, Arc<String>> =
+        let mut parameter_pairs: std::collections::HashMap<String, Arc<str>> =
             std::collections::HashMap::new();
         let parameter_list = nodes
             .iter()
@@ -119,7 +119,7 @@ impl crate::DatabaseNode for Person {
 
         // substitute values in
         for (key, value) in parameter_pairs {
-            query = query.param(&key, (*value).clone());
+            query = query.param(&key, value);
         }
 
         match graph.run(query).await {
@@ -134,7 +134,7 @@ impl crate::DatabaseNode for Person {
         user_id: T,
     ) -> Result<u8, axum::http::StatusCode> {
         let query = neo4rs::query("MATCH (p { name: $name, user_id: $user_id }) DETACH DELETE p")
-            .param("name", self.name.as_str())
+            .param("name", self.name.clone())
             .param("user_id", user_id.into());
 
         match graph.run(query).await {
@@ -168,15 +168,15 @@ impl crate::DatabaseNode for Person {
                 let mut people: Vec<Self> = Vec::new();
                 while let Ok(Some(row)) = result.next().await {
                     let person: neo4rs::Node = row.get("people").unwrap();
-                    let name: String = person.get("name").unwrap();
+                    let name: Arc<str> = person.get("name").unwrap();
                     let banned_pairings = row
                         .get::<Vec<neo4rs::Node>>("banned")
                         .unwrap()
                         .iter()
-                        .map(|b| Arc::new(b.get("name").unwrap()))
+                        .map(|b| b.get("name").unwrap())
                         .collect::<Arc<[_]>>();
                     people.push(Self {
-                        name: Arc::new(name),
+                        name,
                         banned_pairings,
                     })
                 }

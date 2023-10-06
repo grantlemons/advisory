@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 /// Representation of possible sexes for students within database
 ///
@@ -15,13 +16,24 @@ pub enum Sex {
 }
 
 /// Mapping for string to [`Sex`] enum used for parsing info from database
-impl<T: Into<String>> From<T> for Sex {
-    fn from(s: T) -> Self {
-        match s.into().as_str() {
+impl From<String> for Sex {
+    fn from(s: String) -> Self {
+        match s.as_str() {
             "Male" => Self::Male,
             "Female" => Self::Female,
             other_value => panic!("{} not in list of sexes", other_value),
         }
+    }
+}
+
+impl Into<Arc<str>> for Sex {
+    fn into(self) -> Arc<str> {
+        let str = match self {
+            Self::Male => "Male",
+            Self::Female => "Female",
+        };
+
+        Arc::from(str)
     }
 }
 

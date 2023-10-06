@@ -27,7 +27,7 @@ pub struct Advisory {
 
 impl std::fmt::Display for Advisory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let names: Vec<Arc<String>> = self.advisors.iter().map(|t| t.name.clone()).collect();
+        let names: Vec<Arc<str>> = self.advisors.iter().map(|t| t.name.clone()).collect();
         write!(f, "(")?;
         if let Some(n) = names.split_last() {
             for i in n.1 {
@@ -122,7 +122,7 @@ impl Advisory {
             .iter()
             .map(|s| s.name.clone())
             .chain(self.advisors.iter().map(|a| a.name.clone()))
-            .collect::<Vec<Arc<String>>>();
+            .collect::<Vec<Arc<str>>>();
 
         for banned_name in s.banned_pairings.iter() {
             has = has || advisory_names.contains(banned_name);

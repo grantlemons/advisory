@@ -29,7 +29,7 @@ fn create_dummy_students(count: u16) -> Result<Arc<[Student]>> {
     let teachers = create_dummy_teachers(10)?;
     let students = (0..count)
         .map(|_| Student {
-            name: Arc::new("Dummy Student".to_owned()),
+            name: Arc::from("Dummy Student"),
             teachers: teachers.choose_multiple(&mut rng, 8).cloned().collect(),
             ..Default::default()
         })

@@ -2,18 +2,16 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 /// Representation of a teacher
-#[derive(Deserialize, Serialize, Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Teacher {
     /// Teacher's name - should be in `First Last` format, but can be anything that distinguishes them from other teachers
-    pub name: Arc<String>,
+    pub name: Arc<str>,
 }
 
 impl Teacher {
     /// Creates a new teacher with a name
-    pub fn new<T: Into<String>>(name: T) -> Self {
-        Self {
-            name: Arc::new(name.into()),
-        }
+    pub fn new<T: Into<Arc<str>>>(name: T) -> Self {
+        Self { name: name.into() }
     }
 }
 
@@ -68,7 +66,7 @@ impl crate::DatabaseNode for Teacher {
             true => neo4rs::query("MERGE (t:Teacher { name: $name, user_id: $user_id })"),
             false => neo4rs::query("CREATE (t:Teacher { name: $name, user_id: $user_id })"),
         }
-        .param("name", self.name.as_str())
+        .param("name", self.name.clone())
         .param("user_id", user_id.into());
 
         match graph.run(query).await {
@@ -88,7 +86,7 @@ impl crate::DatabaseNode for Teacher {
             false => "CREATE (t:Teacher { name: teacher.name, user_id: $user_id })",
         };
 
-        let mut parameter_pairs: std::collections::HashMap<String, Arc<String>> =
+        let mut parameter_pairs: std::collections::HashMap<String, Arc<str>> =
             std::collections::HashMap::new();
         let parameter_list = nodes
             .iter()
@@ -110,7 +108,7 @@ impl crate::DatabaseNode for Teacher {
 
         // substitute values in
         for (key, value) in parameter_pairs {
-            query = query.param(&key, (*value).clone());
+            query = query.param(&key, value);
         }
 
         match graph.run(query).await {
@@ -126,7 +124,7 @@ impl crate::DatabaseNode for Teacher {
     ) -> Result<u8, axum::http::StatusCode> {
         let query =
             neo4rs::query("MATCH (t:Teacher { name: $name, user_id: $user_id }) DETACH DELETE t")
-                .param("name", self.name.as_str())
+                .param("name", self.name.clone())
                 .param("user_id", user_id.into());
 
         match graph.run(query).await {
@@ -161,7 +159,7 @@ impl crate::DatabaseNode for Teacher {
                 let mut people: Vec<Self> = Vec::new();
                 while let Ok(Some(row)) = result.next().await {
                     let person: neo4rs::Node = row.get("teachers").unwrap();
-                    let name: String = person.get("name").unwrap();
+                    let name: Arc<str> = person.get("name").unwrap();
                     people.push(Self::new(name))
                 }
                 Ok(people.into())

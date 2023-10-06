@@ -6,7 +6,7 @@ use std::sync::Arc;
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Student {
     /// Student's name - should be in `First Last` format, but can be anything that distinguishes them from other students
-    pub name: Arc<String>,
+    pub name: Arc<str>,
     /// Vector list of the student's teacher for the current academic school year
     pub teachers: Arc<[Teacher]>,
     /// Student's grade represented with the [`Grade`] enum
@@ -15,7 +15,7 @@ pub struct Student {
     /// Optional
     pub sex: Option<Sex>,
     /// People whom the student is not supposed to be placed with in an advisory
-    pub banned_pairings: Arc<[Arc<String>]>,
+    pub banned_pairings: Arc<[Arc<str>]>,
 }
 
 impl std::fmt::Display for Student {
@@ -86,11 +86,11 @@ impl Default for Student {
     /// ```
     fn default() -> Student {
         Self {
-            name: Arc::new(String::new()),
-            teachers: Arc::new([]),
+            name: Arc::from(""),
+            teachers: Arc::from([]),
             grade: Grade::Freshman,
             sex: None,
-            banned_pairings: Arc::new([]),
+            banned_pairings: Arc::from([]),
         }
     }
 }
@@ -119,7 +119,7 @@ impl crate::DatabaseNode for Student {
             .collect::<Vec<_>>()
             .join(",");
         let query = neo4rs::query(&format!("WITH [{}] as teachers OPTIONAL MATCH (t:Teacher {{ user_id: $user_id }}) WHERE t.name IN teachers {}", teachers, query_string))
-            .param("name", self.name.as_str())
+            .param("name", self.name.clone())
             .param("grade", i64::from(&self.grade))
             .param(
                 "sex",
@@ -148,7 +148,7 @@ impl crate::DatabaseNode for Student {
                 "CREATE (s:Student { name: student.name, grade: student.grade, sex: student.sex, user_id: $user_id }) CREATE (s)<-[:TEACHES]-(t)"
         };
 
-        let mut parameter_pairs: std::collections::HashMap<String, Arc<String>> =
+        let mut parameter_pairs: std::collections::HashMap<String, Arc<str>> =
             std::collections::HashMap::new();
         let parameter_list = nodes
             .iter()
@@ -157,9 +157,9 @@ impl crate::DatabaseNode for Student {
                 parameter_pairs.insert(key.clone() + "name", q.name.clone());
                 parameter_pairs.insert(
                     key.clone() + "sex",
-                    match &q.sex {
-                        Some(value) => Arc::new(value.to_string()),
-                        None => Arc::new(String::new()),
+                    match q.sex.clone() {
+                        Some(value) => value.into(),
+                        None => Arc::from(""),
                     },
                 );
                 // potential for sql injection by directly using the value from teachers
@@ -192,7 +192,7 @@ impl crate::DatabaseNode for Student {
 
         // substitute values in
         for (key, value) in parameter_pairs {
-            query = query.param(key.as_str(), (*value).clone());
+            query = query.param(key.as_str(), value.clone());
         }
 
         match graph.run(query).await {
@@ -209,13 +209,13 @@ impl crate::DatabaseNode for Student {
         let query = neo4rs::query(
             "MATCH (s:Student { name: $name, grade: $grade, sex: $sex, user_id: $user_id }) DETACH DELETE s",
         )
-        .param("name", self.name.as_str())
-        .param("grade", self.grade.to_string())
-        .param(
+        .param("name", self.name.clone())
+        .param::<Arc<str>>("grade", self.grade.clone().into())
+        .param::<Arc<str>>(
             "sex",
-            match &self.sex {
-                Some(value) => value.to_string(),
-                None => String::new(),
+            match self.sex.clone() {
+                Some(value) => value.into(),
+                None => Arc::from(""),
             },
         )
         .param("user_id", user_id.into());
@@ -251,29 +251,30 @@ impl crate::DatabaseNode for Student {
                 let mut students: Vec<Self> = Vec::new();
                 while let Ok(Some(row)) = result.next().await {
                     let person: neo4rs::Node = row.get("students").unwrap();
-                    let name: String = person.get("name").unwrap();
+                    let name: Arc<str> = person.get("name").unwrap();
                     let grade: Grade = person.get::<i64>("grade").unwrap().into();
-                    let sex: Option<Sex> = match person.get::<String>("sex").unwrap().as_str() {
-                        "" => None,
-                        value => Some(Sex::from(value)),
+                    let sex: Option<Sex> = match person.get::<String>("sex") {
+                        Some(v) if v != "" => Some(Sex::from(v)),
+                        _ => None,
                     };
+
                     let banned_pairings = row
                         .get::<Vec<neo4rs::Node>>("banned")
                         .unwrap()
                         .iter()
-                        .map(|b| Arc::new(b.get("name").unwrap()))
+                        .map(|b| b.get::<Arc<str>>("name").unwrap())
                         .collect::<Arc<[_]>>();
                     let teachers = row
                         .get::<Vec<neo4rs::Node>>("teachers")
                         .unwrap()
                         .iter()
                         .map(|t| Teacher::new(
-                            t.get::<String>("name").unwrap(),
+                            t.get::<Arc<str>>("name").unwrap(),
                         ))
                         .collect::<Arc<[_]>>();
 
                     students.push(Self {
-                        name: Arc::new(name),
+                        name,
                         teachers,
                         grade,
                         sex,
