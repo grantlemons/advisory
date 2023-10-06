@@ -4,8 +4,9 @@ use anyhow::Result;
 use criterion::black_box;
 use criterion::{criterion_group, criterion_main, Criterion};
 use rand::seq::SliceRandom;
+use std::sync::Arc;
 
-fn create_dummy_teachers(count: u16) -> Result<Vec<Teacher>> {
+fn create_dummy_teachers(count: u16) -> Result<Arc<[Teacher]>> {
     let teachers = (0..count)
         .map(|i| Teacher::new(format!("Dummy Teacher {}", i + 1)))
         .collect();
@@ -13,19 +14,22 @@ fn create_dummy_teachers(count: u16) -> Result<Vec<Teacher>> {
     Ok(teachers)
 }
 
-fn create_dummy_teacher_groupings(count: u16) -> Result<Vec<Vec<Teacher>>> {
+fn create_dummy_teacher_groupings(count: u16) -> Result<Arc<[Arc<[Teacher]>]>> {
     let teachers = create_dummy_teachers(count * 2)?;
-    let teacher_groupings = teachers.chunks(2).map(|c| c.to_vec()).collect();
+    let teacher_groupings = teachers
+        .chunks(2)
+        .map(|c| c.to_vec().into())
+        .collect::<Arc<[Arc<[_]>]>>();
 
     Ok(teacher_groupings)
 }
 
-fn create_dummy_students(count: u16) -> Result<Vec<Student>> {
+fn create_dummy_students(count: u16) -> Result<Arc<[Student]>> {
     let mut rng = &mut rand::thread_rng();
     let teachers = create_dummy_teachers(10)?;
     let students = (0..count)
         .map(|_| Student {
-            name: "Dummy Student".to_owned(),
+            name: Arc::new("Dummy Student".to_owned()),
             teachers: teachers.choose_multiple(&mut rng, 8).cloned().collect(),
             ..Default::default()
         })

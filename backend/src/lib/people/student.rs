@@ -1,20 +1,21 @@
 use crate::people::{Grade, Sex, Teacher};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 /// Representation of a student
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Student {
     /// Student's name - should be in `First Last` format, but can be anything that distinguishes them from other students
-    pub name: String,
+    pub name: Arc<String>,
     /// Vector list of the student's teacher for the current academic school year
-    pub teachers: Vec<Teacher>,
+    pub teachers: Arc<[Teacher]>,
     /// Student's grade represented with the [`Grade`] enum
     pub grade: Grade,
     /// Student's biological sex, represented by the [`Sex`] enum
     /// Optional
     pub sex: Option<Sex>,
     /// People whom the student is not supposed to be placed with in an advisory
-    pub banned_pairings: Vec<String>,
+    pub banned_pairings: Arc<[Arc<String>]>,
 }
 
 impl std::fmt::Display for Student {
@@ -34,7 +35,7 @@ impl crate::Verify for Student {
     ///     let teacher = Teacher { name: "Testing Name".to_owned() };
     ///     let student = Student {
     ///         name: "Testing Name".to_owned(),
-    ///         teachers: vec![teacher],
+    ///         teachers: Arc::new([teacher]),
     ///         grade: Grade::Freshman,
     ///         sex: None,
     ///         banned_pairings: Vec::new(),
@@ -56,7 +57,7 @@ impl crate::Verify for Student {
     /// ```
     fn verify(&self) -> Result<(), axum::http::StatusCode> {
         // Check if each teacher is valid
-        for i in &self.teachers {
+        for i in self.teachers.iter() {
             i.verify()?
         }
         if self.name.is_empty() || self.teachers.is_empty() {
@@ -64,48 +65,6 @@ impl crate::Verify for Student {
         } else {
             Ok(())
         }
-    }
-}
-
-impl crate::Verify for Vec<Student> {
-    /// Returns an [`axum::http::StatusCode`] type, so errors can be passed through to handlers
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher, Grade}};
-    /// fn func() -> Result<(), axum::http::StatusCode> {
-    ///     let teacher = Teacher { name: "Testing Name".to_owned() };
-    ///     let student = Student {
-    ///         name: "Testing Name".to_owned(),
-    ///         teachers: vec![teacher],
-    ///         grade: Grade::Freshman,
-    ///         sex: None,
-    ///         banned_pairings: Vec::new(),
-    ///     };
-    ///     let students: Vec<Student> = vec![student];
-    ///     students.verify()?;
-    ///     Ok(())
-    /// }
-    /// assert_eq!(func(), Ok(()))
-    /// ```
-    ///
-    /// ```
-    /// # use advisory_backend_lib::{Verify, people::{Student, Teacher}};
-    /// fn func() -> Result<(), axum::http::StatusCode> {
-    ///     let student = Student::default();
-    ///     let students: Vec<Student> = vec![student];
-    ///     students.verify()?;
-    ///     Ok(())
-    /// }
-    /// assert_ne!(func(), Ok(()))
-    /// ```
-    fn verify(&self) -> Result<(), axum::http::StatusCode> {
-        // Check if each teacher is valid
-        for i in self {
-            i.verify()?
-        }
-        Ok(())
     }
 }
 
@@ -127,11 +86,11 @@ impl Default for Student {
     /// ```
     fn default() -> Student {
         Self {
-            name: "".to_owned(),
-            teachers: Vec::<Teacher>::new(),
+            name: Arc::new(String::new()),
+            teachers: Arc::new([]),
             grade: Grade::Freshman,
             sex: None,
-            banned_pairings: Vec::new(),
+            banned_pairings: Arc::new([]),
         }
     }
 }
@@ -178,7 +137,7 @@ impl crate::DatabaseNode for Student {
     }
 
     async fn add_multiple_nodes<T: Into<String> + Send>(
-        nodes: Vec<Self>,
+        nodes: &[Self],
         graph: &neo4rs::Graph,
         user_id: T,
         no_duplicates: bool,
@@ -189,7 +148,7 @@ impl crate::DatabaseNode for Student {
                 "CREATE (s:Student { name: student.name, grade: student.grade, sex: student.sex, user_id: $user_id }) CREATE (s)<-[:TEACHES]-(t)"
         };
 
-        let mut parameter_pairs: std::collections::HashMap<String, String> =
+        let mut parameter_pairs: std::collections::HashMap<String, Arc<String>> =
             std::collections::HashMap::new();
         let parameter_list = nodes
             .iter()
@@ -199,8 +158,8 @@ impl crate::DatabaseNode for Student {
                 parameter_pairs.insert(
                     key.clone() + "sex",
                     match &q.sex {
-                        Some(value) => value.to_string(),
-                        None => String::new(),
+                        Some(value) => Arc::new(value.to_string()),
+                        None => Arc::new(String::new()),
                     },
                 );
                 // potential for sql injection by directly using the value from teachers
@@ -233,7 +192,7 @@ impl crate::DatabaseNode for Student {
 
         // substitute values in
         for (key, value) in parameter_pairs {
-            query = query.param(key.as_str(), value);
+            query = query.param(key.as_str(), (*value).clone());
         }
 
         match graph.run(query).await {
@@ -283,7 +242,7 @@ impl crate::DatabaseNode for Student {
     async fn get_nodes<T: Into<String> + Send>(
         graph: &neo4rs::Graph,
         user_id: T,
-    ) -> Result<Vec<Self>, axum::http::StatusCode> {
+    ) -> Result<Arc<[Self]>, axum::http::StatusCode> {
         let query = neo4rs::query("MATCH (s:Student { user_id: $user_id }) OPTIONAL MATCH (s)<-[:TEACHES]-(t:Teacher) OPTIONAL MATCH (s)-[:BANNED]-(b) RETURN distinct(s) as students, collect(t) as teachers, collect(b) as banned")
             .param("user_id", user_id.into());
 
@@ -302,26 +261,26 @@ impl crate::DatabaseNode for Student {
                         .get::<Vec<neo4rs::Node>>("banned")
                         .unwrap()
                         .iter()
-                        .map(|b| b.get("name").unwrap())
-                        .collect::<Vec<_>>();
+                        .map(|b| Arc::new(b.get("name").unwrap()))
+                        .collect::<Arc<[_]>>();
                     let teachers = row
                         .get::<Vec<neo4rs::Node>>("teachers")
                         .unwrap()
                         .iter()
-                        .map(|t| Teacher {
-                            name: t.get("name").unwrap(),
-                        })
-                        .collect::<Vec<_>>();
+                        .map(|t| Teacher::new(
+                            t.get::<String>("name").unwrap(),
+                        ))
+                        .collect::<Arc<[_]>>();
 
                     students.push(Self {
-                        name,
+                        name: Arc::new(name),
                         teachers,
                         grade,
                         sex,
                         banned_pairings,
                     })
                 }
-                Ok(students)
+                Ok(students.into())
             }
             Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
         }

@@ -1,13 +1,14 @@
 use crate::people::{Student, Teacher};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 /// Representation of a person
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Person {
     /// Person's name - should be in `First Last` format, but can be anything that distinguishes them from others
-    pub name: String,
+    pub name: Arc<String>,
     /// People whom the person is not supposed to be placed with in an advisory
-    pub banned_pairings: Vec<String>,
+    pub banned_pairings: Arc<[Arc<String>]>,
 }
 
 impl std::fmt::Display for Person {
@@ -20,7 +21,7 @@ impl From<Student> for Person {
     fn from(s: Student) -> Self {
         Self {
             name: s.name,
-            banned_pairings: Vec::new(),
+            banned_pairings: Arc::new([]),
         }
     }
 }
@@ -29,7 +30,7 @@ impl From<Teacher> for Person {
     fn from(t: Teacher) -> Self {
         Self {
             name: t.name,
-            banned_pairings: Vec::new(),
+            banned_pairings: Arc::new([]),
         }
     }
 }
@@ -86,7 +87,7 @@ impl crate::DatabaseNode for Person {
     }
 
     async fn add_multiple_nodes<T: Into<String> + Send>(
-        nodes: Vec<Self>,
+        nodes: &[Self],
         graph: &neo4rs::Graph,
         user_id: T,
         no_duplicates: bool,
@@ -96,7 +97,7 @@ impl crate::DatabaseNode for Person {
             false => "CREATE (p { name: person.name, user_id: $user_id })",
         };
 
-        let mut parameter_pairs: std::collections::HashMap<String, String> =
+        let mut parameter_pairs: std::collections::HashMap<String, Arc<String>> =
             std::collections::HashMap::new();
         let parameter_list = nodes
             .iter()
@@ -118,7 +119,7 @@ impl crate::DatabaseNode for Person {
 
         // substitute values in
         for (key, value) in parameter_pairs {
-            query = query.param(&key, value);
+            query = query.param(&key, (*value).clone());
         }
 
         match graph.run(query).await {
@@ -158,7 +159,7 @@ impl crate::DatabaseNode for Person {
     async fn get_nodes<T: Into<String> + Send>(
         graph: &neo4rs::Graph,
         user_id: T,
-    ) -> Result<Vec<Self>, axum::http::StatusCode> {
+    ) -> Result<Arc<[Self]>, axum::http::StatusCode> {
         let query = neo4rs::query("MATCH (p { user_id: $user_id }) OPTIONAL MATCH (p)-[:BANNED]-(b) RETURN distinct(p) as people, collect(b) as banned")
             .param("user_id", user_id.into());
 
@@ -172,14 +173,14 @@ impl crate::DatabaseNode for Person {
                         .get::<Vec<neo4rs::Node>>("banned")
                         .unwrap()
                         .iter()
-                        .map(|b| b.get("name").unwrap())
-                        .collect::<Vec<_>>();
+                        .map(|b| Arc::new(b.get("name").unwrap()))
+                        .collect::<Arc<[_]>>();
                     people.push(Self {
-                        name,
+                        name: Arc::new(name),
                         banned_pairings,
                     })
                 }
-                Ok(people)
+                Ok(people.into())
             }
             Err(_) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
         }

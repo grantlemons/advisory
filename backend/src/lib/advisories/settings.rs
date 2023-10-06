@@ -1,5 +1,6 @@
 use crate::{advisories::Weights, people::Teacher};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 /// Form for [`crate::advisories::Advisory`]'s input
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -7,9 +8,9 @@ pub struct Settings {
     /// The respective value of each factor in the calculation of advisory 'scores'
     pub weights: Weights,
     /// Number of advisories to be generated
-    pub num_advisories: i16,
+    pub num_advisories: u16,
     /// Groupings of teachers for advisories
-    pub teacher_groupings: Vec<Vec<Teacher>>,
+    pub teacher_groupings: Arc<[Arc<[Teacher]>]>,
 }
 
 impl crate::Verify for Settings {
@@ -30,7 +31,7 @@ impl crate::Verify for Settings {
     /// # }
     /// ```
     fn verify(&self) -> Result<(), axum::http::StatusCode> {
-        if self.num_advisories != self.teacher_groupings.len() as i16 {
+        if self.num_advisories != self.teacher_groupings.len() as u16 {
             Err(axum::http::StatusCode::UNPROCESSABLE_ENTITY)
         } else {
             self.weights.verify()?;

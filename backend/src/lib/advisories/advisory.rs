@@ -3,6 +3,7 @@ use crate::{
     people::{Grade, Sex, Student, Teacher},
 };
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 /// Representation of an advisory
 #[derive(Deserialize, Serialize, Clone, Debug)]
@@ -26,7 +27,7 @@ pub struct Advisory {
 
 impl std::fmt::Display for Advisory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let names: Vec<&String> = self.advisors.iter().map(|t| &t.name).collect();
+        let names: Vec<Arc<String>> = self.advisors.iter().map(|t| t.name.clone()).collect();
         write!(f, "(")?;
         if let Some(n) = names.split_last() {
             for i in n.1 {
@@ -42,14 +43,15 @@ impl std::fmt::Display for Advisory {
 
 impl Advisory {
     /// Default advisory values given target number of students for the advisory
-    pub(crate) fn new(n: i16) -> Self {
+    pub(crate) fn new(n: u16) -> Self {
+        let signed = n as i16;
         Self {
             advisors: Vec::<Teacher>::with_capacity(2),
             students: Vec::<Student>::with_capacity(n as usize),
             // Set number of "spots" based on number of students in advisory
-            remaining_sex: [n / 2, n / 2],
-            remaining_grade: [n / 4, n / 4, n / 4, n / 4],
-            remaining_people: n,
+            remaining_sex: [signed / 2, signed / 2],
+            remaining_grade: [signed / 4, signed / 4, signed / 4, signed / 4],
+            remaining_people: signed,
         }
     }
 
@@ -106,7 +108,7 @@ impl Advisory {
     /// Checks whether one of the advisors teaches the given student
     pub(crate) fn has_teacher(&self, s: &Student) -> bool {
         let mut has = false;
-        for i in &s.teachers {
+        for i in s.teachers.iter() {
             has = has || self.advisors.contains(i);
         }
         has
@@ -118,12 +120,12 @@ impl Advisory {
         let advisory_names = self
             .students
             .iter()
-            .map(|s| &s.name)
-            .chain(self.advisors.iter().map(|a| &a.name))
-            .collect::<Vec<&String>>();
+            .map(|s| s.name.clone())
+            .chain(self.advisors.iter().map(|a| a.name.clone()))
+            .collect::<Vec<Arc<String>>>();
 
-        for banned_name in &s.banned_pairings {
-            has = has || advisory_names.contains(&banned_name);
+        for banned_name in s.banned_pairings.iter() {
+            has = has || advisory_names.contains(banned_name);
         }
         has
     }
@@ -134,7 +136,7 @@ impl Advisory {
         &self,
         student: &Student,
         weights: &Weights,
-        students_per_advisory: i16,
+        students_per_advisory: u16,
     ) -> i32 {
         let number_of_sexes: i32 = self.remaining_sex.len() as i32;
         let number_of_grades: i32 = self.remaining_grade.len() as i32;

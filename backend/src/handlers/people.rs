@@ -7,6 +7,7 @@ use axum::{
     extract::{Extension, Json, State},
     http::StatusCode,
 };
+use std::sync::Arc;
 
 /// Handler to clear all people for a specific user
 #[axum_macros::debug_handler]
@@ -30,7 +31,7 @@ pub(crate) async fn clear_people_handler(
 pub(crate) async fn get_people_handler(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
-) -> Result<Json<Vec<Person>>, StatusCode> {
+) -> Result<Json<Arc<[Person]>>, StatusCode> {
     if let Some(user) = user_option {
         match &state.graph {
             Some(graph) => Ok(Json(Person::get_nodes(graph, user.user_id()).await?)),
@@ -47,7 +48,7 @@ pub(crate) async fn get_people_handler(
 pub(crate) async fn get_teachers_handler(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
-) -> Result<Json<Vec<Teacher>>, StatusCode> {
+) -> Result<Json<Arc<[Teacher]>>, StatusCode> {
     if let Some(user) = user_option {
         match &state.graph {
             Some(graph) => Ok(Json(Teacher::get_nodes(graph, user.user_id()).await?)),
@@ -64,7 +65,7 @@ pub(crate) async fn get_teachers_handler(
 pub(crate) async fn get_students_handler(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
-) -> Result<Json<Vec<Student>>, StatusCode> {
+) -> Result<Json<Arc<[Student]>>, StatusCode> {
     if let Some(user) = user_option {
         match &state.graph {
             Some(graph) => Ok(Json(Student::get_nodes(graph, user.user_id()).await?)),
@@ -104,13 +105,13 @@ pub(crate) async fn add_teacher_handler(
 pub(crate) async fn add_teacher_bulk(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
-    Json(form): Json<Vec<Teacher>>,
+    Json(form): Json<Arc<[Teacher]>>,
 ) -> Result<Json<u8>, StatusCode> {
     if let Some(user) = user_option {
         form.verify()?;
         match &state.graph {
             Some(graph) => Ok(Json(
-                Teacher::add_multiple_nodes(form, graph, user.user_id(), true).await?,
+                Teacher::add_multiple_nodes(&form, graph, user.user_id(), true).await?,
             )),
             None => Err(StatusCode::BAD_GATEWAY),
         }
@@ -148,13 +149,13 @@ pub(crate) async fn add_student_handler(
 pub(crate) async fn add_student_bulk(
     State(state): State<SharedState>,
     Extension(user_option): Extension<Option<UserData>>,
-    Json(form): Json<Vec<Student>>,
+    Json(form): Json<Arc<[Student]>>,
 ) -> Result<Json<u8>, StatusCode> {
     if let Some(user) = user_option {
         form.verify()?;
         match &state.graph {
             Some(graph) => Ok(Json(
-                Student::add_multiple_nodes(form, graph, user.user_id(), true).await?,
+                Student::add_multiple_nodes(&form, graph, user.user_id(), true).await?,
             )),
             None => Err(StatusCode::BAD_GATEWAY),
         }

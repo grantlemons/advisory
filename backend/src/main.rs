@@ -36,10 +36,10 @@ struct SharedState {
     /// Graph for database access
     graph: Option<Arc<neo4rs::Graph>>,
     /// Keyset for JWT decoding (auth)
-    keyset: jsonwebtokens_cognito::KeySet,
+    keyset: Arc<jsonwebtokens_cognito::KeySet>,
     /// Verifier for JWT decoding (auth)
     /// Stored in state so it doesn't need to be generated each time
-    verifier: jsonwebtokens::Verifier,
+    verifier: Arc<jsonwebtokens::Verifier>,
 }
 
 /// Main async function run when executing the crate
@@ -65,11 +65,14 @@ async fn main() -> Result<()> {
     );
 
     // JSON webtoken setup
-    let keyset = jsonwebtokens_cognito::KeySet::new("us-east-1", "us-east-1_Ye96rGbqV").unwrap();
+    let keyset =
+        Arc::new(jsonwebtokens_cognito::KeySet::new("us-east-1", "us-east-1_Ye96rGbqV").unwrap());
     keyset.prefetch_jwks().await.unwrap();
-    let verifier = keyset
-        .new_access_token_verifier(&["5c6eva8nctpb3aug8l0teak36v"])
-        .build()?;
+    let verifier = Arc::new(
+        keyset
+            .new_access_token_verifier(&["5c6eva8nctpb3aug8l0teak36v"])
+            .build()?,
+    );
 
     // State to be accessed by handlers
     let state = SharedState {

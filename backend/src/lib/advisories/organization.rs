@@ -5,27 +5,36 @@ use crate::{
 };
 use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 /// Multiple advisories make up an organization
 /// Generating this struct is the goal of the program
 #[derive(Deserialize, Serialize)]
-pub struct Organization(pub Vec<Advisory>);
+pub struct Organization(pub Arc<[Advisory]>);
+
+impl From<Arc<[Advisory]>> for Organization {
+    fn from(value: Arc<[Advisory]>) -> Self {
+        Self(value)
+    }
+}
+
+impl From<Vec<Advisory>> for Organization {
+    fn from(value: Vec<Advisory>) -> Self {
+        let arc: Arc<[Advisory]> = value.into();
+        arc.into()
+    }
+}
 
 impl Organization {
-    /// Initialize [`Organization`] to the number of desired advisories
-    /// Initialize each advisory with quotas
-    fn new(student_count: i16, advisory_count: i16) -> Self {
-        let students_per_advisory = student_count / advisory_count;
-
-        Self(vec![
-            Advisory::new(students_per_advisory);
-            advisory_count as usize
-        ])
+    /// Allocate a vector of advisories of the appropriate size for the number of students and
+    /// advisories
+    fn allocate_advisories(student_count: u16, advisory_count: u16) -> Vec<Advisory> {
+        vec![Advisory::new(student_count / advisory_count); advisory_count as usize]
     }
 
     /// Assign teachers to advisories in accordance with the groupings passed in
-    fn assign_teachers(&mut self, teacher_groupings: &[Vec<Teacher>]) {
-        for (index, target_advisory) in self.0.iter_mut().enumerate() {
+    fn assign_teachers(advisories: &mut [Advisory], teacher_groupings: Arc<[Arc<[Teacher]>]>) {
+        for (index, target_advisory) in advisories.iter_mut().enumerate() {
             teacher_groupings[index]
                 .iter()
                 .for_each(|t| target_advisory.add_teacher(t.clone()));
@@ -33,27 +42,27 @@ impl Organization {
     }
 
     /// Places students into advisories and returns a vector of them
-    pub async fn generate(form: &Settings, students: Vec<Student>) -> Result<Self, StatusCode> {
+    pub async fn generate(form: &Settings, students: Arc<[Student]>) -> Result<Self, StatusCode> {
         log::trace!("Building advisories");
         form.verify()?;
 
         // define values for later use
-        let student_count: i16 = students.len() as i16;
-        let advisory_count: i16 = form.num_advisories;
+        let student_count: u16 = students.len() as u16;
+        let advisory_count: u16 = form.num_advisories;
 
         // create vector of advisories to fill
-        let mut advisories: Organization = Organization::new(student_count, advisory_count);
+        let mut advisories: Vec<Advisory> =
+            Organization::allocate_advisories(student_count, advisory_count);
 
-        advisories.assign_teachers(&form.teacher_groupings);
+        Organization::assign_teachers(&mut advisories, form.teacher_groupings.clone());
 
         // add students to advisories
-        for student in students {
+        for student in students.iter() {
             let max: Option<usize> = advisories
-                .0
                 .iter()
                 .map(|target_advisory| {
                     target_advisory.calculate_weight(
-                        &student,
+                        student,
                         &form.weights,
                         student_count / advisory_count,
                     )
@@ -62,30 +71,10 @@ impl Organization {
                 .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
                 .map(|(index, _)| index);
             if let Some(max) = max {
-                advisories.0[max].add_student(student);
+                advisories[max].add_student(student.clone());
             }
         }
-        Ok(advisories)
-    }
-}
 
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn new_group() {
-        let advisory_group = Organization::new(10, 5);
-        assert_eq!(advisory_group.0.len(), 5);
-    }
-
-    #[test]
-    fn assign_teachers_to_group() {
-        let teacher_groupings: &[Vec<Teacher>] = &[vec![Teacher::default(); 2]];
-
-        let mut advisory_group = Organization::new(10, 1);
-        advisory_group.assign_teachers(teacher_groupings);
-
-        assert_eq!(advisory_group.0.len(), 1);
+        Ok(advisories.into())
     }
 }

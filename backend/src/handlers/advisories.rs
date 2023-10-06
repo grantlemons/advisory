@@ -8,6 +8,7 @@ use axum::{
     extract::{Extension, Json, State},
     http::StatusCode,
 };
+use std::sync::Arc;
 
 /// Get list of populated advisories based around passed settings and database values
 #[axum_macros::debug_handler]
@@ -20,7 +21,7 @@ pub(crate) async fn get_advisories(
         form.verify()?;
         match &state.graph {
             Some(graph) => {
-                let students: Vec<Student> = Student::get_nodes(graph, user.user_id()).await?;
+                let students: Arc<[Student]> = Student::get_nodes(graph, user.user_id()).await?;
                 Ok(Json(Organization::generate(&form, students).await?))
             }
             None => Err(StatusCode::BAD_GATEWAY),

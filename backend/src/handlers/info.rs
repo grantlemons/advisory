@@ -1,13 +1,14 @@
 use crate::auth::UserData;
 use axum::{http::StatusCode, Extension, Json};
 use serde::Serialize;
+use std::sync::Arc;
 
 #[allow(clippy::missing_docs_in_private_items)]
 #[derive(Debug, Serialize, PartialEq, Eq)]
 /// Information on version and other fields set in the cargo manifest
 pub(crate) struct CrateInfo {
     name: &'static str,
-    authors: Vec<&'static str>,
+    authors: Arc<[&'static str]>,
     version: &'static str,
     description: &'static str,
     license: &'static str,

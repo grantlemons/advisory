@@ -1,11 +1,29 @@
 #![warn(missing_docs, clippy::missing_docs_in_private_items)]
 //! Functions and data types used for generating advisories
 
+use std::sync::Arc;
+
 /// Verify trait for input validation
 pub trait Verify {
     /// Verify whether the data in a struct fits certain defined restraints
     /// Returns an [`axum::http::StatusCode`] type, so errors can be passed through to handlers
     fn verify(&self) -> Result<(), axum::http::StatusCode>;
+}
+
+impl<T: Verify> Verify for Arc<T> {
+    fn verify(&self) -> Result<(), axum::http::StatusCode> {
+        (**self).verify()
+    }
+}
+
+impl<T: Verify> Verify for Arc<[T]> {
+    fn verify(&self) -> Result<(), axum::http::StatusCode> {
+        for i in (**self).iter() {
+            i.verify()?;
+        }
+
+        Ok(())
+    }
 }
 
 /// Indicates that the struct can be represented as a node in the [`neo4rs`] database
@@ -20,7 +38,7 @@ pub trait DatabaseNode {
     ) -> Result<u8, axum::http::StatusCode>;
     /// Add a vector of [`Self`] to the database as individual nodes
     async fn add_multiple_nodes<T: Into<String> + Send>(
-        nodes: Vec<Self>,
+        nodes: &[Self],
         graph: &neo4rs::Graph,
         user_id: T,
         no_duplicates: bool,
@@ -42,7 +60,7 @@ pub trait DatabaseNode {
     async fn get_nodes<T: Into<String> + Send>(
         graph: &neo4rs::Graph,
         user_id: T,
-    ) -> Result<Vec<Self>, axum::http::StatusCode>
+    ) -> Result<Arc<[Self]>, axum::http::StatusCode>
     where
         Self: Sized;
 }
